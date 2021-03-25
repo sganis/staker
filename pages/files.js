@@ -22,7 +22,7 @@ export default function Files(props) {
 } 
 
 export async function getStaticProps() {
-    const res = await fetch('http://localhost:3000/data')
+    const res = await fetch('/api/data')
     const files = await res.json()
     // const files = [
     //     {name : 'server.txt', type: 'file' },
