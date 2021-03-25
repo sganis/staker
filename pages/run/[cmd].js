@@ -2,14 +2,14 @@ import 'bootstrap/dist/css/bootstrap.css';
 
 import { useRouter } from 'next/router'
 
-const Post = () => {
+const RunCmd = () => {
   const router = useRouter()
   const { cmd } = router.query
 
   return <p>Command: {cmd}</p>
 }
 
-export default Post
+export default RunCmd
 
 // export default function RunCmd(props) {
 //     return (

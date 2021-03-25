@@ -22,12 +22,12 @@ export default function Files(props) {
 } 
 
 export async function getStaticProps() {
-    const res = await fetch('/api/data')
-    const files = await res.json()
-    // const files = [
-    //     {name : 'server.txt', type: 'file' },
-    //     {name : 'server2.txt', type: 'file' }
-    //   ];
+    //const res = await fetch('/api/data')
+    //const files = await res.json()
+    const files = [
+        {name : 'server.txt', type: 'file' },
+        {name : 'server2.txt', type: 'file' }
+      ];
     return {
       props: {
         files,
