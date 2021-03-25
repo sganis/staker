@@ -27,6 +27,7 @@ export default RunCmd
 export async function getStaticProps() {
     const router = useRouter()
     const { cmd } = router.query
+    console.log(cmd);
     const res = await fetch('/api/run/' + cmd)
     const js = await res.json()
     const stdout = js.stdout;
