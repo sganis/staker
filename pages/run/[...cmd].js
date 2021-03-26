@@ -1,48 +1,38 @@
-import 'bootstrap/dist/css/bootstrap.css';
-
 import { useRouter } from 'next/router'
 
-const RunCmd = () => {
+const RunCmd = (props) => {
   const router = useRouter()
-  const { cmd } = router.query
-
-  return <p>Command: {cmd}</p>
+  const cmd = router.query.cmd || []
+  console.log(cmd)
+  console.log(props)
+  
+  return (
+    <>
+      <h1>Command: {cmd.join('/')}</h1>
+      <p>Output: {props.stdout}</p>
+      <p>Error: {props.stderr}</p>
+    </>
+  );
 }
 
 export default RunCmd
 
-// export default function RunCmd(props) {
-//     return (
-//         <div>
-//         {props.files.map((f, idx) => {
-//            return (<div key={idx} >
-//             <img src={`/images/${f.type}.png`} width='16'/>&nbsp;
-//             <span>{f.name}</span>
-//             </div>)
-//          })}
-//         </div>
-//       );
-// } 
+export async function getServerSideProps(context) {
+    console.log(context.params);
+    let {cmd} = context.params;
 
-export async function getStaticProps() {
-    const router = useRouter()
-    const { cmd } = router.query
     console.log(cmd);
-    const res = await fetch('/api/run/' + cmd)
-    const js = await res.json()
-    const stdout = js.stdout;
-    const stderr = js.stderr;
+    let url = 'http://localhost:3000/api/run/' + cmd.join('/');
+    console.log(url)
+    const res = await fetch(url);
+    const js = await res.json();
+    
     return {
       props: {
-        stdout: stdout,
-        stderr: stderr
+        stdout: js.stdout,
+        stderr: js.stderr
       },
     }
   }
-export async function getStaticPaths() {
-return {
-    paths: [],
-    fallback: false
-};
-}
+
   
