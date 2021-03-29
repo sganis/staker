@@ -1,7 +1,7 @@
-module.exports = {
-    pluginOptions: {
-      electronBuilder: {
-        removeElectronJunk: false
-      }
-    }
-  }
+// module.exports = {
+//     pluginOptions: {
+//       electronBuilder: {
+//         removeElectronJunk: false
+//       }
+//     }
+//   }

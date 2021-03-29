@@ -1,17 +1,32 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
-const validChannels = ['READ_FILE', 'WRITE_FILE'];
+const channels = [
+  'READ_FILE', 
+  'RUN_LOCAL',
+  'RUN_REMOTE',
+];
+
 contextBridge.exposeInMainWorld(
   'ipc', {
     send: (channel, data) => {
-      if (validChannels.includes(channel)) {
+      if (channels.includes(channel)) {
         ipcRenderer.send(channel, data);
+      } else {
+        console.log('invalid send channel: ' + channel);
+      }
+    },
+    invoke: (channel, ...args) => {
+      if (channels.includes(channel)) {
+        return ipcRenderer.invoke(channel, ...args);
+      } else {
+        console.log('invalid send channel: ' + channel);
       }
     },
     on: (channel, func) => {
-      if (validChannels.includes(channel)) {
-        // Strip event as it includes `sender` and is a security risk
+      if (channels.includes(channel)) {
         ipcRenderer.on(channel, (event, ...args) => func(...args));
+      } else {
+        console.log('invalid reply channel: ' + channel);
       }
     },
   },

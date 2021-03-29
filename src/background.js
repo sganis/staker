@@ -1,12 +1,16 @@
 'use strict'
 
-import { app, protocol, BrowserWindow, ipcMain } from 'electron'
+import { app, protocol, BrowserWindow} from 'electron'
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
 import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer'
-const isDevelopment = process.env.NODE_ENV !== 'production'
+import {runLocal, runRemote} from './util'
+import {CHANNELS} from './constants'
+
 const path = require('path');
-const exec = require('child_process').spawnSync;
 const fs = require('fs');
+const {ipcMain} = require('electron');
+
+const isDevelopment = process.env.NODE_ENV !== 'production'
 
 // Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([
@@ -82,24 +86,18 @@ if (isDevelopment) {
   }
 }
 
+// IPC
 
+ipcMain.handle(CHANNELS.RUN_LOCAL, async (e, ...cmd) => {
+  let result = await runLocal(...cmd);
+  console.log('result from local cmd: '+ JSON.stringify(result));
+  return result;
+});
 
-
-ipcMain.on('READ_FILE', (event, payload) => {
-  const content = fs.readFileSync(payload.path);
-  event.reply('READ_FILE', { content });
+ipcMain.handle(CHANNELS.RUN_REMOTE, async (e, ...cmd) => {
+  let result = await runRemote(...cmd);
+  console.log('result from remote cmd: '+ JSON.stringify(result));
+  return result;
 });
 
 
-function handler(req, res) {
-    console.log(req.body)
-    let cmd = req.body.cmd
-    console.log(cmd); 
-    let p = exec(cmd, { shell: true, encoding:'utf8' });
-    console.log(p);
-    res.status(200).json({ 
-        cmd: cmd,
-        stdout: p.stdout.toString().trim(),
-        stderr: p.stderr.toString().trim(),
-    })
-}
