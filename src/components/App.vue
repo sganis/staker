@@ -1,6 +1,6 @@
 <template>
 <div class="container-sm">
-  <HostForm v-if="!submitted" @submit="submitted = true"/>
+  <Host v-if="!submitted" @submit="submitted = true"/>
   <!-- <Command title="Staker" :stdout="stdout" :stderr="stderr"/> -->
   <h1 v-else class="message">Done!</h1>
 </div>
@@ -8,20 +8,18 @@
 
 <script>
 //import Command from './Command.vue'
-import HostForm from '@/components/HostForm'
-import {IPC} from '@/constants'
+import Host from '@/components/Host'
+import {IPC} from '@/shared/constants'
 
 export default {
-  name: 'App',
-  components: {
-    //Command, 
-    HostForm
-  },
+  components: { Host },
   data() {
     return {
       stdout : '',
       stderr: '',
-      submitted: false
+      submitted: false,
+      loading: false
+
     }
   },
   mounted() { },

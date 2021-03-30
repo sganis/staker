@@ -6,6 +6,9 @@ const host = '192.168.100.203';
 const username = 'san';
 const pkeypath = 'C:\\Users\\San\\.ssh\\id_rsa'
 
+export function setGlogal(key, value) {
+  
+}
 
 export function runRemote(cmd) {
     return new Promise(resolve => {

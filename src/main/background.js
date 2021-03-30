@@ -2,15 +2,19 @@
 import { app, protocol, BrowserWindow} from 'electron'
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
 import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer'
-import {runLocal, runRemote} from './util'
-import {IPC} from './constants'
+import {runLocal, runRemote} from '@/main/util'
+import {IPC} from '@/shared/constants'
+import {Store} from '@/main/store';
 
 const path = require('path');
 //const fs = require('fs');
-const Store = require('./Store');
 const {ipcMain} = require('electron');
+const os = require('os');
 
 const isDevelopment = process.env.NODE_ENV !== 'production'
+const username = os.userInfo().username;
+const globals = {}
+globals.username = username;
 
 // Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([
@@ -124,4 +128,12 @@ ipcMain.handle(IPC.RUN_REMOTE, async (e, ...cmd) => {
   return result;
 });
 
+ipcMain.handle(IPC.SET_VAR, (e, action, key, value) => {
+  if (action === 'set') {
+    globals[key] = value;
+    return null;
+  } else {
+    return Object.keys(globals).find(key) > 0 ? globals[key] : '';
+  }
+});
 
