@@ -6,7 +6,7 @@
 
 <script>
 import Command from './Command.vue'
-import {CHANNELS} from '../constants'
+import {IPC} from '../constants'
 
 export default {
   name: 'App',
@@ -22,12 +22,12 @@ export default {
   mounted() { },
   methods: {
     async runLocal(cmd) {
-      const r = await window.ipc.invoke(CHANNELS.RUN_LOCAL, cmd);
+      const r = await window.ipc.invoke(IPC.RUN_LOCAL, cmd);
       this.stdout = r.stdout;
       this.stderr = r.stderr;
     },
     async runRemote(cmd) {
-      const r = await window.ipc.invoke(CHANNELS.RUN_REMOTE, cmd);
+      const r = await window.ipc.invoke(IPC.RUN_REMOTE, cmd);
       this.stdout = r.stdout;
       this.stderr = r.stderr;
     },    

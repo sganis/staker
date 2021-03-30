@@ -4,7 +4,7 @@ import { app, protocol, BrowserWindow} from 'electron'
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
 import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer'
 import {runLocal, runRemote} from './util'
-import {CHANNELS} from './constants'
+import {IPC} from './constants'
 
 const path = require('path');
 const fs = require('fs');
@@ -88,13 +88,13 @@ if (isDevelopment) {
 
 // IPC
 
-ipcMain.handle(CHANNELS.RUN_LOCAL, async (e, ...cmd) => {
+ipcMain.handle(IPC.RUN_LOCAL, async (e, ...cmd) => {
   let result = await runLocal(...cmd);
   console.log('result from local cmd: '+ JSON.stringify(result));
   return result;
 });
 
-ipcMain.handle(CHANNELS.RUN_REMOTE, async (e, ...cmd) => {
+ipcMain.handle(IPC.RUN_REMOTE, async (e, ...cmd) => {
   let result = await runRemote(...cmd);
   console.log('result from remote cmd: '+ JSON.stringify(result));
   return result;
