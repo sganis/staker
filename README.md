@@ -1,4 +1,4 @@
-![Build status](https://github.com/sganis/staker/actions/workflows/ci.yml/badge.svg)
+[![Build status](https://github.com/sganis/staker/actions/workflows/ci.yml/badge.svg)](https://github.com/sganis/staker/actions/workflows/ci.yml)
 
 # staker
 
