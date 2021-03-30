@@ -1,29 +1,38 @@
 const { contextBridge, ipcRenderer } = require('electron');
+//import {IPC} from "../src/shared/constants"
 
-const channels = [
-  'READ_FILE', 
-  'RUN_LOCAL',
-  'RUN_REMOTE',
-];
+// duplicated from @/shared/constants
+const IPC = {
+  SETTINGS : "SETTINGS",
+  RUN_LOCAL : "RUN_LOCAL",
+  RUN_REMOTE : "RUN_REMOTE",
+}
 
 contextBridge.exposeInMainWorld(
   'ipc', {
-    send: (channel, data) => {
-      if (channels.includes(channel)) {
-        ipcRenderer.send(channel, data);
+    send: (channel, ...args) => {
+      if (channel in IPC) {
+        ipcRenderer.send(channel, ...args);
+      } else {
+        console.log('invalid send channel: ' + channel);
+      }
+    },
+    sendSync: (channel, ...args) => {
+      if (channel in IPC) {
+        return ipcRenderer.sendSync(channel, ...args);
       } else {
         console.log('invalid send channel: ' + channel);
       }
     },
     invoke: (channel, ...args) => {
-      if (channels.includes(channel)) {
+      if (channel in IPC) {
         return ipcRenderer.invoke(channel, ...args);
       } else {
         console.log('invalid send channel: ' + channel);
       }
     },
     on: (channel, func) => {
-      if (channels.includes(channel)) {
+      if (channel in IPC) {
         ipcRenderer.on(channel, (event, ...args) => func(...args));
       } else {
         console.log('invalid reply channel: ' + channel);
