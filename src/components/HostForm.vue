@@ -1,26 +1,50 @@
 <template>
   <div>
     <h1>Host</h1>
-    <form @submit="connect($event)">
-    <div class="mb-3"><input v-model="hostname" id="host" placeholder="IP or hostname" class="form-control"/>  </div>     
-    <div class="mb-3"><input @click="submit" value="Connect" type="submit" class="btn btn-primary"/>  </div> 
+    <form novalidate @submit.prevent="onSubmit">
+      <div class="form-group ">
+      <input id="hostname" v-model="dat.host" placeholder="Hostname or IP" class="form-control"/>  
+      </div>
+      <div class="form-group top10">
+      <input id="hostname" v-model="dat.user" placeholder="User name" class="form-control"/>  
+      </div>
+      <div class="form-group top10">
+      <input value="Connect" type="submit" class="btn btn-primary"/>  
+      </div>
     </form>
     <br/>
     </div>
-    <pre>{{error.length !== 0 ? error : ''}}</pre>
+    <Error :message="error" />
+    <div><pre>{{dat}}</pre></div>
 </template>
 
 <script>
+import {ref} from 'vue';
+import Error from "@/components/Error.vue"
+
 export default {
-  name: 'HostForm',
-  data: function () {
+  components : {
+    Error,
+  },
+  setup() {
+    const dat = ref({
+      host : '',
+      user : ''
+    });
+    const error = ref('');
+
+    function onSubmit() {
+      error.value = 'not implemented';
+    }
     return {
-      error : '',
-      hostname : ''
-  }},
+      dat, onSubmit,error
+    };
+  },
+  name: 'HostForm',
   props: ['host'],
+
   methods: {
-    submit () {
+    submit: function () {
       this.$emit('submit')
     },
     connect: function (e) {
@@ -37,4 +61,5 @@ export default {
 h3 {
   margin: 40px 0 0;
 }
+.top10 { margin-top:10px; }
 </style>

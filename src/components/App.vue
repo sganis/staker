@@ -8,8 +8,8 @@
 
 <script>
 //import Command from './Command.vue'
-import HostForm from './HostForm.vue'
-import {IPC} from '../constants'
+import HostForm from '@/components/HostForm.vue'
+import {IPC} from '@/constants'
 
 export default {
   name: 'App',
