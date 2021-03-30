@@ -1,5 +1,6 @@
 # staker
 ADA stake pool manager app
-
-> yarn
-> yarn electron:serve
+- > git clone https://github.com/sganis/staker.git
+- > cd staker
+- > yarn
+- > yarn electron:serve

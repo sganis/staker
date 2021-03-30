@@ -1,7 +1,8 @@
-// module.exports = {
-//     pluginOptions: {
-//       electronBuilder: {
-//         removeElectronJunk: false
-//       }
-//     }
-//   }
+module.exports = {
+    pluginOptions: {
+        electronBuilder: {
+            mainProcessFile: 'src/background.js',
+            rendererProcessFile: 'src/app.js'
+        },
+    },
+};

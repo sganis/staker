@@ -91,3 +91,6 @@ export function runLocal(cmd) {
     })   
 }
 
+export function sum(a, b) {
+    return a + b;
+}

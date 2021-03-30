@@ -1,13 +1,13 @@
 'use strict'
-
 import { app, protocol, BrowserWindow} from 'electron'
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
 import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer'
 import {runLocal, runRemote} from './util'
-import {CHANNELS} from './constants'
+import {IPC} from './constants'
 
 const path = require('path');
-const fs = require('fs');
+//const fs = require('fs');
+const Store = require('./Store');
 const {ipcMain} = require('electron');
 
 const isDevelopment = process.env.NODE_ENV !== 'production'
@@ -17,11 +17,24 @@ protocol.registerSchemesAsPrivileged([
   { scheme: 'app', privileges: { secure: true, standard: true } }
 ])
 
+
+// First instantiate the class
+const store = new Store({
+  // We'll call our data file 'user-preferences'
+  configName: 'config',
+  defaults: {
+    // 800x600 is the default size of our window
+    windowBounds: { x: 0, y: 0, width: 800, height: 600 },
+  }
+});
+
+
 async function createWindow() {
+  const {x, y, width, height} = store.get('windowBounds');
   // Create the browser window.
   const win = new BrowserWindow({
-    width: 800,
-    height: 600,    
+    width: width,
+    height: height,    
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
@@ -29,6 +42,18 @@ async function createWindow() {
       preload: path.resolve(__static, 'preload.js'),
     },
   })
+  // window position
+  win.setPosition(x, y);
+  // The BrowserWindow class extends the node.js core EventEmitter class, so we use that API
+  // to listen to events on the BrowserWindow. The resize event is emitted when the window size changes.
+  win.on('close', () => {
+    // The event doesn't pass us the window size, so we call the `getBounds` method which returns an object with
+    // the height, width, and x and y coordinates.
+    let rect = win.getBounds();
+    // Now that we have them, save them using the `set` method.
+    store.set('windowBounds', rect);
+  });
+
 
   if (process.env.WEBPACK_DEV_SERVER_URL) {
     // Load the url of the dev server if in development mode
@@ -87,14 +112,13 @@ if (isDevelopment) {
 }
 
 // IPC
-
-ipcMain.handle(CHANNELS.RUN_LOCAL, async (e, ...cmd) => {
+ipcMain.handle(IPC.RUN_LOCAL, async (e, ...cmd) => {
   let result = await runLocal(...cmd);
   console.log('result from local cmd: '+ JSON.stringify(result));
   return result;
 });
 
-ipcMain.handle(CHANNELS.RUN_REMOTE, async (e, ...cmd) => {
+ipcMain.handle(IPC.RUN_REMOTE, async (e, ...cmd) => {
   let result = await runRemote(...cmd);
   console.log('result from remote cmd: '+ JSON.stringify(result));
   return result;
