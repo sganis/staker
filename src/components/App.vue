@@ -1,22 +1,27 @@
 <template>
 <div class="container-sm">
-  <Command title="Staker" :stdout="stdout" :stderr="stderr"/>
+  <HostForm v-if="!submitted" @submit="submitted = true"/>
+  <!-- <Command title="Staker" :stdout="stdout" :stderr="stderr"/> -->
+  <h1 v-else class="message">Done!</h1>
 </div>
 </template>
 
 <script>
-import Command from './Command.vue'
-import {IPC} from '../constants'
+//import Command from './Command.vue'
+import HostForm from '@/components/HostForm'
+import {IPC} from '@/constants'
 
 export default {
   name: 'App',
   components: {
-    Command
+    //Command, 
+    HostForm
   },
   data() {
     return {
       stdout : '',
-      stderr: ''
+      stderr: '',
+      submitted: false
     }
   },
   mounted() { },
@@ -30,7 +35,13 @@ export default {
       const r = await window.ipc.invoke(IPC.RUN_REMOTE, cmd);
       this.stdout = r.stdout;
       this.stderr = r.stderr;
-    },    
+    }, 
+    async connectHost(hostname) {
+      const r = await window.ipc.invoke(IPC.CONNECT_HOST, hostname);
+      this.stdout = r.stdout;
+      this.stderr = r.stderr;
+    },
+   
   },
 }
 </script>
