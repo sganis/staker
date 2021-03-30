@@ -2,9 +2,7 @@
 
 # staker
 
-
-
-ADA stake pool manager app
+Stake pool manager app
 - > git clone https://github.com/sganis/staker.git
 - > cd staker
 - > yarn
