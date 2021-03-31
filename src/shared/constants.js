@@ -1,5 +1,9 @@
-export const IPC = {
-    SETTINGS : "SETTINGS",
+const IPC = {
+    GET_SETTINGS : "GET_SETTINGS",
+    SET_SETTINGS : "SET_SETTINGS",
     RUN_LOCAL : "RUN_LOCAL",
     RUN_REMOTE : "RUN_REMOTE",
+    CONNECT_HOST : "CONNECT_HOST",
 }
+
+export { IPC };

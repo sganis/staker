@@ -10,8 +10,6 @@
 //import Command from './Command.vue'
 import Host from '@/components/Host'
 import {IPC} from '@/shared/constants'
-//import {getSettings} from "@/renderer/ipc"
-//console.log('user: '+ getSettings('username'));
 
 
 export default {
@@ -35,6 +33,7 @@ export default {
       const r = await window.ipc.invoke(IPC.RUN_LOCAL, cmd);
       this.stdout = r.stdout;
       this.stderr = r.stderr;
+      
     },
     async runRemote(cmd) {
       const r = await window.ipc.invoke(IPC.RUN_REMOTE, cmd);

@@ -26,24 +26,36 @@
 import {ref} from 'vue';
 import Error from "@/components/Error"
 import Loading from "@/components/Loading"
-import {runLocal} from "@/renderer/ipc"
+import {connectHost} from "@/renderer/ipc"
+import {getSettings, setSettings} from "@/renderer/ipc"
+
 
 export default {
   components : { Error, Loading },
   setup() {
     const dat = ref({
-      host : '',
-      user : ''
+      host : getSettings('hostname', 'localhost'),
+      user : getSettings('username')
     });
     const error = ref('');
     const loading = ref(false);
     const message = ref('')
 
     function onSubmit() {
-      this.loading = true;
-      runLocal(dat.value.host).then((r)  => {
-        error.value = r.stderr;
+      loading.value = true;     
+      message.value = `Connecting to ${dat.value.host}...`;
+      connectHost(dat.value.host, dat.value.user).then((r)  => {
+        console.log(r)
+        
+        if (r.stderr === '' && r.rc === 0) {
+          message.value = r.stdout;
+        } else {
+          error.value = r.stderr;
+        }
         this.loading = false;
+        setSettings('hostname', dat.value.host);
+        setSettings('username', dat.value.user);
+        
       });
     }
 

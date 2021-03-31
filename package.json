@@ -8,6 +8,9 @@
     "postinstall": "electron-builder install-app-deps",
     "test": "jest"
   },
+  "jest": {
+    "setupFilesAfterEnv": ["jest-os-detection"]
+  },
   "main": "background.js",
   "dependencies": {
     "@popperjs/core": "^2.9.1",
@@ -31,6 +34,7 @@
     "eslint": "^6.7.2",
     "eslint-plugin-vue": "^7.0.0",
     "jest": "^26.6.3",
+    "jest-os-detection": "^1.3.1",
     "vue-cli-plugin-electron-builder": "~2.0.0-rc.6"
   },
   "eslintConfig": {

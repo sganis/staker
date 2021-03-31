@@ -3,10 +3,15 @@ const { contextBridge, ipcRenderer } = require('electron');
 
 // duplicated from @/shared/constants
 const IPC = {
-  SETTINGS : "SETTINGS",
+  GET_SETTINGS : "GET_SETTINGS",
+  SET_SETTINGS : "SET_SETTINGS",
   RUN_LOCAL : "RUN_LOCAL",
   RUN_REMOTE : "RUN_REMOTE",
+  CONNECT_HOST : "CONNECT_HOST",
+
 }
+// cannot export in this file
+//export {IPC}
 
 contextBridge.exposeInMainWorld(
   'ipc', {

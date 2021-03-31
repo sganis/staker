@@ -2,7 +2,7 @@
 import { app, protocol, BrowserWindow} from 'electron'
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
 import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer'
-import {runLocal, runRemote} from '@/main/util'
+import {runLocal, runRemote, connectHost} from '@/main/util'
 import {IPC} from '@/shared/constants'
 import {Settings} from '@/main/settings';
 
@@ -11,10 +11,7 @@ const {ipcMain} = require('electron');
 const os = require('os');
 
 const isDevelopment = process.env.NODE_ENV !== 'production'
-const username = os.userInfo().username;
-
-const globals = {}
-globals.username = username;
+const username = os.userInfo().username.toLocaleLowerCase();
 
 // Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([
@@ -31,7 +28,7 @@ const settings = new Settings({
     windowBounds: { x: 0, y: 0, width: 800, height: 600 },
   }
 });
-
+settings.set('username', username);
 
 async function createWindow() {
   const {x, y, width, height} = settings.get('windowBounds');
@@ -116,24 +113,19 @@ if (isDevelopment) {
 }
 
 // IPC
-ipcMain.handle(IPC.RUN_LOCAL, async (e, ...cmd) => {
-  let result = await runLocal(...cmd);
-  console.log('result from local cmd: '+ JSON.stringify(result));
-  return result;
+// sync reply to sendSync
+ipcMain.on(IPC.GET_SETTINGS, (e, key, defaults) => {
+  e.returnValue = settings.get(key, defaults);
+});
+ipcMain.on(IPC.SET_SETTINGS, (e, key, value) => {
+  settings.set(key, value);
+  e.returnValue = value;
 });
 
-ipcMain.handle(IPC.RUN_REMOTE, async (e, ...cmd) => {
-  let result = await runRemote(...cmd);
-  console.log('result from remote cmd: '+ JSON.stringify(result));
-  return result;
-});
+// async/await reply to invoke
+ipcMain.handle(IPC.RUN_LOCAL, async (e, ...args) => { return await runLocal(...args);});
+ipcMain.handle(IPC.RUN_REMOTE, async (e, ...args) => { return await runRemote(...args);});
+ipcMain.handle(IPC.CONNECT_HOST, async (e, ...args) => { return await connectHost(...args);});
 
-ipcMain.handle(IPC.SETTINGS, (e, action, key, value) => {
-  if (action === 'set') {
-    settings.set(key, value);
-    e.returnValue = '';
-  } else {
-    e.returnValue = settings.get(key);
-  }
-});
+
 
