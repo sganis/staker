@@ -1,0 +1,21 @@
+# Staker CI
+version: 1.0.0.{build}
+image:
+  - Visual Studio 2019
+platform:
+  - x64
+configuration:
+  - Release
+clone_depth: 1
+cache:
+  - C:\cache
+install:
+  - dir C:\cache >nul 2>&1 || mkdir C:\cache
+# before_build:
+#   - wslconfig /u Ubuntu-18.04
+#   - ps: tools\setup_wsl.ps1
+#   - C:\Python37\python -m pip install --disable-pip-version-check paramiko >NUL
+#   - C:\Python37\python tools\setupssh.py support@localhost support
+build_script:
+  - yarn
+  - yarn test
