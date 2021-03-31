@@ -18,4 +18,5 @@ install:
 #   - C:\Python37\python tools\setupssh.py support@localhost support
 build_script:
   - yarn
-  - yarn test
+  - yarn build
+  
