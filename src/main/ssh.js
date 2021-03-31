@@ -1,22 +1,26 @@
 const Client = require('ssh2').Client
-const spawn = require('child_process').spawn;
 const readFileSync = require('fs').readFileSync;
 
-const pkeypath = 'C:\\Users\\San\\.ssh\\id_rsa'
-let pkey = readFileSync(pkeypath);
-
-export class SshClient {
+export class Ssh {
     constructor(args) {
         args = args || {}
         this.host = args.host;
         this.user = args.user;
         this.port = args.port || 22;
-        this.pkey = args.pkey || pkey;
+        this.pkeypath = args.pkeypath || null;
         this.pass = args.pass || null;
         this.cmd = '';
         this.timeout = args.timeout || 20000;
         this.connected = false;
         this.conn = new Client();
+        if (this.pkeypath) {
+            try {
+                this.pkey = readFileSync(this.pkeypath);
+            } catch (e) {
+                console.log(e);
+            }
+        }
+        
     }
 
     isConnected() {

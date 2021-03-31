@@ -10,25 +10,30 @@ const path = require('path');
 const {ipcMain} = require('electron');
 const os = require('os');
 
+// settings
+const settings = new Settings({
+  configName: 'config',
+  defaults: {
+    windowBounds: { x: 0, y: 0, width: 800, height: 600 },
+  }
+});
+
 const isDevelopment = process.env.NODE_ENV !== 'production'
 const username = os.userInfo().username.toLocaleLowerCase();
+const homedir = process.env.USERPROFILE || process.env.HOME; 
+const pkeypath = path.join(homedir, '.ssh', 'id_rsa');
+
+settings.set('username', username);
+settings.set('homedir', homedir);
+settings.set('pkeypath', pkeypath);
+settings.set('isDevelopment', isDevelopment);
+
 
 // Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([
   { scheme: 'app', privileges: { secure: true, standard: true } }
 ])
 
-
-// First instantiate the class
-const settings = new Settings({
-  // We'll call our data file 'user-preferences'
-  configName: 'config',
-  defaults: {
-    // 800x600 is the default size of our window
-    windowBounds: { x: 0, y: 0, width: 800, height: 600 },
-  }
-});
-settings.set('username', username);
 
 async function createWindow() {
   const {x, y, width, height} = settings.get('windowBounds');
