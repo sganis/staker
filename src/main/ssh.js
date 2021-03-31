@@ -12,7 +12,6 @@ export class Ssh {
         this.cmd = '';
         this.timeout = args.timeout || 20000;
         this.connected = false;
-        this.conn = new Client();
         if (this.pkeypath) {
             try {
                 this.pkey = readFileSync(this.pkeypath);
@@ -26,17 +25,24 @@ export class Ssh {
     isConnected() {
         return this.connected;
     }
-    close() {
+    async close() {
         let that = this;
-        return new Promise(resolve => { resolve(that.conn.end()) });        
+        return new Promise(resolve => {
+            that.connected = false;
+
+            resolve(that.conn ? that.conn.end() : false); 
+        });        
     }
-    connectHost() {
+
+    async connect() {
+        // connect and auth
+        this.conn = new Client();
         let that = this;
+        
         return new Promise(resolve => {
             that.conn.on('ready', function() {
                 // auth success
                 that.connected = true;
-                console.log('setting connected to true');
                 resolve({
                     stdout: '',
                     stderr: '',
@@ -44,12 +50,13 @@ export class Ssh {
                 })
             })
             that.conn.on('close', (e) => {
-                //console.log('connection closed.');
-                resolve();
+                resolve({
+                    stdout: '',
+                    stderr: 'connection closed',
+                    rc : 0
+                });
             })
             that.conn.on('error', function(e) {
-                console.log(e);            
-                console.log('error, level: '+ e.level +', desc: '+ e.description);            
                 let msg = e.toString();
                 if (e.level === 'client-timeout') {
                     msg = 'Timed out';
@@ -68,63 +75,58 @@ export class Ssh {
                 })
             })
             that.conn.connect({
-                host: this.host,
-                port: this.port,
-                username: this.user,
-                privateKey: this.pkey,
-                readyTimeout: this.timeout, 
+                host: that.host,
+                port: that.port,
+                username: that.user,
+                privateKey: that.pkey,
+                readyTimeout: that.timeout, 
+                keepaliveInterval: 60000 
             }); 
         })
     }
-    
-    exec(cmd, timeout=20000) {
-        this.timeout = timeout;
+
+    async exec(cmd) {
+        let that = this;
         this.cmd = cmd;
-        if (!connected) {
-            this.conn.connect({
-                host: this.host,
-                port: this.port,
-                username: this.user,
-                privateKey: this.pkey,
-                readyTimeout: this.timeout_ms,
-            });
+        if (!that.connected) {
+            console.log('Reconnecting...');
+            let r = await that.connect();
+            if (r.rc !== 0) {
+                return new Promise(resolve => {
+                    resolve({
+                        stdout: '',
+                        stderr: 'Not connected',
+                        rc : -1
+                    });
+                });
+            }
         }
+        return new Promise(resolve => {
+            that.conn.exec(cmd, function(err, stream) {
+                let stdout = '';
+                let stderr = '';
+                if (err) {
+                    resolve({
+                        cmd : cmd,
+                        stderr: err,
+                        stdout: '',
+                        code : -100
+                    });
+                }
+                stream.on('close', function(code, signal) {
+                    resolve({ 
+                        cmd: cmd,
+                        stdout: stdout.trim(),
+                        stderr: stderr.trim(),
+                        rc : code
+                    } );
+                }).on('data', function(data) {
+                    stdout += data;           
+                }).stderr.on('data', function(data) {
+                    stderr += data;
+                });
+            });                
+        })
     }
 }
-
-export function connectHost(host, user) {
-    return new Promise(resolve => {
-        var conn = new Client();
-
-        conn.on('ready', function() {
-            // auth success
-            resolve(true)
-        })
-        conn.on('error', function(e) {
-            console.log(e);            
-            console.log('error, level: '+ e.level +', desc: '+ e.description);            
-            let msg = e.toString();
-            if (e.level === 'client-timeout') {
-                msg = 'Timed out';
-            } else if (e.level === 'client-socket') {
-                msg = 'Connection refused';
-            } else if (e.level === 'client-authentication') {
-                msg = 'Authentication failed';
-            }
-            resolve({
-                stdout: '',
-                stderr: msg,
-                rc : -1
-            })
-        })
-        conn.connect({
-            host: host,
-            port: 22,
-            username: user,
-            privateKey: pkey,
-            readyTimeout: 5000, // 2 secs
-        });    
-    })
-}
-
 
