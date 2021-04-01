@@ -14,9 +14,12 @@ clone_depth: 1
 cache:
   - C:\cache
 install:
+  - node -v
   - cmd: powershell Install-Product node $env:nodejs_version
   - sh: nvm install $nodejs_version
   - npm install yarn -g
+  - node -v
+  - yarn -v
   # before_build:
   #   - dir C:\cache >nul 2>&1 || mkdir C:\cache
   #   - wslconfig /u Ubuntu-18.04
