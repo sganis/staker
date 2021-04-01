@@ -2,7 +2,8 @@
 import { app, protocol, BrowserWindow} from 'electron'
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
 import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer'
-import {runLocal, runRemote, connectHost} from '@/main/util'
+import {runLocal, runRemote} from '@/main/command'
+import {connectHost} from '@/main/util'
 import {IPC} from '@/shared/constants'
 import {Settings} from '@/main/settings';
 
