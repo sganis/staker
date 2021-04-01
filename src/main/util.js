@@ -1,4 +1,4 @@
-import {Ssh} from "@/main/ssh"
+import {Ssh} from "./ssh"
 
 // to test jest
 export function sum(a, b) {

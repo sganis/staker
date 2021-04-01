@@ -44,17 +44,19 @@ export default {
 
     function onSubmit() {
       loading.value = true;     
-      message.value = `Connecting to ${dat.value.host}...`;
-      connectHost(dat.value.host, dat.value.user).then((r)  => {
+      let host = dat.value.host;
+      let user = dat.value.user;
+      message.value = `Connecting to ${host}...`;
+      connectHost(host, user).then((r)  => {
         //console.log(r)        
         if (r.stderr === '' && r.rc === 0) {
-          message.value = "Connected to "+ dat.value.host;
+          message.value = `Connected to ${host}`;
         } else {
           error.value = r.stderr;
         }
         this.loading = false;
-        setSettings('hostname', dat.value.host);
-        setSettings('username', dat.value.user);
+        setSettings('hostname', host);
+        setSettings('username', user);
 
       });
     }

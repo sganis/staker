@@ -135,3 +135,9 @@ export class Ssh {
     }
 }
 
+export async function generateKeys(user, host) {
+    console.log('Generating new ssh keys...');
+    let seckey = pkeypath;
+    let pubkey = pkeypath + '.pub';
+    
+}
