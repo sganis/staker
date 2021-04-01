@@ -9,7 +9,7 @@ platform:
 configuration:
   - Release
 environment:
-  nodejs_version: "16"
+  nodejs_version: "14.16.0"
 clone_depth: 1
 cache:
   - C:\cache
