@@ -19,7 +19,8 @@
     </div>
     <Error :message="error" />
     <Loading :loading="loading" :message="message"/>
-    <div><pre>{{dat}} {{loading}}</pre></div>
+    <div>{{message}}</div>
+    <div><pre>{{dat}}</pre></div>
 </template>
 
 <script>
@@ -45,17 +46,16 @@ export default {
       loading.value = true;     
       message.value = `Connecting to ${dat.value.host}...`;
       connectHost(dat.value.host, dat.value.user).then((r)  => {
-        console.log(r)
-        
+        //console.log(r)        
         if (r.stderr === '' && r.rc === 0) {
-          message.value = r.stdout;
+          message.value = "Connected to "+ dat.value.host;
         } else {
           error.value = r.stderr;
         }
         this.loading = false;
         setSettings('hostname', dat.value.host);
         setSettings('username', dat.value.user);
-        
+
       });
     }
 

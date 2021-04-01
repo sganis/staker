@@ -3,35 +3,37 @@ const path = require('path');
 
 const homedir = process.env.USERPROFILE || process.env.HOME; 
 const pkeypath = path.join(homedir, '.ssh', 'id_rsa');
+const HOSTNAME = '192.168.100.203';
+const USER = 'san';
 
 describe.onWindows("Ssh tests", () => {
     test('Constructor', async () => {
-        let ssh = new Ssh({host:'192.168.100.203', user:'san'});
+        let ssh = new Ssh({host:HOSTNAME, user:USER});
         expect(ssh.isConnected()).toEqual(false);
         await ssh.close();
     });
     test('Connect', async () => {
-        let ssh = new Ssh({host:'192.168.100.203', user:'san', pkeypath: pkeypath});
+        let ssh = new Ssh({host:HOSTNAME, user:USER, pkeypath: pkeypath});
         let r = await ssh.connect()
         expect(ssh.isConnected()).toEqual(true);  
         await ssh.close();                    
     });
     test('Connect timeout', async () => {
-        let ssh = new Ssh({host:'192.168.100.203', user:'san', timeout:1});
+        let ssh = new Ssh({host:HOSTNAME, user:USER, timeout:1});
         let r = await ssh.connect()
         expect(ssh.isConnected()).toEqual(false);
         expect(r.stderr).toEqual('Timed out');              
         await ssh.close();
     });
     test('Connect wrong port', async () => {
-        let ssh = new Ssh({host:'192.168.100.203', user:'san', port:24});
+        let ssh = new Ssh({host:HOSTNAME, user:USER, port:24});
         let r = await ssh.connect()
         expect(ssh.isConnected()).toEqual(false);
         expect(r.stderr).toEqual('Connection refused');
         await ssh.close();
     });
     test('Run command', async () => {
-        let ssh = new Ssh({host:'192.168.100.203', user:'san', pkeypath: pkeypath});
+        let ssh = new Ssh({host:HOSTNAME, user:USER, pkeypath: pkeypath});
         let r = await ssh.connect()
         expect(ssh.isConnected()).toEqual(true);
         r = await ssh.exec('echo ok')
@@ -44,7 +46,7 @@ describe.onWindows("Ssh tests", () => {
         await ssh.close();
     });
     test('Reconnect', async () => {
-        let ssh = new Ssh({host:'192.168.100.203', user:'san', pkeypath: pkeypath});
+        let ssh = new Ssh({host:HOSTNAME, user:USER, pkeypath: pkeypath});
         let r = await ssh.connect()
         expect(ssh.isConnected()).toEqual(true);
         await ssh.close();
@@ -58,7 +60,7 @@ describe.onWindows("Ssh tests", () => {
     });
 
     test('Parralel connect', async () => {
-        let ssh = new Ssh({host:'192.168.100.203', user:'san', pkeypath: pkeypath});
+        let ssh = new Ssh({host:HOSTNAME, user:USER, pkeypath: pkeypath});
         await ssh.connect()
         expect(ssh.isConnected()).toEqual(true);
         const arr = Array.from(Array(10).keys());

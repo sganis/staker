@@ -1,5 +1,9 @@
 const Client = require('ssh2').Client
+const path = require('path')
 const readFileSync = require('fs').readFileSync;
+const homedir = process.env.USERPROFILE || process.env.HOME; 
+const pkeypath = path.join(homedir, '.ssh', 'id_rsa');
+
 
 export class Ssh {
     constructor(args) {
@@ -7,8 +11,8 @@ export class Ssh {
         this.host = args.host;
         this.user = args.user;
         this.port = args.port || 22;
-        this.pkeypath = args.pkeypath || null;
-        this.pass = args.pass || null;
+        this.pkeypath = args.pkeypath || pkeypath;
+        this.password = args.password || '';
         this.cmd = '';
         this.timeout = args.timeout || 20000;
         this.connected = false;
@@ -78,9 +82,10 @@ export class Ssh {
                 host: that.host,
                 port: that.port,
                 username: that.user,
+                password: that.password,
                 privateKey: that.pkey,
                 readyTimeout: that.timeout, 
-                keepaliveInterval: 60000 
+                keepaliveInterval: 60000
             }); 
         })
     }
@@ -89,7 +94,7 @@ export class Ssh {
         let that = this;
         this.cmd = cmd;
         if (!that.connected) {
-            console.log('Reconnecting...');
+            //console.log(`Reconnecting with cmd: ${cmd}...`);
             let r = await that.connect();
             if (r.rc !== 0) {
                 return new Promise(resolve => {
