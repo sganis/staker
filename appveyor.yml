@@ -15,8 +15,7 @@ cache:
   - C:\cache
 install:
   - node -v
-  - cmd: powershell Install-Product node $env:nodejs_version
-  - sh: nvm install $nodejs_version
+  # - sh: nvm install $nodejs_version
   - npm install yarn -g
   - node -v
   - yarn -v
