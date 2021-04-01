@@ -9,13 +9,14 @@ platform:
 configuration:
   - Release
 environment:
-  nodejs_version: "14.16.0"
+  nodejs_version: "14"
 clone_depth: 1
 cache:
   - C:\cache
 install:
   - node -v
-  # - sh: nvm install $nodejs_version
+  # - ps: Update-NodeJsInstallation (Get-NodeJsLatestBuild $env:nodejs_version) $env:PLATFORM
+  - sh: nvm install $nodejs_version
   - npm install yarn -g
   - node -v
   - yarn -v
