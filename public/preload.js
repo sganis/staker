@@ -8,7 +8,7 @@ const IPC = {
   RUN_LOCAL : "RUN_LOCAL",
   RUN_REMOTE : "RUN_REMOTE",
   CONNECT_HOST : "CONNECT_HOST",
-
+  NOTIFY: "NOTIFY",
 }
 // cannot export in this file
 //export {IPC}
@@ -45,3 +45,4 @@ contextBridge.exposeInMainWorld(
     },
   },
 );
+

@@ -7,6 +7,7 @@ const pkeypath = path.join(homedir, '.ssh', 'id_rsa');
 
 export class Ssh {
     constructor(args) {
+        console.log(args);
         args = args || {}
         this.host = args.host;
         this.user = args.user;
@@ -21,6 +22,7 @@ export class Ssh {
                 this.pkey = readFileSync(this.pkeypath);
             } catch (e) {
                 console.log(e);
+                this.pkey = '';
             }
         }
         
@@ -83,7 +85,7 @@ export class Ssh {
                 port: that.port,
                 username: that.user,
                 password: that.password,
-                privateKey: that.pkey,
+                //privateKey: that.pkey,
                 readyTimeout: that.timeout, 
                 keepaliveInterval: 60000
             }); 
@@ -139,5 +141,5 @@ export async function generateKeys(user, host) {
     console.log('Generating new ssh keys...');
     let seckey = pkeypath;
     let pubkey = pkeypath + '.pub';
-    
+
 }

@@ -7,8 +7,12 @@
           class="form-control"/>  
       </div>
       <div class="form-group top10">
-        <input id="hostname" v-model="dat.user" placeholder="User name" 
+        <input id="username" v-model="dat.user" placeholder="User name" 
           class="form-control"/>  
+      </div>
+      <div class="form-group top10">
+        <input id="password" v-model="dat.password" type="password" placeholder="Password" 
+          v-if="need_password" class="form-control"/>  
       </div>
       <div class="form-group top10">
         <input value="Connect" type="submit" class="btn btn-primary"
@@ -18,9 +22,9 @@
     <br/>
     </div>
     <Error :message="error" />
-    <Loading :loading="loading" :message="message"/>
+    <!-- <Loading :loading="loading" :message="msg"/> -->
     <div>{{message}}</div>
-    <div><pre>{{dat}}</pre></div>
+    <!-- <div><pre>{{dat}}</pre></div> -->
 </template>
 
 <script>
@@ -29,43 +33,59 @@ import Error from "@/components/Error"
 import Loading from "@/components/Loading"
 import {connectHost} from "@/renderer/ipc"
 import {getSettings, setSettings} from "@/renderer/ipc"
-
+//import {IPC} from "@/shared/constants"
 
 export default {
   components : { Error, Loading },
   setup() {
     const dat = ref({
       host : getSettings('hostname', 'localhost'),
-      user : getSettings('username')
+      user : getSettings('username'),
+      password : '',
     });
     const error = ref('');
     const loading = ref(false);
     const message = ref('')
+    const need_password = ref(false);
 
-    function onSubmit() {
+    async function onSubmit() {
       loading.value = true;     
       let host = dat.value.host;
       let user = dat.value.user;
+      let pass = dat.value.password;
+      error.value = ''
+      need_password.value = false;
       message.value = `Connecting to ${host}...`;
-      connectHost(host, user).then((r)  => {
-        //console.log(r)        
-        if (r.stderr === '' && r.rc === 0) {
-          message.value = `Connected to ${host}`;
-        } else {
-          error.value = r.stderr;
+      
+      let r = await connectHost(host, user, pass);
+      if (r.stderr ===  '' && r.rc === 0) {
+        message.value = `Connected to ${host}: ${r.stdout}`;
+        dat.value.password = '';
+        
+        //window.ipc.send(IPC.NOTIFY, 'Connected', message.value);
+        
+        // test ssh keys and generate if needed
+
+
+      } else {
+        error.value = r.stderr;
+        message.value = '';
+        if (r.stderr.includes('Authentication')) {
+          need_password.value = true;
         }
-        this.loading = false;
-        setSettings('hostname', host);
-        setSettings('username', user);
-
-      });
+      }        
+      this.loading = false;
+      setSettings('hostname', host);
+      setSettings('username', user);
     }
-
+    
+    
     return {
-      dat, onSubmit,error,loading,message
+      dat,onSubmit,error,loading,message,need_password
     };
   },
 
+  
   props: ['host'],
   emits: ['submit'],
   methods: {

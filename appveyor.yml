@@ -14,9 +14,11 @@ clone_depth: 1
 cache:
   - C:\cache
 install:
-  - node -v
+  # install node in linux and mac, not needed in windows
   # - ps: Update-NodeJsInstallation (Get-NodeJsLatestBuild $env:nodejs_version) $env:PLATFORM
+  - node -v
   - sh: nvm install $nodejs_version
+  # install yarn
   - npm install yarn -g
   - node -v
   - yarn -v

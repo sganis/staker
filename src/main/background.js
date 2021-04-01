@@ -7,8 +7,9 @@ import {connectHost} from '@/main/util'
 import {IPC} from '@/shared/constants'
 import {Settings} from '@/main/settings';
 
+const {ipcMain, Notification} = require('electron');
+
 const path = require('path');
-const {ipcMain} = require('electron');
 const os = require('os');
 
 // settings
@@ -120,18 +121,21 @@ if (isDevelopment) {
 
 // IPC
 // sync reply to sendSync
-ipcMain.on(IPC.GET_SETTINGS, (e, key, defaults) => {
+ipcMain.on(IPC.GET_SETTINGS, (e, key, defaults) => { 
   e.returnValue = settings.get(key, defaults);
 });
-ipcMain.on(IPC.SET_SETTINGS, (e, key, value) => {
-  settings.set(key, value);
+ipcMain.on(IPC.SET_SETTINGS, (e, key, value) => { 
+  settings.set(key, value);  
   e.returnValue = value;
+});
+ipcMain.on(IPC.NOTIFY, (_, title, msg) => { 
+  new Notification({title: 'Staker', subtitle: title, body: msg, silent: true}).show() ;
 });
 
 // async/await reply to invoke
-ipcMain.handle(IPC.RUN_LOCAL, async (e, ...args) => { return await runLocal(...args);});
-ipcMain.handle(IPC.RUN_REMOTE, async (e, ...args) => { return await runRemote(...args);});
-ipcMain.handle(IPC.CONNECT_HOST, async (e, ...args) => { return await connectHost(...args);});
+ipcMain.handle(IPC.RUN_LOCAL, async (_, ...args) => { return await runLocal(...args);});
+ipcMain.handle(IPC.RUN_REMOTE, async (_, ...args) => { return await runRemote(...args);});
+ipcMain.handle(IPC.CONNECT_HOST, async (_, ...args) => { return await connectHost(...args);});
 
 
 
