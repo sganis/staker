@@ -21,7 +21,7 @@ install:
   #   - ps: tools\setup_wsl.ps1
   #   - C:\Python37\python -m pip install --disable-pip-version-check paramiko >NUL
   #   - C:\Python37\python tools\setupssh.py support@localhost support
-build: off
-build_script:
+build:
   - yarn
   - yarn build
+test: off
