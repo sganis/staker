@@ -3,7 +3,7 @@ version: 1.0.0.{build}
 image:
   - Visual Studio 2019
   - Ubuntu
-  - macos
+  - macOS
 platform:
   - x64
 configuration:
@@ -21,4 +21,3 @@ install:
 build_script:
   - yarn
   - yarn build
-  
