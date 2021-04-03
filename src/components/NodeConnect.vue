@@ -1,18 +1,18 @@
 <template>
-  <div>
-    <h1>Host</h1>
-    <form novalidate @submit.prevent="onSubmit">
+  <div class="container p-5">
+    <h1>Connect</h1>
+    <form @submit.prevent="onSubmit">
       <div class="form-group ">
         <input id="hostname" v-model="dat.host" placeholder="Hostname or IP" 
-          class="form-control"/>  
+          class="form-control" required />  
       </div>
       <div class="form-group top10">
-        <input id="username" v-model="dat.user" placeholder="User name" 
-          class="form-control"/>  
+        <input id="username" type="text" v-model="dat.user" placeholder="User name" 
+          class="form-control" required />  
       </div>
       <div class="form-group top10">
-        <input id="password" v-model="dat.password" type="password" placeholder="Password" 
-          v-if="need_password" class="form-control"/>  
+        <input id="password" v-model="dat.password" type="password" 
+          placeholder="Password" v-if="need_password" class="form-control"/>  
       </div>
       <div class="form-group top10">
         <input value="Connect" type="submit" class="btn btn-primary"
@@ -22,7 +22,6 @@
     <br/>
     </div>
     <Error :message="error" />
-    <!-- <Loading :loading="loading" :message="msg"/> -->
     <div>{{message}}</div>
     <!-- <div><pre>{{dat}}</pre></div> -->
 </template>
@@ -34,10 +33,12 @@ import Loading from "@/components/Loading"
 import {connectHost} from "@/renderer/ipc"
 import {getSettings, setSettings} from "@/renderer/ipc"
 //import {IPC} from "@/shared/constants"
+import {useStore} from 'vuex';
 
 export default {
   components : { Error, Loading },
   setup() {
+
     const dat = ref({
       host : getSettings('hostname', 'localhost'),
       user : getSettings('username'),
@@ -47,6 +48,7 @@ export default {
     const loading = ref(false);
     const message = ref('')
     const need_password = ref(false);
+    const store = useStore();
 
     async function onSubmit() {
       loading.value = true;     
@@ -61,9 +63,13 @@ export default {
       if (r.stderr ===  '' && r.rc === 0) {
         message.value = `Connected to ${host}: ${r.stdout}`;
         dat.value.password = '';
-        
+        store.commit('addNode', {name: host, ip: host, role: ""});   
+        //console.log(store.state.nodes);
+        // persist list of nodes
+        setSettings('nodes', JSON.parse(JSON.stringify(store.state.nodes)));
+       
         //window.ipc.send(IPC.NOTIFY, 'Connected', message.value);
-        
+       
         // test ssh keys and generate if needed
 
 

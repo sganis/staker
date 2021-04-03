@@ -85,7 +85,7 @@ export class Ssh {
                 port: that.port,
                 username: that.user,
                 password: that.password,
-                //privateKey: that.pkey,
+                privateKey: that.pkey,
                 readyTimeout: that.timeout, 
                 keepaliveInterval: 60000
             }); 

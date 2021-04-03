@@ -9,6 +9,7 @@ const IPC = {
   RUN_REMOTE : "RUN_REMOTE",
   CONNECT_HOST : "CONNECT_HOST",
   NOTIFY: "NOTIFY",
+  GET_NODES: "GET_NODES",
 }
 // cannot export in this file
 //export {IPC}
