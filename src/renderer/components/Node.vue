@@ -13,7 +13,7 @@
 
 <script>
 
-import NodeConnect from "@/components/NodeConnect"
+import NodeConnect from "./NodeConnect"
 
 export default {
   components: {NodeConnect},

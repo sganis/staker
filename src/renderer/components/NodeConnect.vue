@@ -28,11 +28,9 @@
 
 <script>
 import {ref} from 'vue';
-import Error from "@/components/Error"
-import Loading from "@/components/Loading"
-import {connectHost} from "@/renderer/ipc"
-import {getSettings, setSettings} from "@/renderer/ipc"
-//import {IPC} from "@/shared/constants"
+import Error from "./Error"
+import Loading from "./Loading"
+import {getSettings, setSettings, connectHost} from "../ipc"
 import {useStore} from 'vuex';
 
 export default {

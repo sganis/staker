@@ -1,18 +1,5 @@
 const { contextBridge, ipcRenderer } = require('electron');
-//import {IPC} from "../src/shared/constants"
-
-// duplicated from @/shared/constants
-const IPC = {
-  GET_SETTINGS : "GET_SETTINGS",
-  SET_SETTINGS : "SET_SETTINGS",
-  RUN_LOCAL : "RUN_LOCAL",
-  RUN_REMOTE : "RUN_REMOTE",
-  CONNECT_HOST : "CONNECT_HOST",
-  NOTIFY: "NOTIFY",
-  GET_NODES: "GET_NODES",
-}
-// cannot export in this file
-//export {IPC}
+import {IPC} from "../common/constants"
 
 contextBridge.exposeInMainWorld(
   'ipc', {

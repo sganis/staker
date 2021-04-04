@@ -4,7 +4,7 @@ import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
 import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer'
 import {runLocal, runRemote} from '@/main/command'
 import {connectHost} from '@/main/util'
-import {IPC} from '@/shared/constants'
+import {IPC} from '@/common/constants'
 import {Settings} from '@/main/settings';
 
 const {ipcMain, Notification} = require('electron');
@@ -47,7 +47,8 @@ async function createWindow() {
       nodeIntegration: false,
       contextIsolation: true,
       enableRemoteModule: false,
-      preload: path.resolve(__static, 'preload.js'),
+      //preload: path.resolve(__static, 'preload.js'),
+      preload: path.join(__dirname, './preload.js'),
     },
   })
   // window position

@@ -22,7 +22,7 @@
 
 <script>
 import {ref} from 'vue';
-import {IPC} from "@/shared/constants"
+import {IPC} from "../../common/constants"
 import {mapState, mapGetters, useStore} from 'vuex'
 
 export default {

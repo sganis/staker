@@ -1,8 +1,9 @@
 module.exports = {
     pluginOptions: {
         electronBuilder: {
-            mainProcessFile: 'src/main/background.js',
-            rendererProcessFile: 'src/renderer/app.js'
-        },
+            mainProcessFile: 'src/main/index.js',
+            rendererProcessFile: 'src/renderer/index.js',
+            preload: 'src/main/preload.js',            
+        },        
     },
 };

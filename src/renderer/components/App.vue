@@ -12,8 +12,8 @@
 </template>
 
 <script>
-import TopBar from '@/components/layouts/TopBar'
-import BottomBar from '@/components/layouts/BottomBar'
+import TopBar from './layouts/TopBar'
+import BottomBar from './layouts/BottomBar'
 //import Host from '@/components/Host'
 //import {IPC} from '@/shared/constants'
 

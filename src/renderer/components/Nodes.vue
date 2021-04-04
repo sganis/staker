@@ -8,8 +8,8 @@
 </template>
 
 <script>
-import NodeList from "@/components/NodeList"
-import Node from "@/components/Node"
+import NodeList from "./NodeList"
+import Node from "./Node"
 
 export default {
     components: { NodeList, Node, },

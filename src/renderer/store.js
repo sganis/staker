@@ -13,11 +13,14 @@ const store = createStore({
         //         return state.nodes.find(nodes => nodes.ip === ip);
         //     }
         // },
-        getNodeByIp: (state) => (ip) => state.nodes.find(nodes => nodes.ip === ip)
+        getNodeByIp: (state) => (ip) => {
+            return state.nodes.find(nodes => nodes.ip === ip);
+        }
     },
     mutations: {
         setNodes(state, nodes) {
-            state.nodes = nodes;  
+            //state.nodes = nodes;  // problem! this removes reactivity
+            state.nodes.concat(nodes);
             //window.ipc.sendSync(IPC.SET_SETTINGS, 'nodes', nodes);          
             //setSettings('nodes', nodes);
         },

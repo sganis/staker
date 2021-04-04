@@ -31,54 +31,8 @@ export async function runLocal(cmd) {
     })   
 }
 
-
 export async function runRemote(host, user, cmd) {
     let ssh = new Ssh({host:host,user: user});
     await ssh.connect();
     return ssh.exec(cmd);
-    
-    // return new Promise(resolve => {
-    //     console.log(cmd); 
-    //     let pkey = readFileSync(pkeypath);
-    //     var conn = new Client();
-    //     let result = { 
-    //         cmd: cmd,
-    //         stdout: '',
-    //         stderr: '',
-    //         rc : 0
-    //     } 
-    //     conn.on('ready', function() {
-    //     //console.log('Client :: ready');
-    //     let stdout = '';
-    //     let stderr = '';
-    //     conn.exec(cmd, function(err, stream) {
-    //         if (err) {
-    //             result.stderr= err;
-    //             result.code = -100;
-    //             resolve(result);
-    //         }
-    //         stream.on('close', function(code, signal) {
-    //             conn.end();
-    //             result = { 
-    //                 cmd: cmd,
-    //                 stdout: stdout.trim(),
-    //                 stderr: stderr.trim(),
-    //                 rc : code
-    //             } 
-    //             resolve(result);
-    //         }).on('data', function(data) {
-    //             //console.log('stdout:' + data);
-    //             stdout += data;           
-    //         }).stderr.on('data', function(data) {
-    //             //console.log('sterr:' + data);
-    //             stderr += data;
-    //         });
-    //     });
-    //     }).connect({
-    //         host: host,
-    //         port: 22,
-    //         username: user,
-    //         privateKey: pkey
-    //     });    
-    // })
 }

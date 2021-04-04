@@ -1,4 +1,4 @@
-import {IPC} from '@/shared/constants'
+import {IPC} from '@/common/constants'
 
 // sync
 export function getSettings(key, defaults='') {
