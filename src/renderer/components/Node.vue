@@ -6,9 +6,7 @@
         </div>
         <div class="row h-100 flex-grow-1 p-0 m-0">
           <NodeConnect v-if="node && !node.connected"/>
-          <div v-if="node && node.connected">
-            {{node}}
-          </div>
+          <NodeStatus v-if="node && node.connected"/>
         </div>
     </div>
 </div>

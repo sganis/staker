@@ -24,31 +24,31 @@
 <script>
 import {ref} from 'vue';
 import {IPC, MUT} from "../../common/constants"
-import { computed } from 'vue'
 import {mapState, mapGetters, useStore} from 'vuex'
 
 export default {
-  setup() {
-    const store = useStore();
-    let nodes = store.state.nodes;
-    console.log(nodes)
-    console.log('value of nodes: ' + nodes.value)
-    if (!nodes.value) {
-      nodes = window.ipc.sendSync(IPC.GET_NODES);
-      store.commit(MUT.SET_NODES, nodes);
-      console.log(nodes);
+  data() {
+    return {
+
+    }
+  },
+  computed: {
+    nodes() {  return this.$store.state.nodes; } 
+  },
+  mounted() {
+    let nodes = this.$store.state.nodes;
+    console.log('value of nodes: ' + this.$store.state.nodes)
+    if (nodes.length === 0) {
+      window.ipc.sendSync(IPC.GET_NODES).forEach((n) => {
+        this.$store.commit(MUT.UPDATE_NODE, n)
+      });
+
+
+      //this.$store.commit(MUT.SET_NODES, _nodes);
+      //console.log('after commit: ' +  JSON.stringify(this.$store.state.nodes));
     } else {
       console.log('nodes loaded from store');
-    }    
-    return {
-      nodes: computed(() => store.state.nodes),
-      
-      // increment: () => store.dispatch('increment'),
-      // decrement: () => store.dispatch('decrement'),
-      // incrementIfOdd: () => store.dispatch('incrementIfOdd'),
-      // incrementAsync: () => store.dispatch('incrementAsync')    
-
-     }
+    }        
   },
 
   methods: {  

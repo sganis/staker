@@ -12,6 +12,7 @@ const IPC = {
 const MUT = {
     SET_NODES : "SET_NODES",
     ADD_NODE : "ADD_NODE",
+    UPDATE_NODE : "UPDATE_NODE",
 }
 // vuex actions
 const ACT = {

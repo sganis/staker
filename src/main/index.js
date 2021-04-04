@@ -132,7 +132,10 @@ ipcMain.on(IPC.SET_SETTINGS, (e, key, value) => {
 ipcMain.on(IPC.NOTIFY, (_, title, msg) => { 
   new Notification({title: 'Staker', subtitle: title, body: msg, silent: true}).show() ;
 });
-ipcMain.on(IPC.GET_NODES, (e) => {  e.returnValue = settings.get('nodes');});
+ipcMain.on(IPC.GET_NODES, (e) => { 
+  console.log('GET_NODES: '+ settings.get('nodes'));
+   e.returnValue = settings.get('nodes');
+  });
 
 // async/await reply to invoke
 ipcMain.handle(IPC.RUN_LOCAL, async (_, ...args) => { return await runLocal(...args);});

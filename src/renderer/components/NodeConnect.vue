@@ -64,11 +64,11 @@ export default {
       if (r.stderr ===  '' && r.rc === 0) {
         message.value = `Connected to ${host}: ${r.stdout}`;
         dat.value.password = '';
-        store.commit(MUT.ADD_NODE, {name: host, ip: host, role: ""});   
+        store.commit(MUT.UPDATE_NODE, {name: host, ip: host, role: "", connected: true});   
         //console.log(store.state.nodes);
         // persist list of nodes
-        setSettings('nodes', JSON.parse(JSON.stringify(store.state.nodes)));
-       
+        //setSettings('nodes', JSON.parse(JSON.stringify(store.state.nodes)));
+        
         //window.ipc.send(IPC.NOTIFY, 'Connected', message.value);
        
         // test ssh keys and generate if needed
