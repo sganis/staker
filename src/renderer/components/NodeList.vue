@@ -9,7 +9,8 @@
             <!-- <a href="#" class="list-group-item list-group-item-action list-group-item-success">
               192.168.100.202
             </a> -->
-            <a href="#" @click="showNode(node.ip)" class="list-group-item list-group-item-action"
+            <a href="#" @click="showNode(node.ip)"
+                class="list-group-item list-group-item-action"
                 v-for="node in nodes" :key="node.ip">{{node.ip}}</a>
           </div>
         </div>
@@ -22,7 +23,8 @@
 
 <script>
 import {ref} from 'vue';
-import {IPC} from "../../common/constants"
+import {IPC, MUT} from "../../common/constants"
+import { computed } from 'vue'
 import {mapState, mapGetters, useStore} from 'vuex'
 
 export default {
@@ -30,19 +32,25 @@ export default {
     const store = useStore();
     let nodes = store.state.nodes;
     console.log(nodes)
+    console.log('value of nodes: ' + nodes.value)
     if (!nodes.value) {
       nodes = window.ipc.sendSync(IPC.GET_NODES);
-      store.commit('setNodes', nodes);
+      store.commit(MUT.SET_NODES, nodes);
       console.log(nodes);
     } else {
       console.log('nodes loaded from store');
     }    
-    return { }
+    return {
+      nodes: computed(() => store.state.nodes),
+      
+      // increment: () => store.dispatch('increment'),
+      // decrement: () => store.dispatch('decrement'),
+      // incrementIfOdd: () => store.dispatch('incrementIfOdd'),
+      // incrementAsync: () => store.dispatch('incrementAsync')    
+
+     }
   },
-  computed: {
-    ...mapState(['count', 'nodes']),
-    ...mapGetters(['getNodeByIp']),
-  },
+
   methods: {  
     showNode(id) {
       this.$router.push(`/nodes/${id}`);

@@ -31,7 +31,9 @@ import {ref} from 'vue';
 import Error from "./Error"
 import Loading from "./Loading"
 import {getSettings, setSettings, connectHost} from "../ipc"
+import {MUT} from '@/common/constants'
 import {useStore} from 'vuex';
+import {useRouter} from 'vue-router';
 
 export default {
   components : { Error, Loading },
@@ -47,6 +49,7 @@ export default {
     const message = ref('')
     const need_password = ref(false);
     const store = useStore();
+    const router = useRouter();
 
     async function onSubmit() {
       loading.value = true;     
@@ -61,7 +64,7 @@ export default {
       if (r.stderr ===  '' && r.rc === 0) {
         message.value = `Connected to ${host}: ${r.stdout}`;
         dat.value.password = '';
-        store.commit('addNode', {name: host, ip: host, role: ""});   
+        store.commit(MUT.ADD_NODE, {name: host, ip: host, role: ""});   
         //console.log(store.state.nodes);
         // persist list of nodes
         setSettings('nodes', JSON.parse(JSON.stringify(store.state.nodes)));
@@ -70,6 +73,7 @@ export default {
        
         // test ssh keys and generate if needed
 
+        router.push(`/nodes/${host}`);
 
       } else {
         error.value = r.stderr;
@@ -92,13 +96,13 @@ export default {
   
   props: ['host'],
   emits: ['submit'],
-  methods: {
-    connect: function (e) {
-      e.preventDefault();
-      this.$parent.connectHost(this.hostname);
-    },
+  // methods: {
+  //   connect: function (e) {
+  //     e.preventDefault();
+  //     this.$parent.connectHost(this.hostname);
+  //   },
    
-  }
+  // }
 }
 </script>
 

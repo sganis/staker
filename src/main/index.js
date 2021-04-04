@@ -21,7 +21,7 @@ const settings = new Settings({
 });
 
 const isDevelopment = process.env.NODE_ENV !== 'production'
-const username = os.userInfo().username.toLocaleLowerCase();
+const username = settings.get('username') || os.userInfo().username.toLocaleLowerCase();
 const homedir = process.env.USERPROFILE || process.env.HOME; 
 const pkeypath = path.join(homedir, '.ssh', 'id_rsa');
 

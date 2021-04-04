@@ -2,10 +2,13 @@
 <div>
     <div class="d-flex flex-column h-100 bg-gray p-0 m-0" >
         <div class="row p-2 w-100 m-0">
-          <p class="text-end"><strong>Node: {{node}}</strong></p>  
+          <p class="text-end"><strong>Node</strong></p>  
         </div>
         <div class="row h-100 flex-grow-1 p-0 m-0">
-          <NodeConnect/>
+          <NodeConnect v-if="node && !node.connected"/>
+          <div v-if="node && node.connected">
+            {{node}}
+          </div>
         </div>
     </div>
 </div>
@@ -17,9 +20,9 @@ import NodeConnect from "./NodeConnect"
 
 export default {
   components: {NodeConnect},
-  props: ['id'],
+  props: ['node'],
   computed: {
-    node: function () {return this.$store.getters.getNodeByIp(this.id)},
+    //node: function () {return this.$store.getters.getNodeByIp(this.node.ip)},
   }
 }
 </script>

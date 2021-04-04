@@ -2,7 +2,7 @@
     <div class="row flex-grow-1">
         <NodeList/>
         <div class="col p-0">
-           <Node :id="$route.params.id"/>
+           <Node :node="node"/>
         </div>
     </div>
 </template>
@@ -15,16 +15,17 @@ export default {
     components: { NodeList, Node, },
     data() {
       return {
-      id: 0
+        //node: null
     }},
     computed: {
-      // nodeid() {
-        // this.id = this.$route.params.id;
+      // ...mapGetters([
+      //   'getNodeByIp',
+      // ]),
+      node() {
+        return this.$store.getters.getNodeByIp(this.$route.params.id);
         // console.log('node id: '+ this.id);
-        // //let nodes = window.ipc.sendSync(IPC.GET_NODES);
-        // //return nodes[0];
         // return this.id;
-      // }
+      }
   },
 }
 </script>

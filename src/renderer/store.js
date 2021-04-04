@@ -1,5 +1,5 @@
 import {createStore} from 'vuex'
-//import setSettings from "@/renderer/ipc"
+import {MUT,ACT} from "../common/constants"
 
 const store = createStore({
     state() {
@@ -8,23 +8,19 @@ const store = createStore({
         }
     },
     getters: {
-        // getNodesByIp(state) {
-        //     return function (ip) {
-        //         return state.nodes.find(nodes => nodes.ip === ip);
-        //     }
-        // },
         getNodeByIp: (state) => (ip) => {
             return state.nodes.find(nodes => nodes.ip === ip);
         }
     },
     mutations: {
-        setNodes(state, nodes) {
+        [MUT.SET_NODES](state, nodes) {
             //state.nodes = nodes;  // problem! this removes reactivity
             state.nodes.concat(nodes);
+            console.log('after concatenation: '+state.nodes)
             //window.ipc.sendSync(IPC.SET_SETTINGS, 'nodes', nodes);          
             //setSettings('nodes', nodes);
         },
-        addNode(state, node) {
+        [MUT.ADD_NODE](state, node) {
             if (!(state.nodes.find(n => n.ip === node.ip)))
                 state.nodes.push(node);
             //console.log('store updated');
