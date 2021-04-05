@@ -3,15 +3,15 @@
     <h1>Connect</h1>
     <form @submit.prevent="onSubmit">
       <div class="form-group ">
-        <input id="hostname" v-model="dat.host" placeholder="Hostname or IP" 
+        <input id="hostname" v-model="host" placeholder="Hostname or IP" 
           class="form-control" required />  
       </div>
       <div class="form-group top10">
-        <input id="username" type="text" v-model="dat.user" placeholder="User name" 
+        <input id="username" type="text" v-model="user" placeholder="User name" 
           class="form-control" required />  
       </div>
       <div class="form-group top10">
-        <input id="password" v-model="dat.password" type="password" 
+        <input id="password" v-model="password" type="password" 
           placeholder="Password" v-if="need_password" class="form-control"/>  
       </div>
       <div class="form-group top10">
@@ -27,44 +27,46 @@
 </template>
 
 <script>
-import {ref} from 'vue';
 import Error from "./Error"
 import Loading from "./Loading"
 import {getSettings, setSettings, connectHost} from "../ipc"
 import {MUT} from '@/common/constants'
-import {useStore} from 'vuex';
-import {useRouter} from 'vue-router';
+
 
 export default {
   components : { Error, Loading },
-  setup() {
-
-    const dat = ref({
-      host : getSettings('hostname', 'localhost'),
-      user : getSettings('username'),
-      password : '',
-    });
-    const error = ref('');
-    const loading = ref(false);
-    const message = ref('')
-    const need_password = ref(false);
-    const store = useStore();
-    const router = useRouter();
-
-    async function onSubmit() {
-      loading.value = true;     
-      let host = dat.value.host;
-      let user = dat.value.user;
-      let pass = dat.value.password;
-      error.value = ''
-      need_password.value = false;
-      message.value = `Connecting to ${host}...`;
+  props: ['node'],
+  data() {
+    return {
+      host: this.node.ip,
+      user: getSettings('username'),
+      password: '',
+      need_password: false,
+      loading: false,
+      error: '',
+      message: '',
+    }
+  },
+  watch: {
+    node(newNode,oldNode) {
+      this.host = newNode.ip;
+    },
+  },
+  mounted() {
+    //this.host = this.node.ip;
+  },
+  methods: {
+    onSubmit: async function() {
+      this.loading = true;     
+      this.error = ''
+      this.need_password = false;
+      this.message = `Connecting to ${this.host}...`;
       
-      let r = await connectHost(host, user, pass);
+      let r = await connectHost(this.host, this.user, this.password);
       if (r.stderr ===  '' && r.rc === 0) {
-        message.value = `Connected to ${host}: ${r.stdout}`;
-        dat.value.password = '';
-        store.commit(MUT.UPDATE_NODE, {name: host, ip: host, role: "", connected: true});   
+        this.message = `Connected to ${this.host}: ${r.stdout}`;
+        this.password = '';
+        this.$store.commit(MUT.UPDATE_NODE, {name: this.host, ip: this.host, role: "", connected: true});   
         //console.log(store.state.nodes);
         // persist list of nodes
         //setSettings('nodes', JSON.parse(JSON.stringify(store.state.nodes)));
@@ -73,36 +75,22 @@ export default {
        
         // test ssh keys and generate if needed
 
-        router.push(`/nodes/${host}`);
+        this.$router.push(`/nodes/${this.host}`);
 
       } else {
-        error.value = r.stderr;
-        message.value = '';
+        this.error = r.stderr;
+        this.message = '';
         if (r.stderr.includes('Authentication')) {
-          need_password.value = true;
+          this.need_password = true;
         }
       }        
       this.loading = false;
-      setSettings('hostname', host);
-      setSettings('username', user);
+      setSettings('hostname', this.host);
+      setSettings('username', this.user);
     }
-    
-    
-    return {
-      dat,onSubmit,error,loading,message,need_password
-    };
   },
 
   
-  props: ['host'],
-  emits: ['submit'],
-  // methods: {
-  //   connect: function (e) {
-  //     e.preventDefault();
-  //     this.$parent.connectHost(this.hostname);
-  //   },
-   
-  // }
 }
 </script>
 

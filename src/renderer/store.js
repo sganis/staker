@@ -10,7 +10,10 @@ const store = createStore({
     },
     getters: {
         getNodeByIp: (state) => (ip) => {
-            return state.nodes.find(nodes => nodes.ip === ip);
+            return state.nodes.find(n => n.ip === ip);
+        },
+        getNodeSelected: (state) => () => {
+            return state.nodes.find(n => n.selected);
         }
     },
     mutations: {
@@ -37,17 +40,19 @@ const store = createStore({
                 n.connected = node.connected;
             }
             //console.log('store updated');
+        },
+        setNodeSelected(state, node) {
+            let n = state.nodes.find(n => n.ip === node.ip);
+            if (n) {
+                n.selected = true;
+                console.log('node selected: '+ node.ip)
+            } 
         }
     },
     actions: {
-        // fetchData({commit}) {
-        //     axios.get('/api/nodes')
-        //     .then(r => commit('setNodes', r.nodes));
-        // },
-        // register({commit}, user) {
-        //     axios.get('/api/nodes', user)
-        //     .then(r => commit('setUser', r.data));
-        // },
+        setNodeSelected({commit}, node)  {
+            commit('setNodeSelected', node);
+        }
     }
 });
 

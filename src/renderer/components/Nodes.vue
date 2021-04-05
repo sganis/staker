@@ -22,7 +22,8 @@ export default {
       //   'getNodeByIp',
       // ]),
       node() {
-        return this.$store.getters.getNodeByIp(this.$route.params.id);
+        //return this.$store.getters.getNodeByIp(this.$route.params.id);
+        return this.$store.getters.getNodeSelected();
         // console.log('node id: '+ this.id);
         // return this.id;
       }

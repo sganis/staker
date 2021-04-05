@@ -6,11 +6,9 @@
         </div>
         <div class="row h-100 flex-grow-1 nodelist">
           <div class="list-group rounded-0 borderless p-0">
-            <!-- <a href="#" class="list-group-item list-group-item-action list-group-item-success">
-              192.168.100.202
-            </a> -->
-            <a href="#" @click="showNode(node.ip)"
+            <a href="#" @click="showNode(node)"
                 class="list-group-item list-group-item-action"
+                :class="{active: node.selected}"
                 v-for="node in nodes" :key="node.ip">{{node.ip}}</a>
           </div>
         </div>
@@ -22,9 +20,8 @@
 </template>
 
 <script>
-import {ref} from 'vue';
 import {IPC, MUT} from "../../common/constants"
-import {mapState, mapGetters, useStore} from 'vuex'
+import {mapGetters, mapActions} from 'vuex'
 
 export default {
   data() {
@@ -32,9 +29,12 @@ export default {
 
     }
   },
+  
   computed: {
-    nodes() {  return this.$store.state.nodes; } 
+    nodes() {  return this.$store.state.nodes; },
+    ...mapGetters(['getNodeSelected']),
   },
+
   mounted() {
     let nodes = this.$store.state.nodes;
     console.log('value of nodes: ' + this.$store.state.nodes)
@@ -52,9 +52,13 @@ export default {
   },
 
   methods: {  
-    showNode(id) {
-      this.$router.push(`/nodes/${id}`);
-    }  
+    ...mapActions['setNodeSelected'],      
+    showNode(node) {
+      this.nodes.forEach(n => n.selected = false);
+      this.$store.dispatch('setNodeSelected', node);
+      //this.$router.push(`/nodes/${node.ip}`);
+    },
+    
   }
 
 }
