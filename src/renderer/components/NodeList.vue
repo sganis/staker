@@ -13,7 +13,7 @@
           </div>
         </div>
         <div class="row p-2">
-          <button class="btn btn-primary">Add Node</button>
+          <button @click="addNode()" class="btn btn-primary">Add Node</button>
         </div>
       </div>
     </div>
@@ -31,16 +31,22 @@ export default {
   },
   
   computed: {
-    nodes() {  return this.$store.state.nodes; },
-    ...mapGetters(['getNodeSelected']),
+    ...mapGetters(['getNodes','getNodeSelected']),
+    
+    nodes() { 
+      let n = this.getNodes(); 
+      console.log('getter getNodes: '+ JSON.stringify(n));
+      return n;
+    },
+    
   },
 
   mounted() {
-    let nodes = this.$store.state.nodes;
-    console.log('value of nodes: ' + this.$store.state.nodes)
-    if (nodes.length === 0) {
+    console.log('value of nodes: ' + this.nodes)
+    if (this.nodes.length ===0) {
       window.ipc.sendSync(IPC.GET_NODES).forEach((n) => {
-        this.$store.commit(MUT.UPDATE_NODE, n)
+        console.log('loading from settings....')
+        this.updateNode(n);
       });
 
 
@@ -52,13 +58,16 @@ export default {
   },
 
   methods: {  
-    ...mapActions['setNodeSelected'],      
+    ...mapActions(['updateNode','deselectAllNodes']),  
+
     showNode(node) {
-      this.nodes.forEach(n => n.selected = false);
-      this.$store.dispatch('setNodeSelected', node);
-      //this.$router.push(`/nodes/${node.ip}`);
+      this.deselectAllNodes();     
+      this.updateNode({ip: node.ip, selected: true});
+      this.$router.push(`/nodes/${node.ip}`);
     },
-    
+    addNode() {
+      this.$router.push('/nodes');
+    }
   }
 
 }

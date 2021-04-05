@@ -30,7 +30,7 @@
 import Error from "./Error"
 import Loading from "./Loading"
 import {getSettings, setSettings, connectHost} from "../ipc"
-import {MUT} from '@/common/constants'
+import { mapActions } from 'vuex'
 
 
 export default {
@@ -38,7 +38,7 @@ export default {
   props: ['node'],
   data() {
     return {
-      host: this.node.ip,
+      host: (this.node && this.node.ip) || '',
       user: getSettings('username'),
       password: '',
       need_password: false,
@@ -56,6 +56,7 @@ export default {
     //this.host = this.node.ip;
   },
   methods: {
+    ...mapActions(['updateNode']),
     onSubmit: async function() {
       this.loading = true;     
       this.error = ''
@@ -66,7 +67,14 @@ export default {
       if (r.stderr ===  '' && r.rc === 0) {
         this.message = `Connected to ${this.host}: ${r.stdout}`;
         this.password = '';
-        this.$store.commit(MUT.UPDATE_NODE, {name: this.host, ip: this.host, role: "", connected: true});   
+        this.updateNode({
+          name: this.host, 
+          ip: this.host, 
+          role: "", 
+          selected: true,
+          connected: true,
+          connection: r.object,
+        });   
         //console.log(store.state.nodes);
         // persist list of nodes
         //setSettings('nodes', JSON.parse(JSON.stringify(store.state.nodes)));
@@ -75,7 +83,7 @@ export default {
        
         // test ssh keys and generate if needed
 
-        this.$router.push(`/nodes/${this.host}`);
+        //this.$router.push(`/nodes/${this.host}`);
 
       } else {
         this.error = r.stderr;
@@ -87,7 +95,9 @@ export default {
       this.loading = false;
       setSettings('hostname', this.host);
       setSettings('username', this.user);
-    }
+    },
+    
+    
   },
 
   

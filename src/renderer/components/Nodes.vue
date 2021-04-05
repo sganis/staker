@@ -10,22 +10,18 @@
 <script>
 import NodeList from "./NodeList"
 import Node from "./Node"
+import {mapGetters} from 'vuex'
 
 export default {
     components: { NodeList, Node, },
     data() {
-      return {
-        //node: null
-    }},
+      return {}
+    },
     computed: {
-      // ...mapGetters([
-      //   'getNodeByIp',
-      // ]),
+       ...mapGetters(['getNode','getNodeSelected',]),
       node() {
-        //return this.$store.getters.getNodeByIp(this.$route.params.id);
-        return this.$store.getters.getNodeSelected();
-        // console.log('node id: '+ this.id);
-        // return this.id;
+        //return this.getNodeSelected();
+        return this.getNode(this.$route.params.id);
       }
   },
 }
