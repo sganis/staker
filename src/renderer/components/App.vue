@@ -49,5 +49,8 @@ export default {
   margin-top: 60px;
 }
 
+.btn-width {
+  width: 100px;
+}
 
 </style>

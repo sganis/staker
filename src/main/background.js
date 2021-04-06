@@ -1,14 +1,11 @@
 'use strict'
-import { app, protocol, BrowserWindow} from 'electron'
+import { app, protocol, BrowserWindow, Notification, ipcMain} from 'electron'
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
 import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer'
-import {runLocal, runRemote} from '@/main/command'
+import {runLocal, runRemote, upload, download} from '@/main/command'
 import {connectHost} from '@/main/util'
 import {IPC} from '@/common/constants'
 import {Settings} from '@/main/settings';
-import {Connections} from './ssh'
-
-const {ipcMain, Notification} = require('electron');
 
 const path = require('path');
 const os = require('os');
@@ -54,24 +51,17 @@ async function createWindow() {
   })
   // window position
   win.setPosition(x, y);
-  // The BrowserWindow class extends the node.js core EventEmitter class, so we use that API
-  // to listen to events on the BrowserWindow. The resize event is emitted when the window size changes.
   win.on('close', () => {
-    // The event doesn't pass us the window size, so we call the `getBounds` method which returns an object with
-    // the height, width, and x and y coordinates.
     let rect = win.getBounds();
-    // Now that we have them, save them using the `set` method.
     settings.set('windowBounds', rect);
   });
 
 
   if (process.env.WEBPACK_DEV_SERVER_URL) {
-    // Load the url of the dev server if in development mode
     await win.loadURL(process.env.WEBPACK_DEV_SERVER_URL)
     if (!process.env.IS_TEST) win.webContents.openDevTools()
   } else {
     createProtocol('app')
-    // Load the index.html when not in development
     win.loadURL('app://./index.html')
   }
 }
@@ -142,6 +132,8 @@ ipcMain.on(IPC.GET_NODES, (e) => {
 // async/await reply to invoke
 ipcMain.handle(IPC.RUN_LOCAL, async (_, ...args) => { return await runLocal(...args);});
 ipcMain.handle(IPC.RUN_REMOTE, async (_, ...args) => { return await runRemote(...args);});
+ipcMain.handle(IPC.UPLOAD, async (_, ...args) => { return await upload(...args);});
+ipcMain.handle(IPC.DOWNLOAD, async (_, ...args) => { return await download(...args);});
 ipcMain.handle(IPC.CONNECT_HOST, async (_, ...args) => { return await connectHost(...args);});
 
 

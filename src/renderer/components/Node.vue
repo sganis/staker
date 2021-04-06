@@ -13,12 +13,22 @@
     </div>
     <br/>
     <br/>
+    <br/>
     <div class="row w-100 m-0">
-      <span >
+    <span>
           <button v-if="node && node.connected" :node="node"
             @click="disconnect(node)"
-            class="btn btn-primary btn-sm" >Disconnect </button>
-          </span></div>
+            class="btn btn-primary btn-width" >Disconnect</button>&nbsp;
+          <button v-if="node && node.connected" :node="node"
+            @click="setup(node)"
+            class="btn btn-success btn-width" >Setup</button>
+            <br/>
+            <br/>           
+          <button v-if="node" :node="node"
+            @click="remove(node)"
+            class="btn btn-danger btn-width" >Remove</button>
+         </span>
+         </div>
 </div>
 </template>
 
@@ -35,16 +45,24 @@ export default {
     //node: function () {return this.$store.getters.getNodeByIp(this.node.ip)},
   },
   methods: {
-    ...mapActions(['disconnectNode','deselectAllNodes']),
+    ...mapActions(['disconnectNode','deselectAllNodes','removeNode','setupNode']),
 
     disconnect(node) {
       this.deselectAllNodes();
       this.disconnectNode(node);
+    },
+    setup(node) {
+      this.setupNode(node);
+    },
+    remove(node) {
+      this.deselectAllNodes();
+      this.removeNode(node);
     }
   }
 }
 </script>
 
 <style scoped>
+
 
 </style>

@@ -1,5 +1,6 @@
 const {Ssh} = require('../src/main/ssh');
 const path = require('path');
+const { runLocal } = require('../src/main/command');
 
 const homedir = process.env.USERPROFILE || process.env.HOME; 
 const pkeypath = path.join(homedir, '.ssh', 'id_rsa');
@@ -72,6 +73,20 @@ describe.onWindows("Ssh tests", () => {
         for (let [index, r] of rr.entries()) {
             expect(r.stdout).toBe(index.toString());
         } 
+    });
+    test('Download/upload file', async () => {
+        let ssh = new Ssh({host:HOSTNAME, user:USER, pkeypath: pkeypath});
+        let r = await ssh.connect()
+        expect(ssh.isConnected()).toEqual(true);
+        r = await ssh.download('/etc/os-release','os-release');
+        expect(r.rc).toBe(0);       
+        r = await ssh.upload('os-release','os-release');
+        expect(r.rc).toBe(0);       
+        r = await ssh.exec('diff /etc/os-release os-release');
+        expect(r.stderr).toBe('');
+        expect(r.rc).toBe(0);        
+        await ssh.close();
+        runLocal('del os-release');
     });
 
     test('Nothing', async () => {

@@ -1,5 +1,6 @@
 const Client = require('ssh2').Client
 const path = require('path')
+var fs = require("fs"); 
 const readFileSync = require('fs').readFileSync;
 const homedir = process.env.USERPROFILE || process.env.HOME; 
 const pkeypath = path.join(homedir, '.ssh', 'id_rsa');
@@ -115,16 +116,13 @@ export class Ssh {
         let that = this;
         this.cmd = cmd;
         if (!that.connected) {
-            //console.log(`Reconnecting with cmd: ${cmd}...`);
             let r = await that.connect();
             if (r.rc !== 0) {
-                return new Promise(resolve => {
-                    resolve({
-                        stdout: '',
-                        stderr: 'Not connected',
-                        rc : -1
-                    });
-                });
+                return {
+                    stdout: '',
+                    stderr: 'Not connected',
+                    rc : -1
+                };
             }
         }
         return new Promise(resolve => {
@@ -136,15 +134,15 @@ export class Ssh {
                         cmd : cmd,
                         stderr: err,
                         stdout: '',
-                        code : -100
+                        rc : -100
                     });
                 }
-                stream.on('close', function(code, signal) {
+                stream.on('close', function(rc, signal) {
                     resolve({ 
                         cmd: cmd,
                         stdout: stdout.trim(),
                         stderr: stderr.trim(),
-                        rc : code
+                        rc : rc
                     } );
                 }).on('data', function(data) {
                     stdout += data;           
@@ -152,6 +150,55 @@ export class Ssh {
                     stderr += data;
                 });
             });                
+        })
+    }
+
+    async upload(src, dst) {
+        let that = this;
+        if (!that.connected) {
+            let r = await that.connect();
+            if (r.rc !== 0) {
+                return {stdout: '', stderr: 'Not connected', rc : -1 }
+            }
+        }
+        return new Promise(resolve => {
+            that.conn.sftp(function(err, sftp) {
+                if (err) {
+                    resolve({stderr: err, stdout: '',rc : -100 });                    
+                }
+                let readStream = fs.createReadStream(src);
+                let writeStream = sftp.createWriteStream(dst);        
+                writeStream.on('close',function () {
+                    resolve({stderr: '', stdout: '', rc : 0 });    
+                });        
+                // initiate transfer of file
+                readStream.pipe( writeStream );
+            });
+        })
+    }
+    
+    async download(src, dst) {
+        let that = this;
+        if (!that.connected) {
+            let r = await that.connect();
+            if (r.rc !== 0) {
+                return {stdout: '', stderr: 'Not connected', rc : -1 };
+            }
+        }
+    
+        return new Promise(resolve => {
+            that.conn.sftp(function(err, sftp) {
+                if (err) {
+                    resolve({stderr: err, stdout: '',rc : -100 });                    
+                }
+                sftp.fastGet(src, dst, {}, function(err){
+                    if(err) {
+                        resolve({stderr: err, stdout: '',rc : -100 });
+                    } else {
+                        resolve({stderr: '', stdout: '', rc : 0 });
+                    }
+                });
+            });
         })
     }
 }

@@ -1,4 +1,6 @@
-import { Ssh, connections } from './ssh';
+import { connections } from './ssh';
+import {app} from 'electron';
+import * as path from 'path'
 
 const spawn = require('child_process').spawn;
 
@@ -34,11 +36,20 @@ export async function runLocal(cmd) {
 export async function runRemote(host, cmd) {
     let ssh = connections.get(host);
     if (!ssh) {
-        return {
-            stderr: 'no connection',
-            stdout: '',
-            rc : -1
-        }
+        return {stderr: 'no connection', stdout: '', rc : -1};
     }
     return ssh.exec(cmd);
+}
+
+export async function upload(host, src, dst) {
+    let ssh = connections.get(host);
+    if (!ssh) {
+        return {stderr: 'no connection', stdout: '', rc : -1};
+    }
+    //console.log('appPath: '+path.join(rootPath, 'scripts'));
+    return ssh.upload(path.join(__dirname,'../scripts', src), dst);
+}
+
+export async function download(host, src, dst) {
+    return null
 }

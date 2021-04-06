@@ -1,6 +1,5 @@
-import { nextTick } from 'vue-demi';
 import {createStore} from 'vuex'
-import {runRemote} from './ipc'
+import {runRemote, upload} from './ipc'
 
 const store = createStore({
     state() {
@@ -9,7 +8,7 @@ const store = createStore({
         }
     },
     getters: {
-        getNodes: (state) => state.nodes.filter(n => n.host !== ''),
+        getNodes: (state) => state.nodes.filter(n => n.host !=='') || [],
         getNode: (state) => (host) => state.nodes.find(n => n.host === host),
         getNodeSelected: (state) => state.nodes.find(n => n.selected),  
     },
@@ -17,6 +16,7 @@ const store = createStore({
         updateNode({commit}, n) { commit('updateNode', n); },
         deselectAllNodes({commit}) { commit('deselectAllNodes'); },
         disconnectNode({commit}, n) { commit('disconnectNode', n); },
+        removeNode({commit}, n) { commit('removeNode', n); },
         async updateNodeStatus({commit}, n) { 
             // get node status from ssh
             let r = await runRemote(n.host, 'hostname;uptime;free -m;df -H /');
@@ -27,6 +27,24 @@ const store = createStore({
             }
             // update state
             commit('updateNode', n); 
+        },
+        async setupNode({commit}, n) {
+            let r = await runRemote(n.host, 'mkdir -p .staker');
+            if (r.rc !== 0) {
+                n.status = r.stderr;
+                commit('updateNode', n);
+                return; 
+            }
+
+            let src = 'status.py';
+            let dst = '.staker/status.py'; 
+            r = await upload(n.host, src, dst);
+            if (r.rc === 0) {
+                n.status = r.stdout;
+            } else {
+                n.status = r.stderr;
+            }
+            commit('updateNode', n);
         },
         
     },
@@ -52,9 +70,20 @@ const store = createStore({
         disconnectNode(state, node) {
             const n = state.nodes.find(n => n.host === node.host);
             if (n) {
-                //n.connection.disconect();
-                //n.connection = null;
                 n.connected = false;
+            }
+        },       
+        // setupNode(state, node) {
+        //     const n = state.nodes.find(n => n.host === node.host);
+        //     if (n) {
+        //         n.connected = false;
+        //     }
+        // },       
+        removeNode(state, node) {
+            const i = state.nodes.findIndex(n => n.host === node.host);
+            if (i > -1) {
+                state.nodes[i].connected = false;
+                state.nodes.splice(i,1)
             }
         },       
     },

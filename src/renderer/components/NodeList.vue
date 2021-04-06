@@ -9,7 +9,7 @@
             <a href="#" @click="showNode(node)"
                 class="list-group-item list-group-item-action"
                 :class="{active: node.selected}"
-                v-for="node in nodes" :key="node.host">{{node.host}}</a>
+                v-for="node in getNodes" :key="node.host">{{node.host}}</a>
           </div>
         </div>
         <div class="row p-2">
@@ -24,26 +24,13 @@ import {IPC, MUT} from "../../common/constants"
 import {mapGetters, mapActions} from 'vuex'
 
 export default {
-  data() {
-    return {
-
-    }
-  },
-  
   computed: {
     ...mapGetters(['getNodes','getNodeSelected']),
-    
-    nodes() { 
-      let n = this.getNodes; 
-      //console.log('getter getNodes: '+ JSON.stringify(n));
-      return n;
-    },
-    
   },
 
   mounted() {
     console.log('value of nodes: ' + this.nodes)
-    if (this.nodes.length ===0) {
+    if (this.getNodes.length ===0) {
       let nodes = window.ipc.sendSync(IPC.GET_NODES);
       if (nodes) {
         nodes.forEach((n) => {

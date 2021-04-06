@@ -9,7 +9,9 @@
     "test": "jest"
   },
   "jest": {
-    "setupFilesAfterEnv": ["jest-os-detection"]
+    "setupFilesAfterEnv": [
+      "jest-os-detection"
+    ]
   },
   "main": "background.js",
   "dependencies": {

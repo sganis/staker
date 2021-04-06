@@ -15,7 +15,7 @@
           placeholder="Password" v-if="need_password" class="form-control"/>  
       </div>
       <div class="form-group top10">
-        <input value="Connect" type="submit" class="btn btn-primary"
+        <input value="Connect" type="submit" class="btn btn-primary btn-width"
           :disabled="loading"/>  
       </div>
     </form>
