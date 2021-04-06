@@ -44,10 +44,12 @@ export default {
   mounted() {
     console.log('value of nodes: ' + this.nodes)
     if (this.nodes.length ===0) {
-      window.ipc.sendSync(IPC.GET_NODES).forEach((n) => {
-        console.log('loading from settings....')
-        this.updateNode(n);
-      });
+      let nodes = window.ipc.sendSync(IPC.GET_NODES);
+      if (nodes) {
+        nodes.forEach((n) => {
+          this.updateNode(n);
+        });
+      }
 
 
       //this.$store.commit(MUT.SET_NODES, _nodes);

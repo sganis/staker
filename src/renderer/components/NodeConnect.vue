@@ -77,7 +77,9 @@ export default {
         });   
         //console.log(store.state.nodes);
         // persist list of nodes
-        setSettings('nodes', JSON.parse(JSON.stringify(this.$store.state.nodes)));
+        let arr = JSON.parse(JSON.stringify(this.$store.state.nodes));
+        arr.forEach(n => n.connected=false);
+        setSettings('nodes', arr);
         
         //window.ipc.send(IPC.NOTIFY, 'Connected', message.value);
        
