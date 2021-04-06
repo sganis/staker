@@ -9,7 +9,7 @@
             <a href="#" @click="showNode(node)"
                 class="list-group-item list-group-item-action"
                 :class="{active: node.selected}"
-                v-for="node in nodes" :key="node.ip">{{node.ip}}</a>
+                v-for="node in nodes" :key="node.host">{{node.host}}</a>
           </div>
         </div>
         <div class="row p-2">
@@ -64,8 +64,8 @@ export default {
 
     showNode(node) {
       this.deselectAllNodes();     
-      this.updateNode({ip: node.ip, selected: true});
-      this.$router.push(`/nodes/${node.ip}`);
+      this.updateNode({host: node.host, selected: true});
+      this.$router.push(`/nodes/${node.host}`);
     },
     addNode() {
       this.deselectAllNodes();     

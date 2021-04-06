@@ -38,8 +38,8 @@ export default {
   props: ['node'],
   data() {
     return {
-      host: (this.node && this.node.ip) || '',
-      user: getSettings('username'),
+      host: (this.node && this.node.host) || '',
+      user: (this.node && this.node.user) || getSettings('username'),
       password: '',
       need_password: false,
       loading: false,
@@ -49,7 +49,8 @@ export default {
   },
   watch: {
     node(newNode,oldNode) {
-      this.host = newNode && newNode.ip || '';
+      this.host = newNode && newNode.host || '';
+      this.user = newNode && newNode.user || getSettings('username');
     },
   },
   mounted() {
@@ -68,12 +69,11 @@ export default {
         this.message = `Connected to ${this.host}: ${r.stdout}`;
         this.password = '';
         this.updateNode({
-          name: this.host, 
-          ip: this.host, 
+          host: this.host, 
+          user: this.user, 
           role: "", 
           selected: true,
           connected: true,
-          connection: r.object,
         });   
         //console.log(store.state.nodes);
         // persist list of nodes
