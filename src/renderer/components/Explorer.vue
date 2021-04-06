@@ -1,3 +1,3 @@
 <template>
-    <h1>Explorer</h1>
+    <h1 class="text-end">Explorer</h1> 
 </template>

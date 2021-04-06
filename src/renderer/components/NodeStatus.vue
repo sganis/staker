@@ -1,5 +1,5 @@
 <template>
-<div class="container">
+<div>
     <h2>Node status</h2>
     <div>CPU: </div>
     <div class="progress">

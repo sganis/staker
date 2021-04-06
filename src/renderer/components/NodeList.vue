@@ -66,6 +66,7 @@ export default {
       this.$router.push(`/nodes/${node.ip}`);
     },
     addNode() {
+      this.deselectAllNodes();     
       this.$router.push('/nodes');
     }
   }

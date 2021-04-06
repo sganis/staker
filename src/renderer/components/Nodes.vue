@@ -1,8 +1,8 @@
 <template>
     <div class="row flex-grow-1">
         <NodeList/>
-        <div class="col p-0">
-           <Node :node="node"/>
+        <div class="col">
+            <Node :node="node"/>
         </div>
     </div>
 </template>
@@ -20,8 +20,9 @@ export default {
     computed: {
        ...mapGetters(['getNode','getNodeSelected',]),
       node() {
-        //return this.getNodeSelected();
-        return this.getNode(this.$route.params.id);
+        let n = this.getNodeSelected();
+        return n;
+        //return this.getNode(this.$route.params.id);
       }
   },
 }

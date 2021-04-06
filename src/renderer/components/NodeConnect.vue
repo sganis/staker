@@ -1,5 +1,5 @@
 <template>
-  <div class="container p-5">
+  <div>
     <h1>Connect</h1>
     <form @submit.prevent="onSubmit">
       <div class="form-group ">
@@ -49,7 +49,7 @@ export default {
   },
   watch: {
     node(newNode,oldNode) {
-      this.host = newNode.ip;
+      this.host = newNode && newNode.ip || '';
     },
   },
   mounted() {
@@ -62,7 +62,7 @@ export default {
       this.error = ''
       this.need_password = false;
       this.message = `Connecting to ${this.host}...`;
-      
+      console.log(this.host, this.user);
       let r = await connectHost(this.host, this.user, this.password);
       if (r.stderr ===  '' && r.rc === 0) {
         this.message = `Connected to ${this.host}: ${r.stdout}`;
@@ -77,7 +77,7 @@ export default {
         });   
         //console.log(store.state.nodes);
         // persist list of nodes
-        //setSettings('nodes', JSON.parse(JSON.stringify(store.state.nodes)));
+        setSettings('nodes', JSON.parse(JSON.stringify(this.$store.state.nodes)));
         
         //window.ipc.send(IPC.NOTIFY, 'Connected', message.value);
        
