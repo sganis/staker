@@ -1,4 +1,4 @@
-import { Ssh } from './ssh';
+import { Ssh, connections } from './ssh';
 
 const spawn = require('child_process').spawn;
 
@@ -31,8 +31,14 @@ export async function runLocal(cmd) {
     })   
 }
 
-export async function runRemote(host, user, cmd) {
-    let ssh = new Ssh({host:host,user: user});
-    await ssh.connect();
+export async function runRemote(host, cmd) {
+    let ssh = connections.get(host);
+    if (!ssh) {
+        return {
+            stderr: 'no connection',
+            stdout: '',
+            rc : -1
+        }
+    }
     return ssh.exec(cmd);
 }

@@ -1,20 +1,34 @@
+import { nextTick } from 'vue-demi';
 import {createStore} from 'vuex'
+import {runRemote} from './ipc'
 
 const store = createStore({
     state() {
         return {
-            nodes: []
+            nodes: [],
         }
     },
     getters: {
-        getNodes: (state) => () =>  state.nodes.filter(n => n.host !== ''),
+        getNodes: (state) => state.nodes.filter(n => n.host !== ''),
         getNode: (state) => (host) => state.nodes.find(n => n.host === host),
-        getNodeSelected: (state) => () => state.nodes.find(n => n.selected),
+        getNodeSelected: (state) => state.nodes.find(n => n.selected),  
     },
     actions: {
-        updateNode({commit}, obj) { commit('updateNode', obj); },
+        updateNode({commit}, n) { commit('updateNode', n); },
         deselectAllNodes({commit}) { commit('deselectAllNodes'); },
-        disconnectNode({commit}, obj) { commit('disconnectNode', obj); },
+        disconnectNode({commit}, n) { commit('disconnectNode', n); },
+        async updateNodeStatus({commit}, n) { 
+            // get node status from ssh
+            let r = await runRemote(n.host, 'hostname;uptime;free -m;df -H /');
+            if (r.rc === 0) {
+                n.status = r.stdout;
+            } else {
+                n.status = r.stderr;
+            }
+            // update state
+            commit('updateNode', n); 
+        },
+        
     },
     mutations: {
         updateNode(state, node) {

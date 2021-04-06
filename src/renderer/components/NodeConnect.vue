@@ -48,7 +48,7 @@ export default {
     }
   },
   watch: {
-    node(newNode,oldNode) {
+    node(newNode) {
       this.host = newNode && newNode.host || '';
       this.user = newNode && newNode.user || getSettings('username');
     },
@@ -80,7 +80,7 @@ export default {
         let arr = JSON.parse(JSON.stringify(this.$store.state.nodes));
         arr.forEach(n => n.connected=false);
         setSettings('nodes', arr);
-        
+
         //window.ipc.send(IPC.NOTIFY, 'Connected', message.value);
        
         // test ssh keys and generate if needed

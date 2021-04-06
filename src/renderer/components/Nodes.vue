@@ -20,7 +20,7 @@ export default {
     computed: {
        ...mapGetters(['getNode','getNodeSelected',]),
       node() {
-        let n = this.getNodeSelected();
+        let n = this.getNodeSelected;
         return n;
         //return this.getNode(this.$route.params.id);
       }

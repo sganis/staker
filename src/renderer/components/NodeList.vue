@@ -34,8 +34,8 @@ export default {
     ...mapGetters(['getNodes','getNodeSelected']),
     
     nodes() { 
-      let n = this.getNodes(); 
-      console.log('getter getNodes: '+ JSON.stringify(n));
+      let n = this.getNodes; 
+      //console.log('getter getNodes: '+ JSON.stringify(n));
       return n;
     },
     

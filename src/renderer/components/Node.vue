@@ -9,8 +9,10 @@
         </div>
     </div>
     <div class="row w-100 m-0">
-      <pre>{{node}}</pre>
+      <div class="text-wrap">{{node}}</div>
     </div>
+    <br/>
+    <br/>
     <div class="row w-100 m-0">
       <span >
           <button v-if="node && node.connected" :node="node"

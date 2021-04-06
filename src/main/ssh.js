@@ -4,6 +4,25 @@ const readFileSync = require('fs').readFileSync;
 const homedir = process.env.USERPROFILE || process.env.HOME; 
 const pkeypath = path.join(homedir, '.ssh', 'id_rsa');
 
+class Connections {
+    constructor() {
+        this.connections = []
+    }
+    get(host) {
+        let c = this.connections.find(c => c.host === host);
+        return c ? c.ssh : null;
+    }
+    set(host, ssh) {
+        let c = this.connections.find(c => c.host === host)
+        if (!c) {
+            this.connections.push({host,ssh});
+        } else {
+            c.ssh = ssh;
+        }
+    }   
+}
+const connections= new Connections();
+export {connections}
 
 export class Ssh {
     constructor(args) {

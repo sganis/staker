@@ -6,6 +6,7 @@ import {runLocal, runRemote} from '@/main/command'
 import {connectHost} from '@/main/util'
 import {IPC} from '@/common/constants'
 import {Settings} from '@/main/settings';
+import {Connections} from './ssh'
 
 const {ipcMain, Notification} = require('electron');
 
@@ -120,6 +121,7 @@ if (isDevelopment) {
   }
 }
 
+
 // IPC
 // sync reply to sendSync
 ipcMain.on(IPC.GET_SETTINGS, (e, key, defaults) => { 
@@ -134,8 +136,8 @@ ipcMain.on(IPC.NOTIFY, (_, title, msg) => {
 });
 ipcMain.on(IPC.GET_NODES, (e) => { 
   console.log('GET_NODES: '+ settings.get('nodes'));
-   e.returnValue = settings.get('nodes');
-  });
+  e.returnValue = settings.get('nodes');
+});
 
 // async/await reply to invoke
 ipcMain.handle(IPC.RUN_LOCAL, async (_, ...args) => { return await runLocal(...args);});
