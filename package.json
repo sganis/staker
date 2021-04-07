@@ -2,6 +2,8 @@
   "name": "staker",
   "version": "1.0.0",
   "private": true,
+  "author":"SAG",
+  "description":"Stake Pool App",
   "scripts": {
     "build": "vue-cli-service electron:build",
     "serve": "vue-cli-service electron:serve",

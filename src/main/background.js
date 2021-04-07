@@ -10,6 +10,11 @@ import {Settings} from '@/main/settings';
 const path = require('path');
 const os = require('os');
 
+console.log('process.env.NODE_ENV:', process.env.NODE_ENV);
+console.log('app.getAppPath()    :', app.getAppPath());
+console.log('app.getPath(exe)    :', app.getPath('exe'));
+
+
 // settings
 const settings = new Settings({
   configName: 'config',

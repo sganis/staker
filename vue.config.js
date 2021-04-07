@@ -4,10 +4,15 @@ module.exports = {
             mainProcessFile: 'src/main/background.js',
             rendererProcessFile: 'src/renderer/index.js',
             preload: 'src/main/preload.js', 
+            appId: "staker",
+            outputDir: "dist",
             builderOptions: {
+                directories: {
+                    buildResources: "resources",
+                },
                 extraFiles: [
                     {
-                      "from": "src/scripts",
+                      "from": "resources/scripts",
                       "to": "scripts",
                       "filter": ["**/*"]
                     }
