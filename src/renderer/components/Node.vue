@@ -8,6 +8,7 @@
           <NodeStatus v-if="node && node.connected" :node="node"/>                
         </div>
     </div>
+    <br/><br/>
     <div class="row w-100 m-0">
       <div class="text-wrap">{{node}}</div>
     </div>
@@ -21,7 +22,7 @@
             class="btn btn-primary btn-width" >Disconnect</button>&nbsp;
           <button v-if="node && node.connected" :node="node"
             @click="setup(node)"
-            class="btn btn-success btn-width" >Setup</button>
+            class="btn btn-success btn-width" >Install Agent</button>
             <br/>
             <br/>           
           <button v-if="node" :node="node"

@@ -50,7 +50,7 @@ export default {
 }
 
 .btn-width {
-  width: 100px;
+  width: 150px;
 }
 
 </style>

@@ -19,9 +19,10 @@ const store = createStore({
         removeNode({commit}, n) { commit('removeNode', n); },
         async updateNodeStatus({commit}, n) { 
             // get node status from ssh
-            let r = await runRemote(n.host, 'hostname;uptime;free -m;df -H /');
+            //let r = await runRemote(n.host, 'hostname;uptime;free -m;df -H /');
+            let r = await runRemote(n.host, 'python3 .staker/status.py');
             if (r.rc === 0) {
-                n.status = r.stdout;
+                n.status = JSON.parse(r.stdout);
             } else {
                 n.status = r.stderr;
             }

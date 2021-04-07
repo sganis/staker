@@ -18,15 +18,15 @@ def get_memory():
     o,e = run('free|grep Mem:')
     f = o.split()
     used = int(f[2])
-    avail = int(f[1])
-    return used,avail
+    total = int(f[1])
+    return used,total
  
 def get_disk():
     o,e = run('df /')
     f = o.split('\n')[-1].split()
     used = int(f[2])
-    avail = int(f[3])
-    return used, avail
+    total = int(f[1])
+    return used, total
  
  
 status = {

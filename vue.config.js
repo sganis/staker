@@ -13,7 +13,7 @@ module.exports = {
                 extraFiles: [
                     {
                       "from": "resources/scripts",
-                      "to": "scripts",
+                      "to": "resources/scripts",
                       "filter": ["**/*"]
                     }
                 ]

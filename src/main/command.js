@@ -1,8 +1,13 @@
 import { connections } from './ssh';
-import {app} from 'electron';
-import * as path from 'path'
-
+import {app} from 'electron'
+const path = require('path');
 const spawn = require('child_process').spawn;
+
+//const {appPath} = require('./background');
+const appPath = process.env.NODE_ENV !== 'production' 
+  ? path.join(app.getAppPath(),'..') 
+  : path.join(app.getAppPath(),'../..');
+
 
 export async function runLocal(cmd) {
     return new Promise(resolve => {
@@ -46,8 +51,9 @@ export async function upload(host, src, dst) {
     if (!ssh) {
         return {stderr: 'no connection', stdout: '', rc : -1};
     }
-    //console.log('appPath: '+path.join(rootPath, 'scripts'));
-    return ssh.upload(path.join(__dirname,'../scripts', src), dst);
+    let srcFull = path.join(appPath,'resources/scripts', src);
+    console.log('src:', srcFull);
+    return ssh.upload(srcFull, dst);
 }
 
 export async function download(host, src, dst) {
