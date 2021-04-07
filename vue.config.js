@@ -8,7 +8,7 @@ module.exports = {
             outputDir: "dist",
             builderOptions: {
                 directories: {
-                    buildResources: "resources",
+                    buildResources: "resources/icons",
                 },
                 extraFiles: [
                     {
