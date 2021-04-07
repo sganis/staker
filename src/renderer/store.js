@@ -1,5 +1,6 @@
 import {createStore} from 'vuex'
-import {runRemote, upload} from './ipc'
+import {runRemote, upload, getSettings} from './ipc'
+const path = require('path')
 
 const store = createStore({
     state() {
@@ -36,15 +37,21 @@ const store = createStore({
             commit('updateNode', n); 
         },
         async setupNode({commit}, n) {
+
+    
+
             let r = await runRemote(n.host, 'mkdir -p .staker');
             if (r.rc !== 0) {
                 n.status = r.stderr;
                 commit('updateNode', n);
                 return; 
             }
-
-            let src = 'status.py';
+            
+            let appPath = getSettings('appPath');
+            let src = path.join(appPath,'resources/scripts/status.py');
             let dst = '.staker/status.py'; 
+            console.log('src:', src);
+
             r = await upload(n.host, src, dst);
             if (r.rc === 0) {
                 n.status = r.stdout;

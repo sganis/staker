@@ -1,6 +1,4 @@
 import { connections } from './ssh';
-import {settings} from './background';
-const path = require('path');
 const spawn = require('child_process').spawn;
 
 
@@ -49,10 +47,7 @@ export async function upload(host, src, dst) {
     if (!ssh) {
         return {stderr: 'no connection', stdout: '', rc : -1};
     }
-    let appPath = settings.get('appPath');
-    let srcFull = path.join(appPath,'resources/scripts', src);
-    console.log('src:', srcFull);
-    return ssh.upload(srcFull, dst);
+    return ssh.upload(src, dst);
 }
 
 export async function download(host, src, dst) {
