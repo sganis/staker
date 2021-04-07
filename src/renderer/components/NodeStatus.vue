@@ -44,7 +44,7 @@ export default {
                 cpu: this.node.status && this.node.status.cpu 
                     ? Math.round(this.node.status.cpu * 100) : 0,
             }
-        }
+        },
     },
     methods: {
         ...mapActions(['updateNodeStatus']),

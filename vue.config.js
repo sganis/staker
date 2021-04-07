@@ -8,14 +8,14 @@ module.exports = {
             outputDir: "dist",
             builderOptions: {
                 win: {
-                    target: 'portable',
+                    target: 'dir',
                 },
                 linux: {
-                    target: 'tar.gz',
+                    target: 'dir',
                     category: 'System',
                 },
                 mac: {
-                    target: 'dmg',
+                    target: 'dir',
                     category: "public.app-category.developer-tools"
                 },
                 directories: {

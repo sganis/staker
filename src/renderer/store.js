@@ -17,6 +17,12 @@ const store = createStore({
         deselectAllNodes({commit}) { commit('deselectAllNodes'); },
         disconnectNode({commit}, n) { commit('disconnectNode', n); },
         removeNode({commit}, n) { commit('removeNode', n); },
+        async hasTools({commit}, n) { 
+            let r = await runRemote(n.host, 'ls .staker');
+            n.has_tools = r.rc === 0;
+            commit('updateNode', n); 
+        },
+
         async updateNodeStatus({commit}, n) { 
             // get node status from ssh
             //let r = await runRemote(n.host, 'hostname;uptime;free -m;df -H /');

@@ -9,6 +9,18 @@
         </div>
     </div>
     <br/><br/>
+    <div class="row w-100 m-0"
+      v-if="node && !node.has_tools">
+      <span>
+      <span v-if="!installing_tools">Tools not installed.</span>
+      <br/>
+      <br/>
+      <button v-if="node && node.connected" :node="node"
+            @click="setup(node)"
+            class="btn btn-success btn-width" >Install Tools</button>
+            </span>
+    </div>
+    <br/>
     <div class="row w-100 m-0">
       <div class="text-wrap">{{node}}</div>
     </div>
@@ -20,9 +32,7 @@
           <button v-if="node && node.connected" :node="node"
             @click="disconnect(node)"
             class="btn btn-primary btn-width" >Disconnect</button>&nbsp;
-          <button v-if="node && node.connected" :node="node"
-            @click="setup(node)"
-            class="btn btn-success btn-width" >Install Agent</button>
+          
             <br/>
             <br/>           
           <button v-if="node" :node="node"
@@ -42,11 +52,24 @@ import {mapActions} from 'vuex'
 export default {
   components: {NodeConnect, NodeStatus},
   props: ['node'],
+  data() {
+    return {
+      installing_tools: false,
+    }
+  },
   computed: {
     //node: function () {return this.$store.getters.getNodeByIp(this.node.ip)},
   },
+  watch: {
+    node(n) {
+      this.hasTools();
+    }
+  },
   methods: {
-    ...mapActions(['disconnectNode','deselectAllNodes','removeNode','setupNode']),
+    ...mapActions([
+        'disconnectNode','deselectAllNodes','removeNode',
+        'setupNode','hasTools'
+    ]),
 
     disconnect(node) {
       this.deselectAllNodes();
