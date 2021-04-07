@@ -14,6 +14,10 @@ console.log('process.env.NODE_ENV:', process.env.NODE_ENV);
 console.log('app.getAppPath()    :', app.getAppPath());
 console.log('app.getPath(exe)    :', app.getPath('exe'));
 
+const appPath = process.env.NODE_ENV !== 'production' 
+  ? path.join(app.getAppPath(),'..') 
+  : path.join(app.getAppPath(),'../..');
+
 
 // settings
 const settings = new Settings({
@@ -27,9 +31,6 @@ const isDevelopment = process.env.NODE_ENV !== 'production'
 const username = settings.get('username') || os.userInfo().username.toLocaleLowerCase();
 const homedir = process.env.USERPROFILE || process.env.HOME; 
 const pkeypath = path.join(homedir, '.ssh', 'id_rsa');
-const appPath = isDevelopment 
-  ? path.join(app.getAppPath(),'..') 
-  : path.join(app.getAppPath(),'../..');
 
 settings.set('username', username);
 settings.set('homedir', homedir);
@@ -148,5 +149,6 @@ ipcMain.handle(IPC.CONNECT_HOST, async (_, ...args) => { return await connectHos
 
 
 export {
-  appPath
+  appPath,
+  settings,
 };
