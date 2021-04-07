@@ -19,9 +19,11 @@ const store = createStore({
         disconnectNode({commit}, n) { commit('disconnectNode', n); },
         removeNode({commit}, n) { commit('removeNode', n); },
         async hasTools({commit}, n) { 
-            let r = await runRemote(n.host, 'ls .staker');
-            n.has_tools = r.rc === 0;
-            commit('updateNode', n); 
+            if (n) {
+                let r = await runRemote(n.host, 'ls .staker');
+                n.has_tools = r.rc === 0;
+                commit('updateNode', n); 
+            }
         },
 
         async updateNodeStatus({commit}, n) { 

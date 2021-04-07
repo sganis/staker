@@ -62,7 +62,7 @@ export default {
   },
   watch: {
     node(n) {
-      this.hasTools();
+      this.hasTools(n);
     }
   },
   methods: {
