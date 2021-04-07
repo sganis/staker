@@ -1,8 +1,5 @@
-import { connections } from './ssh';
+import { connections, Ssh } from './ssh';
 const spawn = require('child_process').spawn;
-
-
-
 
 
 export async function runLocal(cmd) {
@@ -42,6 +39,18 @@ export async function runRemote(host, cmd) {
     return ssh.exec(cmd);
 }
 
+export async function connectHost(host, user, password) {
+    console.log('connectHost', host, user, password);
+    let ssh = new Ssh({host,user,password, timeout: 10000});
+    let r = await ssh.connect();
+    if (r.rc === 0) {    
+        connections.set(host, ssh);  
+        r = await ssh.exec('hostname');
+    }
+    return r;
+}   
+
+
 export async function upload(host, src, dst) {
     let ssh = connections.get(host);
     if (!ssh) {
@@ -53,3 +62,8 @@ export async function upload(host, src, dst) {
 export async function download(host, src, dst) {
     return null
 }
+
+export async function setupSsh(host, user) {
+    return new Promise(resolve => { setTimeout(resolve, 3000, {rc: -1}) });
+}
+

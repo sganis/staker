@@ -2,8 +2,8 @@
 import { app, protocol, BrowserWindow, Notification, ipcMain} from 'electron'
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
 import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer'
-import {runLocal, runRemote, upload, download} from '@/main/command'
-import {connectHost} from '@/main/util'
+import {runLocal, runRemote, upload, download, 
+  connectHost, setupSsh} from '@/main/command'
 import {IPC} from '@/common/constants'
 import {Settings} from '@/main/settings';
 
@@ -145,6 +145,7 @@ ipcMain.handle(IPC.RUN_REMOTE, async (_, ...args) => { return await runRemote(..
 ipcMain.handle(IPC.UPLOAD, async (_, ...args) => { return await upload(...args);});
 ipcMain.handle(IPC.DOWNLOAD, async (_, ...args) => { return await download(...args);});
 ipcMain.handle(IPC.CONNECT_HOST, async (_, ...args) => { return await connectHost(...args);});
+ipcMain.handle(IPC.SETUP_SSH, async (_, ...args) => { return await setupSsh(...args);});
 
 
 

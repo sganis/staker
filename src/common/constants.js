@@ -11,6 +11,7 @@ const IPC = {
     GET_NODES : "GET_NODES",
     GET_CONNECTION : "GET_CONNECTION",
     SET_CONNECTION : "SET_CONNECTION",
+    SETUP_SSH : "SETUP_SSH",
 }
 
 export { IPC };

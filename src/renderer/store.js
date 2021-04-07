@@ -25,7 +25,6 @@ const store = createStore({
                 commit('updateNode', n); 
             }
         },
-
         async updateNodeStatus({commit}, n) { 
             // get node status from ssh
             //let r = await runRemote(n.host, 'hostname;uptime;free -m;df -H /');

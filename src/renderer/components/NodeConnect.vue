@@ -29,9 +29,9 @@
 <script>
 import Error from "./Error"
 import Loading from "./Loading"
-import {getSettings, setSettings, connectHost} from "../ipc"
+import {getSettings, setSettings, connectHost, setupSsh} from "../ipc"
 import { mapActions } from 'vuex'
-
+import {sleep} from '../../common/util'
 
 export default {
   components : { Error, Loading },
@@ -53,11 +53,9 @@ export default {
       this.user = newNode && newNode.user || getSettings('username');
     },
   },
-  mounted() {
-    //this.host = this.node.ip;
-  },
   methods: {
     ...mapActions(['updateNode']),
+
     onSubmit: async function() {
       this.loading = true;     
       this.error = ''
@@ -65,9 +63,26 @@ export default {
       this.message = `Connecting to ${this.host}...`;
       console.log(this.host, this.user);
       let r = await connectHost(this.host, this.user, this.password);
-      if (r.stderr ===  '' && r.rc === 0) {
+      if (r.rc === 0) {
         this.message = `Connected to ${this.host}: ${r.stdout}`;
-        this.password = '';
+        if (this.password) {
+          this.password = '';
+          // setup ssh
+          this.message = 'Setting up ssh keys...';          
+          r = await setupSsh(this.host, this.user);
+          if (r.rc === 0) {
+            this.message = 'Ssh keys ok.';          
+            console.log(this.message);
+            
+          } else {
+            this.message = '';
+            this.error = "Ssh keys setup failed."  
+            console.log(this.error);
+            //const sleep = ms => new Promise(res => setTimeout(res, ms));
+            await sleep(5000);
+          }
+        } 
+
         this.updateNode({
           host: this.host, 
           user: this.user, 
@@ -75,6 +90,7 @@ export default {
           selected: true,
           connected: true,
         });   
+        
         //console.log(store.state.nodes);
         // persist list of nodes
         let arr = JSON.parse(JSON.stringify(this.$store.state.nodes));
