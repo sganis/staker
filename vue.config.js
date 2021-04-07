@@ -7,6 +7,17 @@ module.exports = {
             appId: "staker",
             outputDir: "dist",
             builderOptions: {
+                win: {
+                    target: 'portable',
+                },
+                linux: {
+                    target: 'tar.gz',
+                    category: 'System',
+                },
+                mac: {
+                    target: 'dmg',
+                    category: "public.app-category.developer-tools"
+                },
                 directories: {
                     buildResources: "resources/icons",
                 },
