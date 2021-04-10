@@ -39,5 +39,14 @@ function parseDataFile(filePath, defaults) {
   }
 }
 
-// expose the class
+const settings = new Settings({
+  configName: 'config',
+  defaults: {
+    windowBounds: { x: 0, y: 0, width: 800, height: 600 },
+  }
+});
+
+export {settings}
+
+ // expose the class
 //module.exports = Store;

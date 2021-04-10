@@ -20,7 +20,7 @@
 </template>
 
 <script>
-import {IPC, MUT} from "../../common/constants"
+import {IPC} from "../../common/constants"
 import {mapGetters, mapActions} from 'vuex'
 
 export default {
@@ -29,7 +29,7 @@ export default {
   },
 
   mounted() {
-    console.log('value of nodes: ' + this.nodes)
+    //console.log('value of nodes: ' + this.nodes)
     if (this.getNodes.length ===0) {
       let nodes = window.ipc.sendSync(IPC.GET_NODES);
       if (nodes) {

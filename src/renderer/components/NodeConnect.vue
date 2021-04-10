@@ -12,7 +12,8 @@
       </div>
       <div class="form-group top10">
         <input id="password" v-model="password" type="password" 
-          placeholder="Password" v-if="need_password" class="form-control"/>  
+          placeholder="Password" v-if="need_password" class="form-control"
+          :disabled="loading" />  
       </div>
       <div class="form-group top10">
         <input value="Connect" type="submit" class="btn btn-primary btn-width"
@@ -22,7 +23,8 @@
     <br/>
     </div>
     <Error :message="error" />
-    <div>{{message}}</div>
+    <Loading :message="message" :loading="loading" />
+    <div v-if="!loading">{{message}}</div>
     <!-- <div><pre>{{dat}}</pre></div> -->
 </template>
 
@@ -59,7 +61,7 @@ export default {
     onSubmit: async function() {
       this.loading = true;     
       this.error = ''
-      this.need_password = false;
+      //this.need_password = false;
       this.message = `Connecting to ${this.host}...`;
       console.log(this.host, this.user);
       let r = await connectHost(this.host, this.user, this.password);
@@ -75,6 +77,7 @@ export default {
             console.log(this.message);
             
           } else {
+            this.loading = false;
             this.message = '';
             this.error = "Ssh keys setup failed."  
             console.log(this.error);
@@ -96,13 +99,8 @@ export default {
         let arr = JSON.parse(JSON.stringify(this.$store.state.nodes));
         arr.forEach(n => n.connected=false);
         setSettings('nodes', arr);
-
+        setSettings('current_node', this.host);
         //window.ipc.send(IPC.NOTIFY, 'Connected', message.value);
-       
-        // test ssh keys and generate if needed
-
-        //this.$router.push(`/nodes/${this.host}`);
-
       } else {
         this.error = r.stderr;
         this.message = '';

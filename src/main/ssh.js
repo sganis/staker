@@ -4,10 +4,12 @@ var fs = require("fs");
 const readFileSync = require('fs').readFileSync;
 const homedir = process.env.USERPROFILE || process.env.HOME; 
 const pkeypath = path.join(homedir, '.ssh', 'id_rsa');
+import {settings} from './settings'
 
 class Connections {
     constructor() {
         this.connections = []
+        this.current_host = '';
     }
     get(host) {
         let c = this.connections.find(c => c.host === host);
@@ -21,8 +23,14 @@ class Connections {
             c.ssh = ssh;
         }
     }   
+    getCurrentConnection() {
+        // fixme: find a different way to share this info
+        let host = settings.get('current_node');
+        console.log('current host:', host)
+        return this.get(host);
+    }
 }
-const connections= new Connections();
+const connections = new Connections();
 export {connections}
 
 export class Ssh {
@@ -55,7 +63,6 @@ export class Ssh {
         let that = this;
         return new Promise(resolve => {
             that.connected = false;
-
             resolve(that.conn ? that.conn.end() : false); 
         });        
     }
@@ -66,7 +73,7 @@ export class Ssh {
         let that = this;
         
         return new Promise(resolve => {
-            that.conn.on('ready', function() {
+            that.conn.on('ready', () => {
                 // auth success
                 that.connected = true;
                 resolve({
@@ -75,14 +82,14 @@ export class Ssh {
                     rc : 0
                 })
             })
-            that.conn.on('close', (e) => {
+            that.conn.on('close', (_) => {
                 resolve({
                     stdout: '',
                     stderr: 'connection closed',
                     rc : 0
                 });
             })
-            that.conn.on('error', function(e) {
+            that.conn.on('error', (e) => {
                 let msg = e.toString();
                 if (e.level === 'client-timeout') {
                     msg = 'Timed out';
@@ -126,10 +133,10 @@ export class Ssh {
             }
         }
         return new Promise(resolve => {
-            that.conn.exec(cmd, function(err, stream) {
+            that.conn.exec(cmd, (err, stream) => {
                 let stdout = '';
                 let stderr = '';
-                if (err) {
+                if (err || !stream) {
                     resolve({
                         cmd : cmd,
                         stderr: err,
@@ -137,16 +144,16 @@ export class Ssh {
                         rc : -100
                     });
                 }
-                stream.on('close', function(rc, signal) {
+                stream.on('close', (rc) => {
                     resolve({ 
                         cmd: cmd,
                         stdout: stdout.trim(),
                         stderr: stderr.trim(),
-                        rc : rc
+                        rc : strerr.trim() || rc !==0 ? rc : 0,
                     } );
-                }).on('data', function(data) {
+                }).on('data', (data) => {
                     stdout += data;           
-                }).stderr.on('data', function(data) {
+                }).stderr.on('data', (data) => {
                     stderr += data;
                 });
             });                
@@ -162,13 +169,13 @@ export class Ssh {
             }
         }
         return new Promise(resolve => {
-            that.conn.sftp(function(err, sftp) {
+            that.conn.sftp((err, sftp) => {
                 if (err) {
                     resolve({stderr: err, stdout: '',rc : -100 });                    
                 }
                 let readStream = fs.createReadStream(src);
                 let writeStream = sftp.createWriteStream(dst);        
-                writeStream.on('close',function () {
+                writeStream.on('close', () => {
                     resolve({stderr: '', stdout: '', rc : 0 });    
                 });        
                 // initiate transfer of file
@@ -187,11 +194,11 @@ export class Ssh {
         }
     
         return new Promise(resolve => {
-            that.conn.sftp(function(err, sftp) {
+            that.conn.sftp((err, sftp) => {
                 if (err) {
                     resolve({stderr: err, stdout: '',rc : -100 });                    
                 }
-                sftp.fastGet(src, dst, {}, function(err){
+                sftp.fastGet(src, dst, {}, (err) => {
                     if(err) {
                         resolve({stderr: err, stdout: '',rc : -100 });
                     } else {
@@ -204,8 +211,60 @@ export class Ssh {
 }
 
 export async function generateKeys(user, host) {
+    // todo
     console.log('Generating new ssh keys...');
     let seckey = pkeypath;
     let pubkey = pkeypath + '.pub';
 
 }
+
+export async function runRemote(cmd) {
+    console.log('running command:', cmd);
+    let ssh = connections.getCurrentConnection();
+    if (!ssh) {
+        return {stderr: 'no connection', stdout: '', rc : -1};
+    }
+    return ssh.exec(cmd);
+}
+
+export async function connectHost(host, user, password) {
+    console.log('connectHost', host, user, password);
+    let ssh = new Ssh({host,user,password, timeout: 10000});
+    let r = await ssh.connect();
+    if (r.rc === 0) {    
+        connections.set(host, ssh);  
+        r = await ssh.exec('hostname');
+    }
+    return r;
+}   
+
+
+export async function upload(src, dst) {
+    let ssh = connections.getCurrentConnection();
+    if (!ssh) {
+        return {stderr: 'no connection', stdout: '', rc : -1};
+    }
+    return ssh.upload(src, dst);
+}
+
+export async function download(src, dst) {
+    // todo
+    let ssh = connections.getCurrentConnection();
+    return null
+}
+
+export async function setupSsh(host, user) {
+    // todo
+    return new Promise(resolve => { setTimeout(resolve, 3000, {rc: -1}) });
+}
+
+export async function createAddress(name) {
+    // todo
+    let ssh = connections.getCurrentConnection();
+
+}   
+export async function createTransaction(from_addr, to_addr, ada, from_skey) {
+    // todo
+    let ssh = connections.getCurrentConnection();
+
+}   
