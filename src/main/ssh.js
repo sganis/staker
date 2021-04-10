@@ -149,7 +149,7 @@ export class Ssh {
                         cmd: cmd,
                         stdout: stdout.trim(),
                         stderr: stderr.trim(),
-                        rc : strerr.trim() || rc !==0 ? rc : 0,
+                        rc : stderr.trim() || rc !==0 ? rc : 0,
                     } );
                 }).on('data', (data) => {
                     stdout += data;           
