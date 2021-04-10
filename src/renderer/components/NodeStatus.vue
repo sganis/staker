@@ -34,7 +34,7 @@ export default {
         }
     },
     computed: {
-        ...mapGetters(['getNodeStatus']),
+        //...mapGetters(['getNodeStatus']),
         status() {
             return {
                 disk: this.node.status && this.node.status.disk 

@@ -2,10 +2,13 @@
 import { app, protocol, BrowserWindow, Notification, ipcMain} from 'electron'
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
 import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer'
-import {runLocal, runRemote, upload, download, 
-  connectHost, setupSsh} from '@/main/command'
-import {IPC} from '@/common/constants'
-import {Settings} from '@/main/settings';
+import {runLocal} from './command'
+import { 
+  runRemote, upload, download, connectHost, setupSsh, 
+  createAddress, createTransaction
+} from './ssh'
+import {IPC} from '../common/constants'
+import {settings} from './settings';
 
 const path = require('path');
 const os = require('os');
@@ -20,12 +23,12 @@ const appPath = process.env.NODE_ENV !== 'production'
 
 
 // settings
-const settings = new Settings({
-  configName: 'config',
-  defaults: {
-    windowBounds: { x: 0, y: 0, width: 800, height: 600 },
-  }
-});
+// const settings = new Settings({
+//   configName: 'config',
+//   defaults: {
+//     windowBounds: { x: 0, y: 0, width: 800, height: 600 },
+//   }
+// });
 
 const isDevelopment = process.env.NODE_ENV !== 'production'
 const username = settings.get('username') || os.userInfo().username.toLocaleLowerCase();
@@ -146,6 +149,8 @@ ipcMain.handle(IPC.UPLOAD, async (_, ...args) => { return await upload(...args);
 ipcMain.handle(IPC.DOWNLOAD, async (_, ...args) => { return await download(...args);});
 ipcMain.handle(IPC.CONNECT_HOST, async (_, ...args) => { return await connectHost(...args);});
 ipcMain.handle(IPC.SETUP_SSH, async (_, ...args) => { return await setupSsh(...args);});
+ipcMain.handle(IPC.CREATE_ADDRESS, async (_, ...args) => { return await createAddress(...args);});
+ipcMain.handle(IPC.CREATE_TRANSACTION, async (_, ...args) => { return await createTransaction(...args);});
 
 
 
