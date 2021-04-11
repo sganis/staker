@@ -52,5 +52,6 @@ export default {
 .btn-width {
   width: 150px;
 }
+.top10 { margin-top:10px; }
 
 </style>

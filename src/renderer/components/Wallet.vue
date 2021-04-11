@@ -8,20 +8,14 @@
           <WalletView v-if="wallet" :wallet="wallet"/>                
         </div>
     </div>
-    <br/><br/>
-    <div class="row w-100 m-0">
-      <div class="text-wrap">{{wallet}}</div>
-    </div>
-    <br/>
-    <br/>
-    <br/>
+    <!-- <div class="row w-100 m-0">
+      <div class="text-break">{{wallet}}</div>
+    </div> -->
     <div class="row w-100 m-0">
     <span>
           <button v-if="wallet && wallet.connected" :wallet="wallet"
             @click="disconnect(wallet)"
             class="btn btn-primary btn-width" >Disconnect</button>&nbsp;
-          
-            <br/>
             <br/>           
           <button v-if="wallet" :wallet="wallet"
             @click="remove(wallet)"
