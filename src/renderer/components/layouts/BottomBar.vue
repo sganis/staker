@@ -1,15 +1,15 @@
 <template>
     <div class="bottombar">
-        <Loading :loading="loading" :message="msg"/>
+        <Spinner :loading="loading" :message="msg"/>
     </div>
 </template>
 
 <script>
 
-import Loading from "../Loading"
+import Spinner from "../Spinner"
 
 export default {
-   components : { Loading },
+   components : { Spinner },
 }
 </script>
 

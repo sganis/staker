@@ -1,7 +1,8 @@
 <template>
   <div>
     <h1>Connect</h1>
-    <form @submit.prevent="onSubmit">
+    <div class="vld-parent">
+      <form @submit.prevent="onSubmit">
       <div class="form-group ">
         <input id="hostname" v-model="host" placeholder="Hostname or IP" 
           class="form-control" required />  
@@ -19,24 +20,24 @@
         <input value="Connect" type="submit" class="btn btn-primary btn-width"
           :disabled="loading"/>  
       </div>
-    </form>
-    <br/>
+      </form>
+      <br/>
+      <Spinner :message="message" :loading="loading" />
+      <Error :message="error" />
+      <div v-if="!loading">{{message}}</div>
     </div>
-    <Error :message="error" />
-    <Loading :message="message" :loading="loading" />
-    <div v-if="!loading">{{message}}</div>
-    <!-- <div><pre>{{dat}}</pre></div> -->
+  </div>
 </template>
 
 <script>
 import Error from "./Error"
-import Loading from "./Loading"
+import Spinner from "./Spinner"
 import {getSettings, setSettings, connectHost, setupSsh} from "../ipc"
 import { mapActions } from 'vuex'
 import {sleep} from '../../common/util'
 
 export default {
-  components : { Error, Loading },
+  components : { Error, Spinner },
   props: ['node'],
   data() {
     return {

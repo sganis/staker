@@ -168,22 +168,42 @@ export class Ssh {
                 return {stdout: '', stderr: 'Not connected', rc : -1 }
             }
         }
-        return new Promise(resolve => {
-            that.conn.sftp((err, sftp) => {
-                if (err) {
-                    resolve({stderr: err, stdout: '',rc : -100 });                    
-                }
-                let readStream = fs.createReadStream(src);
-                let writeStream = sftp.createWriteStream(dst);        
-                writeStream.on('close', () => {
-                    resolve({stderr: '', stdout: '', rc : 0 });    
-                });        
-                // initiate transfer of file
-                readStream.pipe( writeStream );
-            });
-        })
+        let stats = fs.statSync(src);
+        if (stats.isDirectory()) {
+            return this.uploadFolder(src,dst);
+        } else {
+            return new Promise(resolve => {
+                that.conn.sftp((err, sftp) => {
+                    if (err) {
+                        resolve({stderr: err, stdout: '',rc : -100 });                    
+                    }
+                    let readStream = fs.createReadStream(src);
+                    let writeStream = sftp.createWriteStream(dst);        
+                    writeStream.on('close', () => {
+                        resolve({stderr: '', stdout: '', rc : 0 });    
+                    });        
+                    // initiate transfer of file
+                    readStream.pipe( writeStream );
+                });
+            })
+        }
     }
-    
+    async uploadFolder(src, dst) {
+        return new Promise(resolve => {
+            fs.readdirSync(src).forEach(async (file) => {
+                let srcfile = path.join(src, file);
+                let dstfile = dst+'/' +file;
+                console.log(srcfile, dstfile);
+                let r = await this.upload(srcfile, dstfile);
+                if (r.rc !==0) {
+                    resolve({ rc: -1, stderr: r.stderr })
+                    return;
+                }
+              });
+              resolve({ rc: 0 })
+        });        
+    }
+
     async download(src, dst) {
         let that = this;
         if (!that.connected) {

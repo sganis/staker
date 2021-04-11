@@ -1,6 +1,7 @@
 <template>
   <div>
     <h1>Create Wallet</h1>
+    <div>
     <form @submit.prevent="onSubmit">
       <div class="form-group ">
         <input id="name" v-model="name" placeholder="Wallet name..." 
@@ -14,19 +15,20 @@
     <br/>
     </div>
     <Error :message="error" />
-    <Loading :message="message" :loading="loading" />
+    <Spinner :message="message" :loading="loading" />
     <div v-if="!loading">{{message}}</div>
+    </div>
 </template>
 
 <script>
 import Error from "./Error"
-import Loading from "./Loading"
+import Spinner from "./Spinner"
 //import {getSettings, setSettings, createAddress} from "../ipc"
 import { mapActions } from 'vuex'
 import {sleep} from '../../common/util'
 
 export default {
-  components : { Error, Loading },
+  components : { Error, Spinner },
   props: ['wallet'],
   data() {
     return {

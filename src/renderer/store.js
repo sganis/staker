@@ -53,8 +53,8 @@ const store = createStore({
             }
             
             let appPath = getSettings('appPath');
-            let src = path.join(appPath,'tool/tool.zip');
-            let dst = '.staker/tool.zip'; 
+            let src = path.join(appPath,'tool');
+            let dst = '.staker'; 
             console.log('src:', src);
 
             r = await upload(src, dst);
@@ -62,10 +62,6 @@ const store = createStore({
                 n.status = r.stdout;
             } else {
                 n.status = r.stderr;
-            }
-            r = await runRemote('cd .staker; unzip tool.zip');
-            if (r.rc !== 0) {
-                n.status = r.stderr;                 
             }
             commit('updateNode', n);
         },
