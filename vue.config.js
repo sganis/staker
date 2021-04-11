@@ -9,7 +9,7 @@ module.exports = {
             builderOptions: {
                 win: {
                     target: 'dir',
-                    icon: "resources/icons/icon.ico"
+                    icon: "src/resources/icons/icon.ico"
                 },
                 linux: {
                     target: 'dir',
@@ -20,10 +20,10 @@ module.exports = {
                     category: "public.app-category.developer-tools"
                 },
                 directories: {
-                    buildResources: "resources",
+                    buildResources: "src/resources",
                 },
                 extraFiles: [
-                    "resources/**/*"                   
+                        "tool/*.py", "tool/*.sh",                  
                 ]
             }           
         },        
