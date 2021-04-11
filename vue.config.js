@@ -7,6 +7,7 @@ module.exports = {
             appId: "com.chaintrust.staker",
             outputDir: "dist",
             builderOptions: {
+                asar: false,
                 win: {
                     target: 'dir',
                     icon: "src/resources/icons/icon.ico"

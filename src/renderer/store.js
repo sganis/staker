@@ -101,7 +101,7 @@ const store = createStore({
             let cmd = `python3 .staker/cardano.py balance --name ${name}`;
             let r = await runRemote(cmd);
             let w = {name: name};
-            if (r.rc === 0) {                
+            if (r.rc === 0) {   
                 w.balance = r.stdout.trim();
                 console.log('balance :', w.balance);
                 commit('updateWallet', w);

@@ -24,7 +24,6 @@
     "core-js": "^3.6.5",
     "ssh2": "^0.8.9",
     "vue": "^3.0.0",
-    "vue-loading-overlay": "^3.4.2",
     "vue-router": "^4.0.5",
     "vuex": "^4.0.0"
   },
