@@ -8,14 +8,15 @@ import json
 import argparse
 
 home = os.environ['HOME']
-path_to_socket = f"{home}/ada/relay/db/node.socket"
+#path_to_socket = f"{home}/ada/relay/db/node.socket"
 DIR = os.path.dirname(os.path.abspath(sys.argv[0]))
+KEYDIR = f'{home}/.staker/keys'
 
 NETWORK='--testnet-magic 1097911063'
 # NETWORK='--testnet-magic 3'
 
 def run(cmd):
-	os.environ["CARDANO_NODE_SOCKET_PATH"] = path_to_socket
+#	os.environ["CARDANO_NODE_SOCKET_PATH"] = path_to_socket
 	cmd = cmd.replace('\n','')
 	#print(f'CMD: {cmd}')
 	p = subprocess.run(cmd.replace('\n','').split(), capture_output=True)
@@ -62,7 +63,7 @@ def _get_pool_deposit():
 	js = json.loads(open('protocol.json').read())
 	return int(js['poolDeposit'])
 
-def _get_params():
+def _get_args():
 	parser = argparse.ArgumentParser()
 	# parser.add_argument('--tx', action='store_true', help='make a transaction')
 	subparsers = parser.add_subparsers(dest='command')
@@ -73,48 +74,67 @@ def _get_params():
 	s.add_argument("--to_addr", required=True, help="to address")
 	s.add_argument("--ada", required=True, help="ammount of ADA to send")
 	s = subparsers.add_parser("address", help='generate payment and stake addresses')
-	s.add_argument("--name", required=True, help="address name")
+	s.add_argument("--name", help="address name")
+	s.add_argument("--list", action='store_true', help="list all addresses")
 	s = subparsers.add_parser("balance", help='query balance of address')
-	s.add_argument("--name", required=True, help="address name")
+	s.add_argument("--name", help="address name")
 	
 	# Parse
-	opts = parser.parse_args()
-	return opts
+	a = parser.parse_args()
+
+	if a.command == 'address' and not a.name and not a.list:
+		parser.error('address must request --name or --list')
+	
+	return a
+
+def get_addresses():
+	if not os.path.exists(KEYDIR):
+		sys.stderr.write(f'key dir does not exist.\n')
+		return False
+	addr = []
+	for f in os.listdir(KEYDIR):
+		if '_paymt.addr' in f:
+			with open(f'{KEYDIR}/{f}') as r:
+				address = r.read()
+				name = f.replace('_paymt.addr','')
+				a = {'name': name, 'address': address}
+				addr.append(a)
+	print(json.dumps(addr))
 
 def address(name):
-	if os.path.exists(f'{name}_paymt.addr'):
+	if os.path.exists(f'{KEYDIR}/{name}_paymt.addr'):
 		sys.stderr.write('already exists, not generating.\n')
 		return False
 	print(f'generating payment address...')
 	# make payment keys
 	cmd = f'cardano-cli address key-gen '
-	cmd += f'--verification-key-file {name}_paymt.vkey '
-	cmd += f'--signing-key-file {name}_paymt.skey'
+	cmd += f'--verification-key-file {KEYDIR}/{name}_paymt.vkey '
+	cmd += f'--signing-key-file {KEYDIR}/{name}_paymt.skey'
 	run(cmd)
 	# stake key pair
 	cmd = f'cardano-cli stake-address key-gen '
-	cmd +=f'--verification-key-file {name}_stake.vkey '
-	cmd += f'--signing-key-file {name}_stake.skey'
+	cmd +=f'--verification-key-file {KEYDIR}/{name}_stake.vkey '
+	cmd += f'--signing-key-file {KEYDIR}/{name}_stake.skey'
 	run(cmd)
 	# payment address
 	cmd = f'cardano-cli address build '
-	cmd += f'--payment-verification-key-file {name}_paymt.vkey '
-	cmd += f'--stake-verification-key-file {name}_stake.vkey '
-	cmd += f'--out-file {name}_paymt.addr {NETWORK}'
+	cmd += f'--payment-verification-key-file {KEYDIR}/{name}_paymt.vkey '
+	cmd += f'--stake-verification-key-file {KEYDIR}/{name}_stake.vkey '
+	cmd += f'--out-file {KEYDIR}/{name}_paymt.addr {NETWORK}'
 	run(cmd)
 	# stake address
 	cmd = 'cardano-cli stake-address build '
 	cmd += f'--stake-verification-key-file {name}_stake.vkey '
 	cmd += f'--out-file {name}_stake.addr {NETWORK}'
 	run(cmd)
-	print(open(f'{name}_paymt.addr').read())
+	print(open(f'{KEYDIR}/{name}_paymt.addr').read())
 	print('done.')
 	return True
 
 def balance(name):
 	addr_file = f'{name}_paymt.addr'
 	if not os.path.exists(addr_file):
-		print('invalid address.')
+		sys.stderr.write('invalid address.\n')
 		return False
 	addr = open(addr_file).read()
 	cmd = f'cardano-cli query utxo --address {addr} {NETWORK} --mary-era'
@@ -322,13 +342,16 @@ def register_pool():
 
 if __name__ == '__main__':
 
-	p = _get_params()
+	p = _get_args()
 
 	ok = False
 	if p.command == 'tx':
 		ok = send(p.from_addr, p.to_addr, p.ada, p.from_skey)	
 	elif p.command == 'address':
-		ok = address(p.name)
+		if p.name:
+			ok = address(p.name)
+		elif p.list:
+			ok = get_addresses()
 	elif p.command == 'balance':
 		ok = balance(p.name)
 
