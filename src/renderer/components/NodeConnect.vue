@@ -126,5 +126,4 @@ export default {
 h3 {
   margin: 40px 0 0;
 }
-.top10 { margin-top:10px; }
 </style>

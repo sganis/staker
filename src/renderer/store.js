@@ -74,12 +74,13 @@ const store = createStore({
             commit('removeWallet', n); 
         },
         async loadWallets({commit}) {
-            let r = await runRemote('ls *_paymt.addr');
+            let cmd = 'python3 .staker/cardano.py address --list';
+            let r = await runRemote(cmd);
             if (r.stderr)
                 console.log(r.stderr);
             let wallets = [];
-            r.stdout.split('\n').forEach(line => {
-                wallets.push({name: line.trim().replace('_paymt.addr','')});
+            JSON.parse(r.stdout.trim()).forEach(w => {
+                wallets.push(w);
             });
             console.log(wallets);
             commit('loadWallet', wallets);
@@ -90,11 +91,24 @@ const store = createStore({
             return new Promise(resolve => {
                 let w = {name: name};
                 if (r.rc === 0) {
+                    w.address = r.stdout.trim();
                     commit('updateWallet', w);
                 }
                 resolve(r);
             });              
-        }            
+        }, 
+        async getBalance({commit}, name) {
+            let cmd = `python3 .staker/cardano.py balance --name ${name}`;
+            let r = await runRemote(cmd);
+            let w = {name: name};
+            if (r.rc === 0) {                
+                w.balance = r.stdout.trim();
+                console.log('balance :', w.balance);
+                commit('updateWallet', w);
+            } else {
+                console.log(r.stderr);
+            }
+        }                    
     },
 
     mutations: {
