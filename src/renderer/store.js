@@ -53,15 +53,19 @@ const store = createStore({
             }
             
             let appPath = getSettings('appPath');
-            let src = path.join(appPath,'resources/scripts/status.py');
-            let dst = '.staker/status.py'; 
+            let src = path.join(appPath,'tool/tool.zip');
+            let dst = '.staker/tool.zip'; 
             console.log('src:', src);
 
-            r = await upload(n.host, src, dst);
+            r = await upload(src, dst);
             if (r.rc === 0) {
                 n.status = r.stdout;
             } else {
                 n.status = r.stderr;
+            }
+            r = await runRemote('cd .staker; unzip tool.zip');
+            if (r.rc !== 0) {
+                n.status = r.stderr;                 
             }
             commit('updateNode', n);
         },
@@ -85,7 +89,7 @@ const store = createStore({
             commit('loadWallet', wallets);
         },
         async createWallet({commit}, name) {
-            let cmd = `python3 ada/cardano/cardano.py address --name ${name}`;
+            let cmd = `python3 .staker/cardano.py address --name ${name}`;
             let r = await runRemote(cmd);
             return new Promise(resolve => {
                 let w = {name: name};
