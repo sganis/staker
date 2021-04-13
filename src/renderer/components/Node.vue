@@ -1,7 +1,6 @@
 <template>
-<h1 class="text-end">Node</h1>  
-<div class="container p-5">
-    
+<Spinner :loading="loading" :message="message"/>
+<div class="container p-3">
     <div class="d-flex flex-column h-100" >        
         <div class="row h-100 flex-grow-1 p-0 m-0">
           <NodeConnect v-if="!node || (node && !node.connected)" :node="node"/>
@@ -47,13 +46,16 @@
 
 import NodeConnect from "./NodeConnect"
 import NodeStatus from "./NodeStatus"
+import Spinner from "./Spinner"
 import {mapActions} from 'vuex'
 
 export default {
-  components: {NodeConnect, NodeStatus},
+  components: {Spinner,NodeConnect, NodeStatus},
   props: ['node'],
   data() {
     return {
+      loading: false,
+      message: "Loading",
       installing_tools: false,
     }
   },
@@ -70,7 +72,7 @@ export default {
         'disconnectNode','deselectAllNodes','removeNode',
         'setupNode','hasTools'
     ]),
-
+    
     disconnect(node) {
       this.deselectAllNodes();
       this.disconnectNode(node);
