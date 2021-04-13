@@ -86,7 +86,7 @@ const store = createStore({
             commit('loadWallet', wallets);
         },
         async createWallet({commit}, name) {
-            let cmd = `python3 .staker/cardano.py address --name ${name}`;
+            let cmd = `mkdir -p .staker/keys; python3 .staker/cardano.py address --name ${name}`;
             let r = await runRemote(cmd);
             return new Promise(resolve => {
                 let w = {name: name};
