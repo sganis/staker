@@ -39,6 +39,7 @@ import {sleep} from '../../common/util'
 export default {
   components : { Error, Spinner },
   props: ['node'],
+  emits: ['loading'],
   data() {
     return {
       host: (this.node && this.node.host) || '',
@@ -57,10 +58,15 @@ export default {
     },
   },
   methods: {
-    ...mapActions(['updateNode']),
+    ...mapActions(['updateNode','connectNone']),
 
     onSubmit: async function() {
-      this.loading = true;     
+      await this.connectNode({
+          host: this.host, 
+          user: this.user,
+          password: this.password,
+      });
+      this.$emit('loading', true);     
       this.error = ''
       //this.need_password = false;
       this.message = `Connecting to ${this.host}...`;

@@ -82,6 +82,7 @@ export default {
         clearInterval(this.polling);
     },
     mounted () {
+        this.getBalance(this.wallet.name);
         this.pollData();
     }
 
