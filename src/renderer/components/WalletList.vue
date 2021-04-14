@@ -27,15 +27,15 @@ export default {
       this.loadWallets();
   },
   computed: {
-    ...mapGetters(['getWallets','getWalletSelected']),
+    ...mapGetters('wallets', ['getWallets','getWalletSelected']),
   },
   methods: {  
-    ...mapActions(['loadWallets','updateWallet','deselectAllWallets']),  
+    ...mapActions('wallets', ['loadWallets','updateWallet','deselectAllWallets']),  
 
     showWallet(w) {
-        // call mutations directly as they are sync
-        this.$store.commit('deselectAllWallets');     
-        this.$store.commit('updateWallet', {name: w.name, selected: true});
+        // call mutations directly as they are sync?
+        this.deselectAllWallets();     
+        this.updateWallet({name: w.name, selected: true});
         this.$router.push(`/wallets/${w.name}`);
     },
     addWallet() {

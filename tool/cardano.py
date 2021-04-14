@@ -105,7 +105,7 @@ def address(name):
 	if os.path.exists(f'{KEYDIR}/{name}_paymt.addr'):
 		sys.stderr.write('already exists, not generating.\n')
 		return False
-	print(f'generating payment address...')
+	# print(f'generating payment address...')
 	# make payment keys
 	cmd = f'cardano-cli address key-gen '
 	cmd += f'--verification-key-file {KEYDIR}/{name}_paymt.vkey '
@@ -128,7 +128,7 @@ def address(name):
 	cmd += f'--out-file {name}_stake.addr {NETWORK}'
 	run(cmd)
 	print(open(f'{KEYDIR}/{name}_paymt.addr').read())
-	print('done.')
+	# print('done.')
 	return True
 
 def balance(name):

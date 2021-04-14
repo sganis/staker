@@ -83,6 +83,7 @@ export class Ssh {
                 })
             })
             that.conn.on('close', (_) => {
+                console.log('ssh connection closed');
                 resolve({
                     stdout: '',
                     stderr: 'connection closed',
@@ -90,16 +91,15 @@ export class Ssh {
                 });
             })
             that.conn.on('error', (e) => {
-                let msg = e.toString();
+                let msg = `ssh connection error: ${e}`;
                 if (e.level === 'client-timeout') {
                     msg = 'Timed out';
                 } else if (e.level === 'client-socket') {
                     msg = 'Connection refused';
                 } else if (e.level === 'client-authentication') {
                     msg = 'Authentication failed';
-                } else {
-                    console.log('Error here: '+ e);
                 }
+                console.log(msg);
                 that.connected = false;
                 resolve({
                     stdout: '',
@@ -114,7 +114,7 @@ export class Ssh {
                 password: that.password,
                 privateKey: that.pkey,
                 readyTimeout: that.timeout, 
-                keepaliveInterval: 60000
+                keepaliveInterval: 30000
             }); 
         })
     }
@@ -126,9 +126,9 @@ export class Ssh {
             let r = await that.connect();
             if (r.rc !== 0) {
                 return {
-                    stdout: '',
-                    stderr: 'Not connected',
-                    rc : -1
+                    stdout: r.stdout,
+                    stderr: 'ssh exec not connected: '+ r.stderr,
+                    rc : r.rc
                 };
             }
         }
@@ -275,7 +275,7 @@ export async function download(src, dst) {
 
 export async function setupSsh(host, user) {
     // todo
-    return new Promise(resolve => { setTimeout(resolve, 3000, {rc: -1}) });
+    return new Promise(resolve => { setTimeout(resolve, 3000, {rc: -1,stderr:'not implemented'}) });
 }
 
 export async function createAddress(name) {

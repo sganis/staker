@@ -1,7 +1,9 @@
 <template>
-<h1 class="text-end">Node</h1>  
-<div class="container p-5">
-    
+<div class="container d-flex top10 " style="height:70px">
+  <Spinner :loading="getLoading" :message="getMessage"/>
+  <Error :error="getError" />
+</div>
+<div class="container p-3">
     <div class="d-flex flex-column h-100" >        
         <div class="row h-100 flex-grow-1 p-0 m-0">
           <NodeConnect v-if="!node || (node && !node.connected)" :node="node"/>
@@ -47,10 +49,12 @@
 
 import NodeConnect from "./NodeConnect"
 import NodeStatus from "./NodeStatus"
-import {mapActions} from 'vuex'
+import Spinner from "./Spinner"
+import Error from "./Error"
+import {mapGetters, mapActions} from 'vuex'
 
 export default {
-  components: {NodeConnect, NodeStatus},
+  components: {Spinner,Error,NodeConnect, NodeStatus},
   props: ['node'],
   data() {
     return {
@@ -58,7 +62,7 @@ export default {
     }
   },
   computed: {
-    //node: function () {return this.$store.getters.getNodeByIp(this.node.ip)},
+    ...mapGetters('nodes',['getLoading','getError','getMessage']),
   },
   watch: {
     node(n) {
@@ -66,11 +70,10 @@ export default {
     }
   },
   methods: {
-    ...mapActions([
-        'disconnectNode','deselectAllNodes','removeNode',
-        'setupNode','hasTools'
+    ...mapActions('nodes',[
+        'disconnectNode','deselectAllNodes','removeNode','setupNode','hasTools'
     ]),
-
+    
     disconnect(node) {
       this.deselectAllNodes();
       this.disconnectNode(node);
