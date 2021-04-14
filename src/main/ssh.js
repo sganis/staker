@@ -275,7 +275,7 @@ export async function download(src, dst) {
 
 export async function setupSsh(host, user) {
     // todo
-    return new Promise(resolve => { setTimeout(resolve, 3000, {rc: -1}) });
+    return new Promise(resolve => { setTimeout(resolve, 3000, {rc: -1,stderr:'not implemented'}) });
 }
 
 export async function createAddress(name) {

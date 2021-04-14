@@ -1,11 +1,18 @@
 import {createStore} from 'vuex'
-import {runRemote, upload, getSettings, setSettings} from './ipc'
+import {
+    runRemote, upload, getSettings, setSettings, 
+    setupSsh, connectHost } from './ipc'
+import {sleep} from '../common/util'
+
 const path = require('path')
 
 const store = createStore({
     state() {
         return {
             nodes: [],
+            loading : false,
+            error: '',
+            message: '',
             wallets: [],
         }
     },
@@ -13,7 +20,11 @@ const store = createStore({
         // nodes
         getNodes: (state) => state.nodes.filter(n => n.host !=='') || [],
         getNode: (state) => (host) => state.nodes.find(n => n.host === host),
-        getNodeSelected: (state) => state.nodes.find(n => n.selected),  
+        getNodeSelected: (state) => state.nodes.find(n => n.selected),
+        getLoading:(state)=> state.loading,
+        getError:(state)=> state.error,
+        getMessage:(state)=> state.message,
+          
         // wallets
         getWallets: (state) => state.wallets.filter(n => n.name !=='') || [],
         getWallet: (state) => (name) => state.wallets.find(n => n.name === name),
@@ -31,6 +42,52 @@ const store = createStore({
                 n.has_tools = r.rc === 0;
                 commit('updateNode', n); 
             }
+        },
+        async connectNode({commit, getters}, n) {
+            commit('setLoading', true);     
+            commit('setError', '');     
+            commit('setMessage', `Connecting to ${n.host}...`);     
+            let r = await connectHost(n.host, n.user, n.password);
+            console.log(r);
+            if (r.rc === 0) {
+              commit('setMessage', `Connected to ${n.host}: ${r.stdout}`);
+              await sleep(2000);
+            
+              if (n.password) {
+                n.password = '';
+                // setup ssh
+                commit('setMessage', 'Setting up ssh keys...');          
+                r = await setupSsh(n.host, n.user);
+                await sleep(2000);
+                if (r.rc === 0) {
+                    commit('setMessage','Ssh keys ok.');
+                } else {
+                    commit('setLoading',false);
+                    commit('setMessage','');
+                    commit('setError',"Ssh keys setup failed: "+ r.stderr);  
+                    console.log(n.error);
+                    //const sleep = ms => new Promise(res => setTimeout(res, ms));
+                }
+                await sleep(2000);
+                
+              } 
+              n.selected = true;
+              n.connected = true;
+              commit('updateNode', n);   
+              
+              // persist list of nodes
+              let arr = JSON.parse(JSON.stringify(getters.getNodes));
+              arr.forEach(n => n.connected=false);
+              setSettings('nodes', arr);
+              setSettings('current_node', this.host);
+            } else {
+                commit('setError',r.stderr);
+                commit('setMessage', '');
+            }
+            commit('setLoading',false);
+            console.log('loading:', getters.getLoading);
+            return new Promise(res => {res(r)});
+            
         },
         async updateNodeStatus({commit}, n) { 
             // get node status from ssh
@@ -151,6 +208,9 @@ const store = createStore({
                 state.nodes.splice(i,1)
             }
         },       
+        setLoading(state, b) { state.loading = b; },
+        setError(state, e) {state.error = e; setTimeout(()=> state.error = '', 3000)},
+        setMessage(state, m) {state.message = m},
 
         // wallets
         deselectAllWallets(state) {state.wallets.forEach(n => n.selected = false); },

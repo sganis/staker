@@ -1,11 +1,15 @@
 <template>
-    <div class="alert alert-danger" v-if="message">{{message}}</div>
+<div v-if="error" class="alert alert-danger w-100" role="alert">
+  <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+  {{error}}
+</div>
+
 </template>
 
 <script>
 export default {
     props: {
-        message : {
+        error : {
             type: String,
             required : true
         }
