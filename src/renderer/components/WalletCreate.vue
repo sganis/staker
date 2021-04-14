@@ -45,7 +45,7 @@ export default {
 //     },
 //   },
   methods: {
-    ...mapActions(['updateWallet','createWallet']),
+    ...mapActions('wallets', ['updateWallet','createWallet']),
 
     onSubmit: async function() {
         this.loading = true;     

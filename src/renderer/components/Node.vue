@@ -62,7 +62,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters(['getLoading','getError','getMessage']),
+    ...mapGetters('nodes',['getLoading','getError','getMessage']),
   },
   watch: {
     node(n) {
@@ -70,7 +70,7 @@ export default {
     }
   },
   methods: {
-    ...mapActions([
+    ...mapActions('nodes',[
         'disconnectNode','deselectAllNodes','removeNode','setupNode','hasTools'
     ]),
     

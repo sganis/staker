@@ -43,7 +43,7 @@ export default {
     //wallet: function () {return this.$store.getters.getWalletByIp(this.wallet.ip)},
   },
   methods: {
-    ...mapActions(['deselectAllWallets','removeWallet',]),
+    ...mapActions('wallets', ['deselectAllWallets','removeWallet',]),
 
     remove(wallet) {
       this.deselectAllWallets();
