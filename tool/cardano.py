@@ -132,18 +132,25 @@ def address(name):
 	return True
 
 def balance(name):
-	addr_file = f'{name}_paymt.addr'
+	addr_file = f'{KEYDIR}/{name}_paymt.addr'
 	if not os.path.exists(addr_file):
 		sys.stderr.write('invalid address.\n')
 		return False
 	addr = open(addr_file).read()
 	cmd = f'cardano-cli query utxo --address {addr} {NETWORK} --mary-era'
-	print(cmd)
 	o,e=run(cmd)
 	if e:
-		print(e)
+		sys.stderr.write(e)
+		return False
 	else:
-		print(o)
+		try:
+			line = o.split('\n')[-1].split()
+			balance = int(line[2])/1000000.0
+			print(balance)
+			return True
+		except Exception as ex:
+			print('n/a')
+			return False 
 
 def send(from_addr, to_addr, ada, from_skey):
 	print(f'sending {ada} ADA\nFrom: {from_addr}\nTo  : {to_addr}')
