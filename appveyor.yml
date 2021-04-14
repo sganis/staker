@@ -3,7 +3,7 @@ version: 1.0.0.{build}
 image:
   - Visual Studio 2019
   - Ubuntu2004
-  # - macOS
+  - macOS
 platform:
   - x64
 configuration:
