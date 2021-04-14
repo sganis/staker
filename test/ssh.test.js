@@ -1,4 +1,4 @@
-const {Ssh} = require('../src/main/ssh');
+const {Ssh, updatePassphrase, connections} = require('../src/main/ssh');
 const path = require('path');
 const { runLocal } = require('../src/main/command');
 
@@ -8,6 +8,26 @@ const HOSTNAME = '192.168.100.203';
 const USER = 'san';
 
 describe.onWindows("Ssh tests", () => {
+    // test('Change passphrase', async () => {
+    //     let ssh = new Ssh({host:HOSTNAME, user:USER});
+    //     expect(ssh.isConnected()).toEqual(false);
+    //     connections.set(HOSTNAME, ssh);
+
+    //     let wallet_id = '377b5fb2b90a5f937b1a72b309787fb1e26e28ba';
+    //     let currentpass = 'password123';
+    //     let newpass = 'password555';
+    //     let r = await updatePassphrase(wallet_id, currentpass, newpass);
+    //     console.log(r);
+    //     expect(r.stderr).toContain('Ok.');
+    //     r = await updatePassphrase(wallet_id, 'wrongpassword', 'password222');
+    //     console.log(r);
+    //     expect(r.stderr).toContain('The given encryption passphrase doesn');
+    //     r = await updatePassphrase(wallet_id, newpass, currentpass);
+    //     console.log(r);
+    //     expect(r.stderr).toContain('Ok.');
+    //     await ssh.close();
+    // });
+
     // test('Constructor', async () => {
     //     let ssh = new Ssh({host:HOSTNAME, user:USER});
     //     expect(ssh.isConnected()).toEqual(false);
