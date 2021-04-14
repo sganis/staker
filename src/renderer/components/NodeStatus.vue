@@ -47,7 +47,7 @@ export default {
         },
     },
     methods: {
-        ...mapActions(['updateNodeStatus']),
+        ...mapActions('nodes',['updateNodeStatus']),
         pollData() {
             this.polling = setInterval(() => {
                 //console.log('pulling data for node: '+ this.node.host)

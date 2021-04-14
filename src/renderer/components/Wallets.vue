@@ -15,7 +15,7 @@ import {mapGetters} from 'vuex'
 export default {
     components: { WalletList, Wallet, },
     computed: {
-       ...mapGetters(['getWallet','getWalletSelected',]),
+       ...mapGetters('wallets', ['getWallet','getWalletSelected',]),
       wallet() {
         return this.getWalletSelected;        
       }
