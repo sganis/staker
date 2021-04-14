@@ -18,7 +18,7 @@ export default {
       return {}
     },
     computed: {
-       ...mapGetters(['getNode','getNodeSelected',]),
+       ...mapGetters('nodes',['getNode','getNodeSelected',]),
       node() {
         let n = this.getNodeSelected;
         return n;

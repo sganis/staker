@@ -64,7 +64,7 @@ export default {
 
     },
     methods: {
-        ...mapActions(['getBalance']),
+        ...mapActions('wallets', ['getBalance']),
         copy() {
             var copyText = document.getElementById("fromaddr");
             copyText.select();

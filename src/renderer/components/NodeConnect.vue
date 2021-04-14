@@ -46,7 +46,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters(['getLoading','getError','getMessage'])
+    ...mapGetters('nodes',['getLoading','getError','getMessage'])
   },
   watch: {
     node(newNode) {
@@ -55,7 +55,7 @@ export default {
     },
   },
   methods: {
-    ...mapActions(['updateNode','connectNode']),
+    ...mapActions('nodes',['updateNode','connectNode']),
 
     onSubmit: async function() {
       let r = await this.connectNode({

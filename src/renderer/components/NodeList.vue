@@ -25,7 +25,7 @@ import {mapGetters, mapActions} from 'vuex'
 
 export default {
   computed: {
-    ...mapGetters(['getNodes','getNodeSelected']),
+    ...mapGetters('nodes',['getNodes','getNodeSelected']),
   },
 
   mounted() {
@@ -47,7 +47,7 @@ export default {
   },
 
   methods: {  
-    ...mapActions(['updateNode','deselectAllNodes']),  
+    ...mapActions('nodes',['updateNode','deselectAllNodes']),  
 
     showNode(node) {
       this.deselectAllNodes();     
