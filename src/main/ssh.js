@@ -83,7 +83,7 @@ export class Ssh {
                 })
             })
             that.conn.on('close', (_) => {
-                console.log('ssh connection closed');
+                //console.log('ssh connection closed');
                 resolve({
                     stdout: '',
                     stderr: 'connection closed',
@@ -119,7 +119,7 @@ export class Ssh {
         })
     }
 
-    async exec(cmd) {
+    async exec(cmd, prompt) {
         let that = this;
         this.cmd = cmd;
         if (!that.connected) {
@@ -136,6 +136,7 @@ export class Ssh {
             that.conn.exec(cmd, (err, stream) => {
                 let stdout = '';
                 let stderr = '';
+                let stderr_line = '';
                 if (err || !stream) {
                     resolve({
                         cmd : cmd,
@@ -154,7 +155,19 @@ export class Ssh {
                 }).on('data', (data) => {
                     stdout += data;           
                 }).stderr.on('data', (data) => {
-                    stderr += data;
+                    stderr += data;  
+                    stderr_line += data;                      
+                    if (prompt && stderr_line.indexOf(':')) {
+                        console.log('stderr_line data: '+stderr_line);                        
+                        prompt.forEach(p => {
+                            if (stderr_line.includes(p.question)) {
+                                stream.write(p.answer + '\n');
+                                stderr_line = '';
+                                console.log([p.answer]);
+                            }
+                        });
+                        // console.log('stderr data2: '+data);                                                                 
+                    }
                 });
             });                
         })
@@ -230,6 +243,29 @@ export class Ssh {
     }
 }
 
+export async function updatePassphrase(wallet_id, currentpass, newpass) {
+    console.log('Updating passphrase...');
+    let prompt = [
+        { 
+            question: 'current passphrase:',
+            answer: currentpass,
+        },
+        { 
+            question: 'new passphrase:',
+            answer: newpass,
+        },
+        { 
+            question: 'second time:',
+            answer: newpass,
+        },
+    ]
+
+    let cmd = `cardano-wallet wallet update passphrase ${wallet_id}`;
+    let r = await runRemote(cmd, prompt);
+    return r;
+}
+
+
 export async function generateKeys(user, host) {
     // todo
     console.log('Generating new ssh keys...');
@@ -238,13 +274,13 @@ export async function generateKeys(user, host) {
 
 }
 
-export async function runRemote(cmd) {
+export async function runRemote(cmd, prompt) {
     console.log('running command:', cmd);
     let ssh = connections.getCurrentConnection();
     if (!ssh) {
         return {stderr: 'no connection', stdout: '', rc : -1};
     }
-    return ssh.exec(cmd);
+    return ssh.exec(cmd, prompt);
 }
 
 export async function connectHost(host, user, password) {
