@@ -2,7 +2,7 @@ import {createStore} from 'vuex'
 import {
     runRemote, upload, getSettings, setSettings, 
     setupSsh, connectHost } from '../ipc'
-import {sleep} from '../../common/util'
+// import {sleep} from '../../common/util'
 
 const path = require('path')
 
@@ -29,7 +29,7 @@ export default {
             commit('removeWallet', n); 
         },
         async loadWallets({commit}) {
-            let cmd = 'python3 .staker/cardano.py address --list';
+            let cmd = 'python3 cardano/bin/cardano.py address --list';
             let r = await runRemote(cmd);
             console.log(r);
             let wallets = [];
@@ -40,7 +40,7 @@ export default {
             commit('loadWallet', wallets);
         },
         async createWallet({commit}, name) {
-            let cmd = `mkdir -p .staker/keys; python3 .staker/cardano.py address --name ${name}`;
+            let cmd = `mkdir -p cardano/bin/keys; python3 cardano/bin/cardano.py address --name ${name}`;
             let r = await runRemote(cmd);
             return new Promise(resolve => {
                 let w = {name: name};
@@ -52,7 +52,7 @@ export default {
             });              
         }, 
         async getBalance({commit}, name) {
-            let cmd = `python3 .staker/cardano.py balance --name ${name}`;
+            let cmd = `python3 cardano/bin/cardano.py balance --name ${name}`;
             let r = await runRemote(cmd);
             let w = {name: name};
             if (r.rc === 0) {   

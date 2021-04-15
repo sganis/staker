@@ -20,7 +20,7 @@
 </template>
 
 <script>
-import {IPC} from "../../common/constants"
+import {IPC} from "../../../common/constants"
 import {mapGetters, mapActions} from 'vuex'
 
 export default {

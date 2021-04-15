@@ -27,14 +27,10 @@
 </template>
 
 <script>
-import Error from "./Error"
-import Spinner from "./Spinner"
-import {getSettings, setSettings} from "../ipc"
+import {getSettings, setSettings} from "../../ipc"
 import { mapActions, mapGetters } from 'vuex'
 
-
 export default {
-  components : { Error, Spinner },
   props: ['node'],
   emits: ['loading'],
   data() {

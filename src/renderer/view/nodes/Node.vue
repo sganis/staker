@@ -49,8 +49,8 @@
 
 import NodeConnect from "./NodeConnect"
 import NodeStatus from "./NodeStatus"
-import Spinner from "./Spinner"
-import Error from "./Error"
+import Spinner from "../common/Spinner"
+import Error from "../common/Error"
 import {mapGetters, mapActions} from 'vuex'
 
 export default {

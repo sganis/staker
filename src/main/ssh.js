@@ -178,7 +178,8 @@ export class Ssh {
         if (!that.connected) {
             let r = await that.connect();
             if (r.rc !== 0) {
-                return {stdout: '', stderr: 'Not connected', rc : -1 }
+                console.log(r);
+                return {stdout: '', stderr: 'Not connected to upload', rc : -1 }
             }
         }
         let stats = fs.statSync(src);
@@ -188,8 +189,10 @@ export class Ssh {
             return new Promise(resolve => {
                 that.conn.sftp((err, sftp) => {
                     if (err) {
-                        resolve({stderr: err, stdout: '',rc : -100 });                    
-                    }
+                        console.log('error sftp: '+ err);
+                        resolve({stderr: err, stdout: '',rc : -100 });  
+                        return;
+                    } 
                     let readStream = fs.createReadStream(src);
                     let writeStream = sftp.createWriteStream(dst);        
                     writeStream.on('close', () => {
@@ -209,6 +212,7 @@ export class Ssh {
                 console.log(srcfile, dstfile);
                 let r = await this.upload(srcfile, dstfile);
                 if (r.rc !==0) {
+                    console.log(r);
                     resolve({ rc: -1, stderr: r.stderr })
                     return;
                 }
