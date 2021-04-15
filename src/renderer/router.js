@@ -1,9 +1,9 @@
 import {createRouter, createWebHistory} from 'vue-router'
-import Home from './components/Home'
-import Nodes from './components/Nodes'
-import Wallets from './components/Wallets'
-import Explorer from './components/Explorer'
-import Settings from './components/Settings'
+import Home from './view/Home'
+import Nodes from './view/nodes/Nodes'
+import Wallets from './view/wallets/Wallets'
+import Explorer from './view/Explorer'
+import Settings from './view/Settings'
 
 const routes = [
   { path: '/', component: Home },

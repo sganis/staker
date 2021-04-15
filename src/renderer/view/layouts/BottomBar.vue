@@ -1,15 +1,10 @@
 <template>
-    <div class="bottombar">
-        <Spinner :loading="loading" :message="msg"/>
-    </div>
+<div></div>
 </template>
 
 <script>
 
-import Spinner from "../Spinner"
-
 export default {
-   components : { Spinner },
 }
 </script>
 

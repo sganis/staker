@@ -21,11 +21,11 @@
 </template>
 
 <script>
-import Error from "./Error"
-import Spinner from "./Spinner"
+import Error from "../common/Error"
+import Spinner from "../common/Spinner"
 //import {getSettings, setSettings, createAddress} from "../ipc"
 import { mapActions } from 'vuex'
-import {sleep} from '../../common/util'
+import {sleep} from '../../../common/util'
 
 export default {
   components : { Error, Spinner },

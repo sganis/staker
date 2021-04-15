@@ -13,7 +13,6 @@ export default {
             loading : false,
             error: '',
             message: '',
-            wallets: [],
         }
     },
     getters: {
@@ -31,15 +30,13 @@ export default {
         removeNode({commit}, n) { commit('removeNode', n); },
         async hasTools({commit}, n) { 
             if (n) {
-                let r = await runRemote('ls .staker');
+                let r = await runRemote('ls cardano/bin/status.py');
                 n.has_tools = r.rc === 0;
                 commit('updateNode', n); 
             }
         },
         async connectNode({commit, getters}, n) {
-            commit('setLoading', true);     
-            commit('setError', '');     
-            commit('setMessage', `Connecting to ${n.host}...`);     
+            commit('workStart', `Connecting to ${n.host}...`);
             let r = await connectHost(n.host, n.user, n.password);
             console.log(r);
             if (r.rc === 0) {
@@ -64,20 +61,21 @@ export default {
                 await sleep(1000);
                 
               } 
-              n.selected = true;
-              n.connected = true;
-              commit('updateNode', n);   
+               
               
               // persist list of nodes
               let arr = JSON.parse(JSON.stringify(getters.getNodes));
               arr.forEach(n => n.connected=false);
               setSettings('nodes', arr);
-              setSettings('current_node', this.host);
+              n.selected = true;
+              n.connected = true;
+              commit('updateNode', n);  
+              setSettings('current_node', n.host);
             } else {
                 commit('setError',r.stderr);
                 commit('setMessage', '');
             }
-            commit('setLoading',false);
+            commit('workEnd');
             console.log('loading:', getters.getLoading);
             return new Promise(res => {res(r)});
             
@@ -85,7 +83,7 @@ export default {
         async updateNodeStatus({commit}, n) { 
             // get node status from ssh
             //let r = await runRemote(n.host, 'hostname;uptime;free -m;df -H /');
-            let r = await runRemote('python3 .staker/status.py');
+            let r = await runRemote('python3 cardano/bin/status.py');
             if (r.rc === 0) {
                 n.status = JSON.parse(r.stdout);
             } else {
@@ -95,17 +93,22 @@ export default {
             commit('updateNode', n); 
         },
         async setupNode({commit}, n) {
-            let r = await runRemote('mkdir -p .staker');
+            commit('setLoading', true);     
+            commit('setError', '');     
+            commit('setMessage', `Uploading tools...`);   
+            let r = await runRemote('mkdir -p cardano/bin');
             if (r.rc !== 0) {
-                n.status = r.stderr;
+                commit('setLoading', false);     
+                commit('setError', r.stderr);
                 commit('updateNode', n);
                 return; 
             }
             
             let appPath = getSettings('appPath');
-            let src = path.join(appPath,'tool');
-            let dst = '.staker'; 
-            console.log('src:', src);
+            let src = path.join(appPath,'tool/status.py');
+            let dst = 'cardano/bin/status.py'; 
+            console.log('uploading src:', src);
+            console.log('dst:', dst);
 
             r = await upload(src, dst);
             if (r.rc === 0) {
@@ -114,6 +117,7 @@ export default {
                 n.status = r.stderr;
             }
             commit('updateNode', n);
+            commit('workEnd');
         },
 
     },
@@ -155,5 +159,22 @@ export default {
         setLoading(state, b) { state.loading = b; },
         setError(state, e) {state.error = e; setTimeout(()=> state.error = '', 3000)},
         setMessage(state, m) {state.message = m},
+        workStart(state, msg) {
+            state.loading = true;
+            state.error = '';
+            state.message = msg;
+        },
+        workEnd(state, r={}) {
+            state.loading = false;
+            if (r && r.stderr) {
+                state.error = r.stderr; 
+                setTimeout(()=> state.error = '', 3000);
+            }
+            else if (r && r.stdout) {
+                state.message = r.stdout; 
+                setTimeout(()=> state.message = '', 3000);
+            }
+        },
+        
     },
 }
