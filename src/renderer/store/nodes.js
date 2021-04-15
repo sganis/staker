@@ -105,8 +105,8 @@ export default {
             }
             
             let appPath = getSettings('appPath');
-            let src = path.join(appPath,'tool/status.py');
-            let dst = 'cardano/bin/status.py'; 
+            let src = path.join(appPath,'tool');
+            let dst = 'cardano/bin'; 
             console.log('uploading src:', src);
             console.log('dst:', dst);
 
