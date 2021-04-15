@@ -93,13 +93,10 @@ export default {
             commit('updateNode', n); 
         },
         async setupNode({commit}, n) {
-            commit('setLoading', true);     
-            commit('setError', '');     
-            commit('setMessage', `Uploading tools...`);   
+            commit('workStart', 'Uploading tools...');   
             let r = await runRemote('mkdir -p cardano/bin');
             if (r.rc !== 0) {
-                commit('setLoading', false);     
-                commit('setError', r.stderr);
+                commit('workEnd', r.stderr);
                 commit('updateNode', n);
                 return; 
             }
@@ -111,6 +108,8 @@ export default {
             console.log('dst:', dst);
 
             r = await upload(src, dst);
+            await sleep(1000);
+
             if (r.rc === 0) {
                 n.status = r.stdout;
             } else {
