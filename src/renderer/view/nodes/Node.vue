@@ -11,8 +11,8 @@
         </div>
     </div>
     <br/><br/>
-    <div class="row w-100 m-0"
-      v-if="node && !node.has_tools">
+    <!-- <div class="row w-100 m-0" v-if="node && !node.has_tools"> -->
+    <div class="row w-100 m-0">
       <span>
       <span v-if="!installing_tools">Tools not installed.</span>
       <br/>

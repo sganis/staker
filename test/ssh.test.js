@@ -94,7 +94,7 @@ describe.onWindows("Ssh tests", () => {
     //         expect(r.stdout).toBe(index.toString());
     //     } 
     // });
-    // test('Download/upload file', async () => {
+    // test('sftp', async () => {
     //     let ssh = new Ssh({host:HOSTNAME, user:USER, pkeypath: pkeypath});
     //     let r = await ssh.connect()
     //     expect(ssh.isConnected()).toEqual(true);

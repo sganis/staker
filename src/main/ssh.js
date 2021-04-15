@@ -76,6 +76,16 @@ export class Ssh {
             that.conn.on('ready', () => {
                 // auth success
                 that.connected = true;
+                // create sftp
+                that.conn.sftp((err, sftp) => {
+                    if (err) {
+                        console.log('error sftp: '+ err);
+                        resolve({stderr: err, stdout: '',rc : -100 }); 
+                    }
+                    console.log('sftp connection created');
+                    that.sftp = sftp; 
+                });
+            
                 resolve({
                     stdout: '',
                     stderr: '',
@@ -116,6 +126,7 @@ export class Ssh {
                 readyTimeout: that.timeout, 
                 keepaliveInterval: 30000
             }); 
+            
         })
     }
 
@@ -174,6 +185,7 @@ export class Ssh {
     }
 
     async upload(src, dst) {
+        console.log(`uploading ${src} -> ${dst}`);
         let that = this;
         if (!that.connected) {
             let r = await that.connect();
@@ -187,24 +199,32 @@ export class Ssh {
             return this.uploadFolder(src,dst);
         } else {
             return new Promise(resolve => {
-                that.conn.sftp((err, sftp) => {
-                    if (err) {
-                        console.log('error sftp: '+ err);
-                        resolve({stderr: err, stdout: '',rc : -100 });  
-                        return;
-                    } 
-                    let readStream = fs.createReadStream(src);
-                    let writeStream = sftp.createWriteStream(dst);        
-                    writeStream.on('close', () => {
-                        resolve({stderr: '', stdout: '', rc : 0 });    
-                    });        
-                    // initiate transfer of file
-                    readStream.pipe( writeStream );
+                that.sftp.fastPut(src, dst, (err) => {
+                    let rc = 0;
+                    if (err)
+                        rc = -1
+                    resolve({stderr: err, stdout: '', rc : rc });    
                 });
+                // that.conn.sftp((err, sftp) => {
+                //     if (err) {
+                //         console.log('error sftp: '+ err);
+                //         resolve({stderr: err, stdout: '',rc : -100 }); 
+                //     } else {
+                //         let readStream = fs.createReadStream(src);
+                //         let writeStream = sftp.createWriteStream(dst);        
+                //         writeStream.on('close', () => {
+                //             console.log('sftp close');
+                //             resolve({stderr: '', stdout: '', rc : 0 });    
+                //         });        
+                //         // initiate transfer of file
+                //         readStream.pipe( writeStream );
+                //     }
+                // });
             })
         }
     }
     async uploadFolder(src, dst) {
+        console.log(`uploading folder ${src} -> ${dst}`);
         return new Promise(resolve => {
             fs.readdirSync(src).forEach(async (file) => {
                 let srcfile = path.join(src, file);
@@ -214,7 +234,6 @@ export class Ssh {
                 if (r.rc !==0) {
                     console.log(r);
                     resolve({ rc: -1, stderr: r.stderr })
-                    return;
                 }
               });
               resolve({ rc: 0 })
