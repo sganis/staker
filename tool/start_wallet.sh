@@ -10,7 +10,8 @@ ROOT=$HOME/cardano
 cardano-wallet serve \
 	--testnet testnet-byron-genesis.json \
   	--node-socket $ROOT/node.socket \
-  	--database ./wallets 
+  	--database ./wallets \
+  	--log-level NOTICE
 
 
 
