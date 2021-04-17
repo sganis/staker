@@ -191,7 +191,7 @@ export class Ssh {
                 let stderr_line = '';
                 if (err || !stream) {
                     that.busy = false;
-                    resolve({
+                    return resolve({
                         cmd : cmd,
                         stderr: err,
                         stdout: '',
@@ -200,7 +200,7 @@ export class Ssh {
                 }
                 stream.on('close', (rc) => {
                     that.busy = false;
-                    resolve({ 
+                    return resolve({ 
                         cmd: cmd,
                         stdout: stdout.trim(),
                         stderr: stderr.trim(),

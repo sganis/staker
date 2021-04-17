@@ -1,7 +1,5 @@
-import {
-    runRemote, getSettings, setSettings } from '../ipc'
-// import {sleep} from '../../common/util'
-const path = require('path')
+import { runRemote } from '../ipc'
+const axios = require('axios');
 
 export default {
     namespaced: true,
@@ -26,9 +24,17 @@ export default {
     actions: {
         updateWallet({commit}, w) { commit('updateWallet', w); },
         deselectAllWallets({commit}) { commit('deselectAllWallets'); },
-        removeWallet({commit}, w) { 
-            // todo, async deletion of address and keys    
-            commit('removeWallet', w); 
+        async deleteWallet({commit}, w) { 
+            commit('workStart', 'Deleting wallet...');            
+            let cmd = `cardano-wallet wallet delete ${w.id}`;
+            let r = await runRemote(cmd);
+            if (r.rc === 0) {
+                r.stderr = '';
+                r.stdout = 'Wallet deleted.'
+            }
+            commit('deleteWallet', w); 
+            commit('workEnd', r);   
+            console.log(r);         
         },
         async loadWallets({commit}) {
             let cmd = 'cardano-wallet wallet list';
@@ -36,15 +42,12 @@ export default {
             console.log(r);
             let wallets = [];
             JSON.parse(r.stdout.trim()).forEach(async (w) => {
-                cmd = `cardano-wallet address list ${w.id}`;
-                r = await runRemote(cmd);
-                w.addresses = JSON.parse(r.stdout.trim());
                 commit('updateWallet', w);
             });
             console.log(wallets);
             
         },
-        async loadWallet({commit}, w) {
+        async loadWallet({commit, dispatch}, w) {
             let cmd = `cardano-wallet wallet get ${w.id}`;
             let r = await runRemote(cmd);
             console.log(r);
@@ -52,7 +55,23 @@ export default {
             cmd = `cardano-wallet address list ${w.id}`;
             r = await runRemote(cmd);
             w.addresses = JSON.parse(r.stdout.trim());
-            commit('updateWallet', w);            
+            commit('updateWallet', w); 
+            cmd = `cardano-wallet transaction list ${w.id}`;
+            r = await runRemote(cmd);
+            w.transactions = JSON.parse(r.stdout.trim());
+            commit('updateWallet', w); 
+            dispatch('getAdaUsd', w);
+        },
+        async getAdaUsd({commit}, w) {
+            try {
+                let response = await axios.get('https://api.coingecko.com/api/v3/simple/price?ids=cardano&vs_currencies=usd')
+                //console.log(response);
+                w.usd = response.data.cardano.usd;
+                commit('updateWallet', w);                 
+            }
+            catch(error) {
+                console.log(error);
+            }            
         },
         async createWallet({commit,dispatch}, w) {
             commit('workStart', 'Creating wallet...');
@@ -92,8 +111,8 @@ export default {
 
     mutations: {
         deselectAllWallets(state) {state.wallets.forEach(n => n.selected = false); },
-        removeWallet(state, wallet) {
-            const i = state.wallets.findIndex(n => n.name === wallet.name);
+        deleteWallet(state, wallet) {
+            const i = state.wallets.findIndex(n => n.id === wallet.id);
             if (i > -1) {
                 state.wallets.splice(i,1)
             }
@@ -116,13 +135,13 @@ export default {
         },
         workEnd(state, r={}) {
             state.loading = false;
-            if (r && r.stderr) {
+            if (r && r.rc !==0 && r.stderr) {
                 state.error = r.stderr; 
                 //setTimeout(()=> state.error = '', 3000);
             }
             else if (r && r.stdout) {
                 state.message = r.stdout; 
-                setTimeout(()=> state.message = '', 3000);
+                setTimeout(()=> state.message = '', 5000);
             }
         },
         
