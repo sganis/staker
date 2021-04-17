@@ -35,7 +35,10 @@ export default {
             let r = await runRemote(cmd);
             console.log(r);
             let wallets = [];
-            JSON.parse(r.stdout.trim()).forEach(w => {
+            JSON.parse(r.stdout.trim()).forEach(async (w) => {
+                cmd = `cardano-wallet address list ${w.id}`;
+                r = await runRemote(cmd);
+                w.addresses = JSON.parse(r.stdout.trim());
                 commit('updateWallet', w);
             });
             console.log(wallets);
@@ -45,7 +48,11 @@ export default {
             let cmd = `cardano-wallet wallet get ${w.id}`;
             let r = await runRemote(cmd);
             console.log(r);
-            commit('updateWallet', JSON.parse(r.stdout.trim()));
+            w = JSON.parse(r.stdout.trim())
+            cmd = `cardano-wallet address list ${w.id}`;
+            r = await runRemote(cmd);
+            w.addresses = JSON.parse(r.stdout.trim());
+            commit('updateWallet', w);            
         },
         async createWallet({commit,dispatch}, w) {
             commit('workStart', 'Creating wallet...');
@@ -81,12 +88,6 @@ export default {
             commit('workEnd', r);
             return new Promise(res=>{res(r)});
         },                   
-        async loadAddresses({commit}, w) {
-            let cmd = `cardano-wallet address list ${w.id}`;
-            let r = await runRemote(cmd);
-            w.addresses = JSON.parse(r.stdout.trim());
-            commit('updateWallet', w);            
-        },
     },
 
     mutations: {
