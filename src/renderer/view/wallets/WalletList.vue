@@ -9,7 +9,7 @@
             <a href="#" @click="showWallet(wallet)"
                 class="list-group-item list-group-item-action"
                 :class="{active: wallet.selected}"
-                v-for="wallet in getWallets" :key="wallet.name">{{wallet.name}}</a>
+                v-for="wallet in getWallets" :key="wallet.id">{{wallet.name}}</a>
           </div>
         </div>
         <div class="row p-2">
@@ -35,8 +35,8 @@ export default {
     showWallet(w) {
         // call mutations directly as they are sync?
         this.deselectAllWallets();     
-        this.updateWallet({name: w.name, selected: true});
-        this.$router.push(`/wallets/${w.name}`);
+        this.updateWallet({id: w.id, selected: true});
+        this.$router.push(`/wallets/${w.id}`);
     },
     addWallet() {
       this.deselectAllWallets();     

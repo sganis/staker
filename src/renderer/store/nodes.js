@@ -1,6 +1,6 @@
 import {
     runRemote, upload, getSettings, setSettings, 
-    setupSsh, connectHost } from '../ipc'
+    setupSsh, connectHost, disconnectHost } from '../ipc'
 import {sleep} from '../../common/util'
 
 const path = require('path')
@@ -13,12 +13,14 @@ export default {
             loading : false,
             error: '',
             message: '',
+            network_info: {},
         }
     },
     getters: {
         getNodes: (state) => state.nodes.filter(n => n.host !=='') || [],
         getNode: (state) => (host) => state.nodes.find(n => n.host === host),
         getNodeSelected: (state) => state.nodes.find(n => n.selected),
+        getNetworkInfo:(state)=> state.network_info,
         getLoading:(state)=> state.loading,
         getError:(state)=> state.error,
         getMessage:(state)=> state.message,
@@ -26,7 +28,10 @@ export default {
     actions: {
         updateNode({commit}, n) { commit('updateNode', n); },
         deselectAllNodes({commit}) { commit('deselectAllNodes'); },
-        disconnectNode({commit}, n) { commit('disconnectNode', n); },
+        async disconnectNode({commit}, n) { 
+            await disconnectHost(n.host);
+            commit('disconnectNode', n); 
+        },
         removeNode({commit}, n) { commit('removeNode', n); },
         async hasTools({commit}, n) { 
             if (n) {
@@ -41,14 +46,14 @@ export default {
             console.log(r);
             if (r.rc === 0) {
               commit('setMessage', `Connected to ${n.host}: ${r.stdout}`);
-              await sleep(1000);
+              //await sleep(1000);
             
               if (n.password) {
                 n.password = '';
                 // setup ssh
                 commit('setMessage', 'Setting up ssh keys...');          
                 r = await setupSsh(n.host, n.user);
-                await sleep(1000);
+                //await sleep(1000);
                 if (r.rc === 0) {
                     commit('setMessage','Ssh keys ok.');
                 } else {
@@ -58,7 +63,7 @@ export default {
                     console.log(n.error);
                     //const sleep = ms => new Promise(res => setTimeout(res, ms));
                 }
-                await sleep(1000);
+                //await sleep(1000);
                 
               } 
                
@@ -118,6 +123,14 @@ export default {
             commit('updateNode', n);
             commit('workEnd');
         },
+        async updateNetworkInfo({commit}) {
+            let r = await runRemote('cardano-wallet network information');
+            if (r.rc === 0) {
+                commit('updateNetworkInfo', JSON.parse(r.stdout));
+            } else {
+                console.log('cannot get network information: '+ r.stderr);
+            }
+        },
 
     },
 
@@ -155,6 +168,9 @@ export default {
                 state.nodes.splice(i,1)
             }
         },       
+        updateNetworkInfo(state, info) {
+            state.network_info = info;
+        },
         setLoading(state, b) { state.loading = b; },
         setError(state, e) {state.error = e; setTimeout(()=> state.error = '', 3000)},
         setMessage(state, m) {state.message = m},

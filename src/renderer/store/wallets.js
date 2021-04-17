@@ -1,9 +1,6 @@
-import {createStore} from 'vuex'
 import {
-    runRemote, upload, getSettings, setSettings, 
-    setupSsh, connectHost } from '../ipc'
+    runRemote, getSettings, setSettings } from '../ipc'
 // import {sleep} from '../../common/util'
-
 const path = require('path')
 
 export default {
@@ -14,68 +11,86 @@ export default {
             error: '',
             message: '',
             wallets: [],
+            addressed: [],
         }
     },
     getters: {
         getWallets: (state) => state.wallets.filter(n => n.name !=='') || [],
         getWallet: (state) => (name) => state.wallets.find(n => n.name === name),
         getWalletSelected: (state) => state.wallets.find(n => n.selected),  
+        getLoading:(state)=> state.loading,
+        getError:(state)=> state.error,
+        getMessage:(state)=> state.message,
+
     },
     actions: {
-        updateWallet({commit}, n) { commit('updateWallet', n); },
+        updateWallet({commit}, w) { commit('updateWallet', w); },
         deselectAllWallets({commit}) { commit('deselectAllWallets'); },
-        removeWallet({commit}, n) { 
+        removeWallet({commit}, w) { 
             // todo, async deletion of address and keys    
-            commit('removeWallet', n); 
+            commit('removeWallet', w); 
         },
         async loadWallets({commit}) {
-            let cmd = 'python3 cardano/bin/cardano.py address --list';
+            let cmd = 'cardano-wallet wallet list';
             let r = await runRemote(cmd);
             console.log(r);
             let wallets = [];
             JSON.parse(r.stdout.trim()).forEach(w => {
-                wallets.push(w);
+                commit('updateWallet', w);
             });
             console.log(wallets);
-            commit('loadWallet', wallets);
+            
         },
-        async createWallet({commit}, name) {
-            let cmd = `mkdir -p cardano/bin/keys; python3 cardano/bin/cardano.py address --name ${name}`;
+        async loadWallet({commit}, w) {
+            let cmd = `cardano-wallet wallet get ${w.id}`;
             let r = await runRemote(cmd);
-            return new Promise(resolve => {
-                let w = {name: name};
-                if (r.rc === 0) {
-                    w.address = r.stdout.trim();
-                    commit('updateWallet', w);
-                }
-                resolve(r);
-            });              
-        }, 
-        async getBalance({commit}, name) {
-            let cmd = `python3 cardano/bin/cardano.py balance --name ${name}`;
-            let r = await runRemote(cmd);
-            let w = {name: name};
-            if (r.rc === 0) {   
-                w.balance = r.stdout.trim();
-                console.log('balance :', w.balance);
-                commit('updateWallet', w);
-            } else {
-                console.log(r.stderr);
+            console.log(r);
+            commit('updateWallet', JSON.parse(r.stdout.trim()));
+        },
+        async createWallet({commit,dispatch}, w) {
+            commit('workStart', 'Creating wallet...');
+            let r = {};
+            let cmd = '';
+            let prompt = [];
+            let words = w.words;            
+            if (!w.use_words) {
+                cmd = 'cardano-wallet recovery-phrase generate --size 24';
+                r = await runRemote(cmd);
+                words = r.stdout.trim();
             }
-        }                    
+            cmd = `cardano-wallet wallet create from-recovery-phrase "${w.name}"`;
+            prompt = [
+                { question: '15–24 word recovery phrase:',
+                answer: words,    },
+                { question:'9–12 word second factor:',
+                answer: '',         },
+                { question: 'enter a passphrase:',
+                answer: w.password, },
+                { question: 'passphrase a second time:',
+                answer: w.password,  },
+            ];
+            r = await runRemote(cmd, prompt);
+            console.log(r)
+            if (r.rc !==0) {
+                if (r.stderr.includes('I already know of a wallet with this id'))
+                    r.stderr = 'These words will produce an already available wallet';
+            } else {
+                r.stderr = '';
+                dispatch('loadWallets');   
+            }
+            commit('workEnd', r);
+            return new Promise(res=>{res(r)});
+        },                   
+        async loadAddresses({commit}, w) {
+            let cmd = `cardano-wallet address list ${w.id}`;
+            let r = await runRemote(cmd);
+            w.addresses = JSON.parse(r.stdout.trim());
+            commit('updateWallet', w);            
+        },
     },
 
     mutations: {
-        setLoading(state, b) { state.loading = b; },
-        setError(state, e) {state.error = e; setTimeout(()=> state.error = '', 3000)},
-        setMessage(state, m) {state.message = m},
-
-        // wallets
         deselectAllWallets(state) {state.wallets.forEach(n => n.selected = false); },
-        loadWallet(state, wallets) {
-            state.wallets = [];
-            wallets.forEach(w => { state.wallets.push(w); });
-        },
         removeWallet(state, wallet) {
             const i = state.wallets.findIndex(n => n.name === wallet.name);
             if (i > -1) {
@@ -83,13 +98,33 @@ export default {
             }
         },       
         updateWallet(state, wallet) {
-            const n = state.wallets.find(n => n.name === wallet.name);
-            if (n) {
-                Object.assign(n, wallet);
+            const w = state.wallets.find(n => n.id === wallet.id);
+            if (w) {
+                Object.assign(w, wallet);
             } else {
                 state.wallets.push(wallet);
             }
         },
+        setLoading(state, b) { state.loading = b; },
+        setError(state, e) {state.error = e; setTimeout(()=> state.error = '', 3000)},
+        setMessage(state, m) {state.message = m},
+        workStart(state, msg) {
+            state.loading = true;
+            state.error = '';
+            state.message = msg;
+        },
+        workEnd(state, r={}) {
+            state.loading = false;
+            if (r && r.stderr) {
+                state.error = r.stderr; 
+                //setTimeout(()=> state.error = '', 3000);
+            }
+            else if (r && r.stdout) {
+                state.message = r.stdout; 
+                setTimeout(()=> state.message = '', 3000);
+            }
+        },
+        
     },
 }
 

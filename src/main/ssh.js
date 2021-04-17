@@ -8,26 +8,62 @@ import {settings} from './settings'
 
 class Connections {
     constructor() {
-        this.connections = []
-        this.current_host = '';
+        this.connections = {
+            host: {
+                node: null, // credentials
+                connectionPool : [],
+            }
+        };
+    }
+    async disconnectAll(host) {
+        this.connections[host].connectionPool.forEach(async (c) => {
+            await c.close();
+            console.log('connection disconnected.');
+        })
+    }
+    getNode(host) {
+        if (host in this.connections) {
+            return this.connections[host].node;
+        }
+        return null;
     }
     get(host) {
-        let c = this.connections.find(c => c.host === host);
-        return c ? c.ssh : null;
-    }
-    set(host, ssh) {
-        let c = this.connections.find(c => c.host === host)
-        if (!c) {
-            this.connections.push({host,ssh});
-        } else {
-            c.ssh = ssh;
+        let ssh = null;
+        if (host in this.connections) {
+            ssh = this.connections[host].connectionPool.find(c => c.connected && !c.busy);
         }
-    }   
-    getCurrentConnection() {
+        return ssh;
+    }
+    set(node, ssh) {
+        if (!(node.host in this.connections)) {
+            this.connections[node.host] = {};
+            this.connections[node.host].connectionPool = [];    
+        }
+        let conn = this.connections[node.host].connectionPool.filter(c => c.connected)
+        if (conn.length != this.connections[node.host].connectionPool) {
+            console.log('cleaning disconnected connections...')
+            this.connections[node.host].connectionPool = conn;
+        }
+        this.connections[node.host].node = node;
+        this.connections[node.host].connectionPool.push(ssh);        
+        console.log('number of connections for host '+ node.host +": " + this.connections[node.host].connectionPool.length);
+    }
+    async getCurrentConnection() {
         // fixme: find a different way to share this info
         let host = settings.get('current_node');
-        console.log('current host:', host)
-        return this.get(host);
+        // console.log('current host:', host)
+        let ssh = this.get(host);
+        if (!ssh) {
+            let node = this.getNode(host);
+            if (node) {
+                console.log('creating new ssh connection...')
+                let r = await connectHost(node.host,node.user,node.password);
+                if (r.rc === 0) {
+                    ssh = this.get(host);
+                }
+            }
+        }
+        return ssh;
     }
 }
 const connections = new Connections();
@@ -45,6 +81,7 @@ export class Ssh {
         this.cmd = '';
         this.timeout = args.timeout || 20000;
         this.connected = false;
+        this.busy = false;
         if (this.pkeypath) {
             try {
                 this.pkey = readFileSync(this.pkeypath);
@@ -52,13 +89,9 @@ export class Ssh {
                 console.log(e);
                 this.pkey = '';
             }
-        }
-        
+        }        
     }
 
-    isConnected() {
-        return this.connected;
-    }
     async close() {
         let that = this;
         return new Promise(resolve => {
@@ -75,7 +108,6 @@ export class Ssh {
         return new Promise(resolve => {
             that.conn.on('ready', () => {
                 // auth success
-                that.connected = true;
                 // create sftp
                 that.conn.sftp((err, sftp) => {
                     if (err) {
@@ -85,7 +117,7 @@ export class Ssh {
                     console.log('sftp connection created');
                     that.sftp = sftp; 
                 });
-            
+                that.connected = true;                
                 resolve({
                     stdout: '',
                     stderr: '',
@@ -94,6 +126,7 @@ export class Ssh {
             })
             that.conn.on('close', (_) => {
                 //console.log('ssh connection closed');
+                that.connected = false;
                 resolve({
                     stdout: '',
                     stderr: 'connection closed',
@@ -105,7 +138,7 @@ export class Ssh {
                 if (e.level === 'client-timeout') {
                     msg = 'Timed out';
                 } else if (e.level === 'client-socket') {
-                    msg = 'Connection refused';
+                    msg = 'Connection refused: '+ e;
                 } else if (e.level === 'client-authentication') {
                     msg = 'Authentication failed';
                 }
@@ -125,14 +158,22 @@ export class Ssh {
                 privateKey: that.pkey,
                 readyTimeout: that.timeout, 
                 keepaliveInterval: 30000
-            }); 
-            
+            });             
         })
     }
 
     async exec(cmd, prompt) {
-        let that = this;
+        if (this.busy) {
+            let err = 'connection busy'
+            console.log(err);
+            return {
+                stderr: err, 
+                rc : -1
+            };
+        }
         this.cmd = cmd;
+        this.busy = true;
+        let that = this;
         if (!that.connected) {
             let r = await that.connect();
             if (r.rc !== 0) {
@@ -149,6 +190,7 @@ export class Ssh {
                 let stderr = '';
                 let stderr_line = '';
                 if (err || !stream) {
+                    that.busy = false;
                     resolve({
                         cmd : cmd,
                         stderr: err,
@@ -157,15 +199,18 @@ export class Ssh {
                     });
                 }
                 stream.on('close', (rc) => {
+                    that.busy = false;
                     resolve({ 
                         cmd: cmd,
                         stdout: stdout.trim(),
                         stderr: stderr.trim(),
                         rc : stderr.trim() || rc !==0 ? rc : 0,
                     } );
-                }).on('data', (data) => {
+                });
+                stream.on('data', (data) => {
                     stdout += data;           
-                }).stderr.on('data', (data) => {
+                })
+                stream.stderr.on('data', (data) => {
                     stderr += data;  
                     stderr_line += data;                      
                     if (prompt && stderr_line.indexOf(':')) {
@@ -245,7 +290,7 @@ export class Ssh {
         if (!that.connected) {
             let r = await that.connect();
             if (r.rc !== 0) {
-                return {stdout: '', stderr: 'Not connected', rc : -1 };
+                return {stdout: '', stderr: 'Not connected: '+ r.stderr, rc : -1 };
             }
         }
     
@@ -288,6 +333,28 @@ export async function updatePassphrase(wallet_id, currentpass, newpass) {
     return r;
 }
 
+export async function createWallet(name, password, use_words, words) {
+    // console.log('Creating wallet...');
+    // let prompt = [
+    //     { 
+    //         question: 'current passphrase:',
+    //         answer: currentpass,
+    //     },
+    //     { 
+    //         question: 'new passphrase:',
+    //         answer: newpass,
+    //     },
+    //     { 
+    //         question: 'second time:',
+    //         answer: newpass,
+    //     },
+    // ]
+
+    // let cmd = `cardano-wallet wallet update passphrase ${wallet_id}`;
+    // let r = await runRemote(cmd, prompt);
+    // return r;
+}
+
 
 export async function generateKeys(user, host) {
     // todo
@@ -299,7 +366,7 @@ export async function generateKeys(user, host) {
 
 export async function runRemote(cmd, prompt) {
     console.log('running command:', cmd);
-    let ssh = connections.getCurrentConnection();
+    let ssh = await connections.getCurrentConnection();
     if (!ssh) {
         return {stderr: 'no connection', stdout: '', rc : -1};
     }
@@ -307,19 +374,22 @@ export async function runRemote(cmd, prompt) {
 }
 
 export async function connectHost(host, user, password) {
-    console.log('connectHost', host, user, password);
+    console.log('connectHost', host, user);
     let ssh = new Ssh({host,user,password, timeout: 10000});
     let r = await ssh.connect();
     if (r.rc === 0) {    
-        connections.set(host, ssh);  
-        r = await ssh.exec('hostname');
+        connections.set({host, user, password}, ssh);  
+        // r.conn = ssh;
+        // r = await ssh.exec('hostname');
     }
     return r;
 }   
-
+export async function disconnectHost(host) {
+    await connections.disconnectAll(host);  
+} 
 
 export async function upload(src, dst) {
-    let ssh = connections.getCurrentConnection();
+    let ssh = await connections.getCurrentConnection();
     if (!ssh) {
         return {stderr: 'no connection', stdout: '', rc : -1};
     }
@@ -328,7 +398,7 @@ export async function upload(src, dst) {
 
 export async function download(src, dst) {
     // todo
-    let ssh = connections.getCurrentConnection();
+    let ssh = await connections.getCurrentConnection();
     return null
 }
 
@@ -339,11 +409,11 @@ export async function setupSsh(host, user) {
 
 export async function createAddress(name) {
     // todo
-    let ssh = connections.getCurrentConnection();
+    let ssh = await connections.getCurrentConnection();
 
 }   
 export async function createTransaction(from_addr, to_addr, ada, from_skey) {
     // todo
-    let ssh = connections.getCurrentConnection();
+    let ssh = await connections.getCurrentConnection();
 
 }   
