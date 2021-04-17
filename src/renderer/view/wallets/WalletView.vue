@@ -1,5 +1,6 @@
 <template>
     <div>
+        <h2>Summary </h2>
         <div v-if="wallet">
             <div>Name: {{wallet.name}}</div>
             <div>ID: {{wallet.id}}</div>
@@ -7,25 +8,23 @@
             <div>Epoch: {{wallet.tip.epoch_number}}</div>
             <div>Balance: {{wallet.balance.total.quantity}}</div>
             <div>Delegation: {{wallet.delegation.active.status}}</div>
-            <!-- <pre>{{wallet}}</pre> -->
+            <!-- <pre>{{wallet.transactions}}</pre> -->
             <br/>
         </div>
 
+        <h2>Balance</h2>
         <div class="d-flex align-items-baseline">
-            
-        <span class="h1">Balance</span>
-        <span class="h1 ms-auto">{{ wallet && (wallet.balance.total.quantity/1000000).toFixed(6) }}</span>
+        <span class="h2 ms-auto">{{ wallet && balance.toFixed(6) }}</span>
         &nbsp;
         <span>ADA</span>
         </div>
         <div class="d-flex align-items-baseline">
         <span>&nbsp;</span>
-        <!-- <span class="h3 ms-auto">{{ wallet && wallet.balance_usd }}</span> -->
-        <!-- <span class="h4 ms-auto">1.45</span> -->
+        <span class="h3 ms-auto">{{ wallet && wallet.usd && numberWithCommas(wallet.usd * balance) }}</span>
         &nbsp;
-        <!-- <span>USD</span> -->
+        <span>{{ (wallet && wallet.usd && ' USD') || '&nbsp;' }}</span>
         </div>
-        <h1>Recieve</h1>
+        <h2>Recieve</h2>
          <div class="form-group">
              <textarea type="text" id="fromaddr" 
                 class="form-control" :value="wallet.addresses && wallet.addresses[0].id"/>
@@ -36,7 +35,7 @@
             &nbsp;&nbsp;<span>{{copyMessage}}</span>
         <br/>
         <br/>        
-        <h1>Send</h1>
+        <h2>Send</h2>
         <div>
         <form>
             <div class="form-group">
@@ -51,11 +50,34 @@
         </form>
         </div>
         <br/>
-        <h1>Transactions</h1>
-    </div>
+        <h2>Transactions</h2>
+        <table class="table">
+            <thead>
+                <tr>
+                <th scope="col">Time</th>
+                <th scope="col">Status</th>
+                <th scope="col">ADA</th>
+                <!-- <th scope="col">Direction</th> -->
+                <th scope="col">Fee</th>
+                <th scope="col">Address</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="t in wallet.transactions" :key="t.id">
+                <td>{{t.inserted_at.time}}</td>
+                <td>{{t.status}}</td>
+                <td>{{t.amount.quantity/1000000}}</td>
+                <!-- <td>{{t.direction}}</td> -->
+                <td>{{t.fee.quantity}}</td>
+                <td>{{ formatAddress(t.outputs[1].address)}}</td>
+                </tr>
+            </tbody>
+        </table>
+     </div>
 </template>
 <script>
 import {mapGetters,mapActions} from 'vuex'
+import {formatAddress, numberWithCommas} from '../../../common/util'
 
 export default {
     props:['wallet'],
@@ -66,13 +88,11 @@ export default {
             polling: null,
         }
     },
-    // watch: {
-    //     wallet(w) {
-    //         this.getBalance(w.name);
-    //     }
-    // },
     computed: {
         ...mapGetters('wallets',['getLoading']),        
+        balance() {
+            return this.wallet.balance.total.quantity/1000000;
+        },
         syncPercent() {
             if (this.wallet.state.status == 'ready')
                 return 100;
@@ -92,6 +112,12 @@ export default {
             this.polling = setInterval(() => {
                 this.loadWallet(this.wallet);                
             }, 5000);
+        },
+        formatAddress(a) {
+            return formatAddress(a);
+        },
+        numberWithCommas(a) {
+            return numberWithCommas(a);
         }
     },
     beforeUnmount () {
