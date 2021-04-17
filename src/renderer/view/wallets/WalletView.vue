@@ -46,7 +46,7 @@
             </div>
             <div class="form-group top10">
                 <input value="Send" type="submit" class="btn btn-primary btn-width"
-                    :disabled="loading"/>  
+                    :disabled="getLoading"/>  
             </div>
         </form>
         </div>
@@ -55,7 +55,7 @@
     </div>
 </template>
 <script>
-import {mapActions} from 'vuex'
+import {mapGetters,mapActions} from 'vuex'
 
 export default {
     props:['wallet'],
@@ -63,7 +63,6 @@ export default {
         return {
             copyMessage: '',
             toaddr: '',
-            loading: false,
             polling: null,
         }
     },
@@ -73,6 +72,7 @@ export default {
     //     }
     // },
     computed: {
+        ...mapGetters('wallets',['getLoading']),        
         syncPercent() {
             if (this.wallet.state.status == 'ready')
                 return 100;
@@ -80,7 +80,7 @@ export default {
         }
     },
     methods: {
-        ...mapActions('wallets', ['loadWallet','loadAddresses']),
+        ...mapActions('wallets', ['loadWallet']),
         copy() {
             var copyText = document.getElementById("fromaddr");
             copyText.select();
@@ -99,7 +99,6 @@ export default {
     },
     mounted () {
         this.loadWallet(this.wallet);
-        this.loadAddresses(this.wallet);
         this.pollData();
     }
 
