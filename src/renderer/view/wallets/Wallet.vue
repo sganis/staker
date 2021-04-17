@@ -16,15 +16,11 @@
     </div> -->
     <div class="row w-100 m-0">
     <span>
-          <button v-if="wallet && wallet.connected" :wallet="wallet"
-            @click="disconnect(wallet)"
-            class="btn btn-primary btn-width" >Disconnect</button>&nbsp;
-            <br/>           
-          <button v-if="wallet" :wallet="wallet"
-            @click="remove(wallet)"
-            class="btn btn-danger btn-width" >Remove</button>
-         </span>
-         </div>
+      <button v-if="wallet" :wallet="wallet"
+        @click="_deleteWallet(wallet)"
+        class="btn btn-danger btn-width" >Delete Wallet</button>
+    </span>
+  </div>
 </div>
 </template>
 
@@ -48,11 +44,11 @@ export default {
     ...mapGetters('wallets',['getLoading','getError','getMessage']),
   },
   methods: {
-    ...mapActions('wallets', ['deselectAllWallets','removeWallet',]),
+    ...mapActions('wallets', ['deselectAllWallets','deleteWallet',]),
 
-    remove(wallet) {
+    _deleteWallet(wallet) {
       this.deselectAllWallets();
-      this.removeWallet(wallet);
+      this.deleteWallet(wallet);
     }
   }
 }
