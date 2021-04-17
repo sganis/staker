@@ -4,7 +4,7 @@ import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
 import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer'
 import {runLocal} from './command'
 import { 
-  runRemote, upload, download, connectHost, setupSsh, 
+  runRemote, upload, download, connectHost, disconnectHost, setupSsh, 
   createAddress, createTransaction
 } from './ssh'
 import {IPC} from '../common/constants'
@@ -148,6 +148,7 @@ ipcMain.handle(IPC.RUN_REMOTE, async (_, ...args) => { return await runRemote(..
 ipcMain.handle(IPC.UPLOAD, async (_, ...args) => { return await upload(...args);});
 ipcMain.handle(IPC.DOWNLOAD, async (_, ...args) => { return await download(...args);});
 ipcMain.handle(IPC.CONNECT_HOST, async (_, ...args) => { return await connectHost(...args);});
+ipcMain.handle(IPC.DISCONNECT_HOST, async (_, ...args) => { return await disconnectHost(...args);});
 ipcMain.handle(IPC.SETUP_SSH, async (_, ...args) => { return await setupSsh(...args);});
 ipcMain.handle(IPC.CREATE_ADDRESS, async (_, ...args) => { return await createAddress(...args);});
 ipcMain.handle(IPC.CREATE_TRANSACTION, async (_, ...args) => { return await createTransaction(...args);});

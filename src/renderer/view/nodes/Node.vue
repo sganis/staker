@@ -10,38 +10,33 @@
           <NodeStatus v-if="node && node.connected" :node="node"/>                
         </div>
     </div>
-    <br/><br/>
+    <br/>
     <!-- <div class="row w-100 m-0" v-if="node && !node.has_tools"> -->
     <div class="row w-100 m-0">
       <span>
-      <span v-if="!installing_tools">Tools not installed.</span>
-      <br/>
-      <br/>
-      <button v-if="node && node.connected" :node="node"
-            @click="setup(node)"
-            class="btn btn-success btn-width" >Install Tools</button>
-            </span>
+        <span v-if="node && !node.has_tools">Tools not installed.<br/></span>
+        <button v-if="node && node.connected" :node="node" 
+          @click="setup(node)"
+          :disabled="getLoading"
+          class="btn btn-success btn-width" >Install Tools</button>
+          &nbsp;
+        <button v-if="node && node.connected" :node="node" 
+          @click="disconnect(node)"
+          :disabled="getLoading"
+          class="btn btn-primary btn-width" >Disconnect</button>
+          &nbsp;
+        <button v-if="node && node.connected" :node="node"  
+          @click="remove(node)"
+          :disabled="getLoading"
+          class="btn btn-danger btn-width" >Remove</button>
+          &nbsp;
+      </span>
     </div>
     <br/>
-    <div class="row w-100 m-0">
+    <!-- <div class="row w-100 m-0">
       <div class="text-wrap">{{node}}</div>
-    </div>
-    <br/>
-    <br/>
-    <br/>
-    <div class="row w-100 m-0">
-    <span>
-          <button v-if="node && node.connected" :node="node"
-            @click="disconnect(node)"
-            class="btn btn-primary btn-width" >Disconnect</button>&nbsp;
-          
-            <br/>
-            <br/>           
-          <button v-if="node" :node="node"
-            @click="remove(node)"
-            class="btn btn-danger btn-width" >Remove</button>
-         </span>
-         </div>
+    </div> -->
+    
 </div>
 </template>
 

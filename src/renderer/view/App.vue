@@ -54,4 +54,10 @@ export default {
 }
 .top10 { margin-top:10px; }
 
+h2 {
+   /* width: 100%;  */
+   border-bottom: 1px solid gainsboro; 
+   /* line-height: 0.1em; */
+   /* margin: 30px 30px 30px 0px;  */
+} 
 </style>

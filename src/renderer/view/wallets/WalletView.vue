@@ -1,8 +1,20 @@
 <template>
     <div>
+        <div v-if="wallet">
+            <div>Name: {{wallet.name}}</div>
+            <div>ID: {{wallet.id}}</div>
+            <div>Sync: {{syncPercent}}%</div>
+            <div>Epoch: {{wallet.tip.epoch_number}}</div>
+            <div>Balance: {{wallet.balance.total.quantity}}</div>
+            <div>Delegation: {{wallet.delegation.active.status}}</div>
+            <!-- <pre>{{wallet}}</pre> -->
+            <br/>
+        </div>
+
         <div class="d-flex align-items-baseline">
+            
         <span class="h1">Balance</span>
-        <span class="h1 ms-auto">{{ wallet && wallet.balance && Number(wallet.balance).toFixed(6) }}</span>
+        <span class="h1 ms-auto">{{ wallet && (wallet.balance.total.quantity/1000000).toFixed(6) }}</span>
         &nbsp;
         <span>ADA</span>
         </div>
@@ -11,12 +23,12 @@
         <!-- <span class="h3 ms-auto">{{ wallet && wallet.balance_usd }}</span> -->
         <!-- <span class="h4 ms-auto">1.45</span> -->
         &nbsp;
-        <span>USD</span>
+        <!-- <span>USD</span> -->
         </div>
         <h1>Recieve</h1>
          <div class="form-group">
              <textarea type="text" id="fromaddr" 
-                class="form-control" :value="wallet.address"/>
+                class="form-control" :value="wallet.addresses && wallet.addresses[0].id"/>
             <br/>
         </div>
         <input class="btn btn-primary btn-width"
@@ -55,16 +67,20 @@ export default {
             polling: null,
         }
     },
-    watch: {
-        wallet(w) {
-            this.getBalance(w.name);
+    // watch: {
+    //     wallet(w) {
+    //         this.getBalance(w.name);
+    //     }
+    // },
+    computed: {
+        syncPercent() {
+            if (this.wallet.state.status == 'ready')
+                return 100;
+            return this.wallet.state.progress.quantity;
         }
     },
-    computed: {
-
-    },
     methods: {
-        ...mapActions('wallets', ['getBalance']),
+        ...mapActions('wallets', ['loadWallet','loadAddresses']),
         copy() {
             var copyText = document.getElementById("fromaddr");
             copyText.select();
@@ -74,7 +90,7 @@ export default {
         },
         pollData() {
             this.polling = setInterval(() => {
-                this.getBalance(this.wallet.name);                
+                this.loadWallet(this.wallet);                
             }, 5000);
         }
     },
@@ -82,7 +98,8 @@ export default {
         clearInterval(this.polling);
     },
     mounted () {
-        this.getBalance(this.wallet.name);
+        this.loadWallet(this.wallet);
+        this.loadAddresses(this.wallet);
         this.pollData();
     }
 

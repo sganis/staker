@@ -11,6 +11,7 @@ export async function runRemote(...args) { return await window.ipc.invoke(IPC.RU
 export async function upload(...args) { return await window.ipc.invoke(IPC.UPLOAD, ...args);}
 export async function download(...args) { return await window.ipc.invoke(IPC.DOWNLOAD, ...args);}
 export async function connectHost (...args) { return await window.ipc.invoke(IPC.CONNECT_HOST, ...args);}
+export async function disconnectHost (...args) { return await window.ipc.invoke(IPC.DISCONNECT_HOST, ...args);}
 export async function setupSsh (...args) { return await window.ipc.invoke(IPC.SETUP_SSH, ...args);}
 export async function notify (message) { return window.ipc.invoke(IPC.NOTIFY, message);}
 export async function createAddress (...args) { return await window.ipc.invoke(IPC.CREATE_ADDRESS, ...args);}
