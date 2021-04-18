@@ -72,6 +72,25 @@ export default {
             commit('workEnd', r);   
             console.log(r);         
         },
+        async transaction({commit}, w) { 
+            console.log('making transaction:',w)
+            commit('workStart', 'Making transaction...');            
+            let cmd = `cardano-wallet transaction create ${w.id} `;
+            cmd += `--payment ${w.amount * 1000000}@${w.toaddr}`;
+            console.log(cmd);
+            let prompt = [
+                { question: 'enter your passphrase:',
+                  answer: w.txpass, },                
+            ];
+            let r = await runRemote(cmd, prompt);
+            console.log(r);
+            if (r.rc === 0) {
+                r.stderr = '';
+                r.stdout = 'Transaction sent.'
+            }
+            commit('workEnd', r);   
+            console.log(r);         
+        },
         async loadAll({commit}) {
             let cmd = 'cardano-wallet wallet list';
             let r = await runRemote(cmd);

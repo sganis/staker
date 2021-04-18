@@ -186,7 +186,7 @@ export default {
             else if (r.stdout) {
                 state.error = '';
                 state.message = r.stdout; 
-                setTimeout(()=> state.message = '', 3000);
+                setTimeout(()=> state.message = '', 1000);
             }
         },
         
