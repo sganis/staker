@@ -1,22 +1,16 @@
 <template>
-    <div class="sidebar">
-      <div class="d-flex flex-column h-100" >
-        <div class="row p-2">
-          <strong>Nodes</strong>  
-        </div>
-        <div class="row h-100 flex-grow-1 nodelist">
-          <div class="list-group rounded-0 borderless p-0">
-            <a href="#" @click="showNode(node)"
-                class="list-group-item list-group-item-action"
-                :class="{active: node.selected}"
-                v-for="node in getNodes" :key="node.host">{{node.host}}</a>
-          </div>
-        </div>
-        <div class="row p-2">
-          <button @click="addNode()" class="btn btn-primary">Add Node</button>
-        </div>
-      </div>
+  <div class="row p-2">
+    <div class="text-center">
+    <button @click="addNode()" 
+      class="btn btn-success btn-width">Add Node</button>
     </div>
+  </div>
+  <div class="list-group rounded-0 nodelist">
+    <a href="#" @click="showNode(node)"
+        class="list-group-item list-group-item-action"
+        :class="{active: node.selected}"
+        v-for="node in getNodes" :key="node.host">{{node.host}}</a>
+  </div>
 </template>
 
 <script>
@@ -65,14 +59,14 @@ export default {
 
 
 <style scoped>
-.sidebar {
-  width: 200px; /* Set the width of the sidebar */
-  background-color: rgba(226, 226, 226, 0.972); /* Black */
-}
-
-.borderless {
+/* .fill {
+  height: 100%;
+} */
+.nodelist {
   border: 0;
   width: 100%;
   margin: 0;
+  padding: 0;
+  background: red;
 }
 </style>

@@ -1,9 +1,10 @@
 <template>
-<div v-if="error" class="alert alert-danger w-100" role="alert">
-  <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
-  {{error}}
+<div class="alert alert-danger my-alert" >
+  <div class="d-flex align-items-center">
+   <span class="glyphicon glyphicon-exclamation-sign"  role="status" aria-hidden="true"></span>
+    {{error}}
+ </div>
 </div>
-
 </template>
 
 <script>
@@ -16,3 +17,12 @@ export default {
     },
 }
 </script>
+
+<style scoped>
+.my-alert {
+  vertical-align: middle;
+  height: 60px;
+  border-radius: 0;
+  width: 100%;
+}
+</style>

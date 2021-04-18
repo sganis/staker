@@ -46,7 +46,7 @@ export default {
             console.log(r);
             if (r.rc === 0) {
               commit('setMessage', `Connected to ${n.host}: ${r.stdout}`);
-              //await sleep(1000);
+              // await sleep(1000);
             
               if (n.password) {
                 n.password = '';

@@ -17,11 +17,13 @@
           :disabled="getLoading" />  
       </div>
       <div class="form-group top10">
-        <input value="Connect" type="submit" class="btn btn-primary btn-width"
+        <input value="Connect" type="submit" 
+          class="btn btn-primary btn-width"
           :disabled="getLoading"/>  
       </div>
       </form>
       <br/>
+      
     </div>
   </div>
 </template>

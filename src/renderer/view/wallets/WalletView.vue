@@ -89,20 +89,23 @@
         <h2 v-if="wallet" >Update passphrase</h2>
         <form @submit.prevent="_updatePass">
             <div class="form-group ">
-                <input id="currentpass" v-model="currentpass" placeholder="Current passphrase" 
+                <input id="currentpass" v-model="currentpass" 
+                type="password" placeholder="Current passphrase" 
                 class="form-control" required :disabled="getLoading" />  
             </div>
             <div class="form-group top10">
-                <input id="newpass1" v-model="newpass1" placeholder="New passphrase" 
+                <input id="newpass1" v-model="newpass1" 
+                type="password" placeholder="New passphrase" 
                 class="form-control" required :disabled="getLoading" />  
             </div>
             <div class="form-group top10">
-                <input id="newpass1" v-model="newpass2" placeholder="New passphrase again" 
+                <input id="newpass1" v-model="newpass2" 
+                type="password" placeholder="New passphrase again" 
                 class="form-control" required :disabled="getLoading" />  
             </div>
             <div class="form-group top10">
             <input value="Update phassprase" type="submit" 
-                class="btn btn-primary btn-width"  :disabled="getLoading"/>  
+                class="btn btn-primary btn-width" :disabled="getLoading"/>  
             </div>        
         </form>
 

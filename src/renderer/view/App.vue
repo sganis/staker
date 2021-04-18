@@ -1,34 +1,33 @@
 <template>
-  <div class="container-fluid">
-  <div class="row min-vh-100">
-    <div class="col">
-      <div class="d-flex flex-column h-100">
-        <TopBar/>
-        <router-view/>
-      </div>
-    </div>
+<div class="wrap">
+  <div class="top">
+    <TopBar v-if="!getLoading && !getError"/>
+    <Spinner v-if="getLoading" :message="getMessage"/>
+    <Error v-if="!getLoading && getError" :error="getError" />
+  </div>
+  <div class="mid">
+    <router-view/>    
   </div>
 </div>
 </template>
 
 <script>
 import TopBar from './layouts/TopBar'
-import BottomBar from './layouts/BottomBar'
-//import Host from '@/components/Host'
-//import {IPC} from '@/shared/constants'
+import Spinner from "./common/Spinner"
+import Error from "./common/Error"
+import {mapGetters} from 'vuex'
 
 export default {
-  components: { TopBar, BottomBar },
+  components: { TopBar, Spinner, Error },
   data() {
     return {
-      stdout : '',
-      stderr: '',
-      submitted: false,
-      loading: false
-
     }
   },
+  computed: {
+    ...mapGetters('nodes',['getLoading','getError','getMessage']),
+  },
   mounted() {
+
     this.$router.push('/nodes');
 
    },
@@ -39,16 +38,40 @@ export default {
 </script>
 
 <style>
-#app {
-  /* margin-top: 60px; */
+* {
+  margin: 0;
+  padding: 0;
 }
-.topbar {
-  height: 60px;
+.wrap {
+  height: 100vh;
+  width: 100%;
+  background-color: yellow;
+}
+.top {
+  width: 100%;
+  height: 70px;
+  background-color: black;
+}
+.mid {
+  width: 100%;
+  height: calc(100% - 70px);
+  background-color: green;
+}
+.left {
+  width: 200px;
+  height: 100%;
+  float: left;
+  overflow: hidden;
+  overflow-y: auto;
+  background: gainsboro;
 }
 .main {
-  margin-top: 60px;
+  width: calc(100% - 200px);
+  height: 100%;
+  background: white;
+  overflow: hidden;
+  overflow-y: auto  
 }
-
 .btn-width {
   width: 160px;
 }
@@ -61,4 +84,7 @@ h2 {
    /* line-height: 0.1em; */
    /* margin: 30px 30px 30px 0px;  */
 } 
+
+
+
 </style>

@@ -1,22 +1,16 @@
 <template>
-    <div class="sidebar">
-      <div class="d-flex flex-column h-100" >
-        <div class="row p-2">
-          <strong>Wallets</strong>  
-        </div>
-        <div class="row h-100 flex-grow-1 nodelist">
-          <div class="list-group rounded-0 borderless p-0">
-            <a href="#" @click="show(wallet)"
-                class="list-group-item list-group-item-action"
-                :class="{active: wallet.selected}"
-                v-for="wallet in getWallets" :key="wallet.id">{{wallet.name}}</a>
-          </div>
-        </div>
-        <div class="row p-2">
-          <button @click="add()" class="btn btn-primary">Add Wallet</button>
-        </div>
-      </div>
+<div class="row p-2">
+    <div class="text-center">
+    <button @click="add()" 
+      class="btn btn-success btn-width">Add Wallet</button>
     </div>
+  </div>
+  <div class="list-group rounded-0 borderless p-0">
+    <a href="#" @click="show(wallet)"
+        class="list-group-item list-group-item-action"
+        :class="{active: wallet.selected}"
+        v-for="wallet in getWallets" :key="wallet.id">{{wallet.name}}</a>
+  </div>
 </template>
 
 <script>

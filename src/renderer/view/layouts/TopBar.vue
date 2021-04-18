@@ -1,5 +1,5 @@
 <template>  
-<div class="row">
+<div>
 <nav class="navbar navbar-dark bg-dark topbar">
   <div class="logo">
     <router-link to="/"><img src="/images/logo.png" alt="" width="30" height="30"></router-link>
@@ -22,6 +22,9 @@
 </div>
 </template>
 
+<script>
+
+</script>
 
 <style scoped>
 .logo {
@@ -29,5 +32,10 @@
 }
 .fcolor {
   color: white;
+}
+.topbar {
+  padding: 0;
+  margin: 0;
+  height: 70px;
 }
 </style>
