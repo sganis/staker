@@ -22,9 +22,9 @@ export default {
 
     },
     actions: {
-        updateWallet({commit}, w) { commit('updateWallet', w); },
-        deselectAllWallets({commit}) { commit('deselectAllWallets'); },
-        async deleteWallet({commit}, w) { 
+        update({commit}, w) { commit('update', w); },
+        deselectAll({commit}) { commit('deselectAll'); },
+        async delete({commit}, w) { 
             commit('workStart', 'Deleting wallet...');            
             let cmd = `cardano-wallet wallet delete ${w.id}`;
             let r = await runRemote(cmd);
@@ -32,22 +32,58 @@ export default {
                 r.stderr = '';
                 r.stdout = 'Wallet deleted.'
             }
-            commit('deleteWallet', w); 
+            commit('delete', w); 
             commit('workEnd', r);   
             console.log(r);         
         },
-        async loadWallets({commit}) {
+        async rename({commit}, w) { 
+            commit('workStart', 'Renaming wallet...');            
+            let cmd = `cardano-wallet wallet update name ${w.id} "${w.newname}"`;
+            let r = await runRemote(cmd);
+            console.log(r);
+            if (r.rc === 0) {
+                w.name = w.newname;
+                r.stderr = '';
+                r.stdout = 'Wallet name updated.'
+            }
+            commit('update', w); 
+            commit('workEnd', r);   
+            console.log(r);         
+        },
+        async updatePass({commit}, w) { 
+            console.log('updating pass:',w)
+            commit('workStart', 'Updating passphrase in wallet...');            
+            let cmd = `cardano-wallet wallet update passphrase ${w.id}`;
+            console.log(cmd);
+            let prompt = [
+                { question: 'your current passphrase:',
+                  answer: w.currentpass,    },
+                { question:'enter a new passphrase:',
+                  answer: w.newpass1,         },
+                { question: 'the passphrase a second time:',
+                  answer: w.newpass2, },
+            ];
+            let r = await runRemote(cmd, prompt);
+            console.log(r);
+            if (r.rc === 0) {
+                r.stderr = '';
+                r.stdout = 'Wallet passphrase updated.'
+            }
+            commit('workEnd', r);   
+            console.log(r);         
+        },
+        async loadAll({commit}) {
             let cmd = 'cardano-wallet wallet list';
             let r = await runRemote(cmd);
             console.log(r);
             let wallets = [];
             JSON.parse(r.stdout.trim()).forEach(async (w) => {
-                commit('updateWallet', w);
+                commit('update', w);
             });
             console.log(wallets);
             
         },
-        async loadWallet({commit, dispatch}, w) {
+        async load({commit, dispatch}, w) {
             let cmd = `cardano-wallet wallet get ${w.id}`;
             let r = await runRemote(cmd);
             console.log(r);
@@ -55,11 +91,10 @@ export default {
             cmd = `cardano-wallet address list ${w.id}`;
             r = await runRemote(cmd);
             w.addresses = JSON.parse(r.stdout.trim());
-            commit('updateWallet', w); 
             cmd = `cardano-wallet transaction list ${w.id}`;
             r = await runRemote(cmd);
             w.transactions = JSON.parse(r.stdout.trim());
-            commit('updateWallet', w); 
+            commit('update', w); 
             dispatch('getAdaUsd', w);
         },
         async getAdaUsd({commit}, w) {
@@ -67,13 +102,13 @@ export default {
                 let response = await axios.get('https://api.coingecko.com/api/v3/simple/price?ids=cardano&vs_currencies=usd')
                 //console.log(response);
                 w.usd = response.data.cardano.usd;
-                commit('updateWallet', w);                 
+                commit('update', w);                 
             }
             catch(error) {
                 console.log(error);
             }            
         },
-        async createWallet({commit,dispatch}, w) {
+        async create({commit,dispatch}, w) {
             commit('workStart', 'Creating wallet...');
             let r = {};
             let cmd = '';
@@ -102,7 +137,7 @@ export default {
                     r.stderr = 'These words will produce an already available wallet';
             } else {
                 r.stderr = '';
-                dispatch('loadWallets');   
+                dispatch('load');   
             }
             commit('workEnd', r);
             return new Promise(res=>{res(r)});
@@ -110,14 +145,14 @@ export default {
     },
 
     mutations: {
-        deselectAllWallets(state) {state.wallets.forEach(n => n.selected = false); },
-        deleteWallet(state, wallet) {
+        deselectAll(state) {state.wallets.forEach(n => n.selected = false); },
+        delete(state, wallet) {
             const i = state.wallets.findIndex(n => n.id === wallet.id);
             if (i > -1) {
                 state.wallets.splice(i,1)
             }
         },       
-        updateWallet(state, wallet) {
+        update(state, wallet) {
             const w = state.wallets.find(n => n.id === wallet.id);
             if (w) {
                 Object.assign(w, wallet);

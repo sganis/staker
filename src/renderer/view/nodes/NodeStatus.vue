@@ -1,16 +1,10 @@
 <template>
 <div>
-    <h2>Network</h2>
-    <span>  Epoch: {{ netinfo.network_epoch }}
-            Slot: {{ netinfo.network_slot }}
-    </span>
-    <br/>
-    <br/>
     <!-- <pre> {{ getNetworkInfo }}</pre> -->
     <h2>Node status</h2>
     <span>  Sync status: {{ netinfo.sync_progress }}<br/>
-            Epoch: {{ netinfo.node_epoch }}
-            Slot: {{ netinfo.node_slot }}
+            Epoch: {{ netinfo.node_epoch }}/{{ netinfo.network_epoch }}<br/>
+            <!-- Slot: {{ netinfo.node_slot }}/{{ netinfo.network_slot }} -->
     </span>
     <br/>
     <br/>
@@ -64,8 +58,9 @@ export default {
             if (!this.getNetworkInfo.sync_progress)
                 return {};
             let ni = {};
-            ni.sync_progress = this.getNetworkInfo.sync_progress.status === 'ready' ?
-                    '100%' : this.getNetworkInfo.sync_progress.status;
+            ni.sync_progress = this.getNetworkInfo.sync_progress.status === 'ready'
+                ? '100%' 
+                : Math.trunc(this.getNetworkInfo.sync_progress.progress.quantity) + '%';
             ni.network_epoch = this.getNetworkInfo.network_tip.epoch_number;
             ni.network_slot = this.getNetworkInfo.network_tip.slot_number;
             ni.node_epoch = this.getNetworkInfo.node_tip.epoch_number;

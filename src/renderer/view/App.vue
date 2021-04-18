@@ -50,13 +50,14 @@ export default {
 }
 
 .btn-width {
-  width: 150px;
+  width: 160px;
 }
 .top10 { margin-top:10px; }
 
 h2 {
    /* width: 100%;  */
    border-bottom: 1px solid gainsboro; 
+   padding-top: 20px;
    /* line-height: 0.1em; */
    /* margin: 30px 30px 30px 0px;  */
 } 

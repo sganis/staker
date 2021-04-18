@@ -6,7 +6,7 @@
             <div>ID: {{wallet.id}}</div>
             <div>Sync: {{syncPercent}}%</div>
             <div>Epoch: {{wallet.tip.epoch_number}}</div>
-            <div>Balance: {{wallet.balance.total.quantity}}</div>
+            <!-- <div>Balance: {{wallet.balance.total.quantity}}</div> -->
             <div>Delegation: {{wallet.delegation.active.status}}</div>
             <!-- <pre>{{wallet.transactions}}</pre> -->
             <br/>
@@ -73,6 +73,48 @@
                 </tr>
             </tbody>
         </table>
+
+        <h2 v-if="wallet" >Rename</h2>
+        <form @submit.prevent="_rename">
+            <div class="form-group ">
+            <input id="newname" v-model="newname" placeholder="New name" 
+                class="form-control" required :disabled="getLoading" />  
+            </div>
+            <div class="form-group top10">
+            <input value="Rename" type="submit" class="btn btn-primary btn-width"
+                :disabled="getLoading"/>  
+            </div>        
+        </form>
+
+        <h2 v-if="wallet" >Update passphrase</h2>
+        <form @submit.prevent="_updatePass">
+            <div class="form-group ">
+                <input id="currentpass" v-model="currentpass" placeholder="Current passphrase" 
+                class="form-control" required :disabled="getLoading" />  
+            </div>
+            <div class="form-group top10">
+                <input id="newpass1" v-model="newpass1" placeholder="New passphrase" 
+                class="form-control" required :disabled="getLoading" />  
+            </div>
+            <div class="form-group top10">
+                <input id="newpass1" v-model="newpass2" placeholder="New passphrase again" 
+                class="form-control" required :disabled="getLoading" />  
+            </div>
+            <div class="form-group top10">
+            <input value="Update phassprase" type="submit" 
+                class="btn btn-primary btn-width"  :disabled="getLoading"/>  
+            </div>        
+        </form>
+
+        <h2 v-if="wallet" >Delete</h2>
+        <form @submit.prevent="_delete">
+            <div class="form-group top10">
+                <input value="Delete Wallet" type="submit" 
+                    class="btn btn-danger btn-width"
+                    :disabled="getLoading"/>  
+            </div>        
+        </form>
+
      </div>
 </template>
 <script>
@@ -86,6 +128,10 @@ export default {
             copyMessage: '',
             toaddr: '',
             polling: null,
+            newname: '',
+            currentpass: '',
+            newpass1: '',
+            newpass2: '',
         }
     },
     computed: {
@@ -100,7 +146,8 @@ export default {
         }
     },
     methods: {
-        ...mapActions('wallets', ['loadWallet']),
+        ...mapActions('wallets', ['load','deselectAll','rename',
+                                    'updatePass','delete']),
         copy() {
             var copyText = document.getElementById("fromaddr");
             copyText.select();
@@ -110,7 +157,7 @@ export default {
         },
         pollData() {
             this.polling = setInterval(() => {
-                this.loadWallet(this.wallet);                
+                this.load(this.wallet);                
             }, 5000);
         },
         formatAddress(a) {
@@ -118,13 +165,30 @@ export default {
         },
         numberWithCommas(a) {
             return numberWithCommas(a);
+        },
+        _rename() {
+            let w = {id: this.wallet.id, newname: this.newname}
+            this.rename(w);
+        },
+        _updatePass() {
+            let w = {
+                id: this.wallet.id,
+                currentpass: this.currentpass,
+                newpass1: this.newpass1,
+                newpass2: this.newpass2
+            }
+            this.updatePass(w);
+        },
+        _delete() {
+            this.deselectAll();
+            this.delete(this.wallet);
         }
     },
     beforeUnmount () {
         clearInterval(this.polling);
     },
     mounted () {
-        this.loadWallet(this.wallet);
+        this.load(this.wallet);
         this.pollData();
     }
 
