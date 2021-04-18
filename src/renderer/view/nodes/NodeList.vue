@@ -59,14 +59,4 @@ export default {
 
 
 <style scoped>
-/* .fill {
-  height: 100%;
-} */
-.nodelist {
-  border: 0;
-  width: 100%;
-  margin: 0;
-  padding: 0;
-  background: red;
-}
 </style>

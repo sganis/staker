@@ -1,9 +1,10 @@
 <template>
 <div class="wrap">
   <div class="top">
-    <TopBar v-if="!getLoading && !getError"/>
+    <TopBar v-if="!getLoading && !getError && !getMessage"/>
     <Spinner v-if="getLoading" :message="getMessage"/>
     <Error v-if="!getLoading && getError" :error="getError" />
+    <Success v-if="!getLoading && !getError && getMessage" :message="getMessage" />
   </div>
   <div class="mid">
     <router-view/>    
@@ -15,10 +16,11 @@
 import TopBar from './layouts/TopBar'
 import Spinner from "./common/Spinner"
 import Error from "./common/Error"
+import Success from "./common/Success"
 import {mapGetters} from 'vuex'
 
 export default {
-  components: { TopBar, Spinner, Error },
+  components: { TopBar, Spinner, Error, Success },
   data() {
     return {
     }
@@ -27,10 +29,8 @@ export default {
     ...mapGetters('nodes',['getLoading','getError','getMessage']),
   },
   mounted() {
-
     this.$router.push('/nodes');
-
-   },
+  },
   methods: {
    
   },
@@ -50,7 +50,7 @@ export default {
 .top {
   width: 100%;
   height: 70px;
-  background-color: black;
+  background-color: silver;
 }
 .mid {
   width: 100%;
@@ -84,6 +84,15 @@ h2 {
    /* line-height: 0.1em; */
    /* margin: 30px 30px 30px 0px;  */
 } 
+.box {
+  padding: 5px;
+}
+.my-alert {
+  vertical-align: middle;
+  height: 60px;
+  border-radius: 0;
+  width: 100%;
+}
 
 
 

@@ -20,7 +20,7 @@
         </div>
         <div class="d-flex align-items-baseline">
         <span>&nbsp;</span>
-        <span class="h3 ms-auto">{{ wallet && wallet.usd && numberWithCommas(wallet.usd * balance) }}</span>
+        <span class="h3 ms-auto">{{ wallet && wallet.usd && numberWithCommas((wallet.usd * balance).toFixed(0)) }}</span>
         &nbsp;
         <span>{{ (wallet && wallet.usd && ' USD') || '&nbsp;' }}</span>
         </div>
@@ -69,7 +69,7 @@
                 <td>{{t.amount.quantity/1000000}}</td>
                 <!-- <td>{{t.direction}}</td> -->
                 <td>{{t.fee.quantity}}</td>
-                <td>{{ formatAddress(t.outputs[1].address)}}</td>
+                <td>{{ formatAddress(t.outputs[0].address)}}</td>
                 </tr>
             </tbody>
         </table>
