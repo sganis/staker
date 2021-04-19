@@ -1,8 +1,4 @@
 <template>
-<div class="container d-flex top10 " style="height:70px">
-  <Spinner :loading="getLoading" :message="getMessage"/>
-  <Error :error="getError" />
-</div>
 <div class="container p-3">
     <div class="d-flex flex-column h-100" >        
         <div class="row h-100 flex-grow-1 p-0 m-0">
@@ -44,12 +40,10 @@
 
 import NodeConnect from "./NodeConnect"
 import NodeStatus from "./NodeStatus"
-import Spinner from "../common/Spinner"
-import Error from "../common/Error"
 import {mapGetters, mapActions} from 'vuex'
 
 export default {
-  components: {Spinner,Error,NodeConnect, NodeStatus},
+  components: {NodeConnect, NodeStatus},
   props: ['node'],
   data() {
     return {

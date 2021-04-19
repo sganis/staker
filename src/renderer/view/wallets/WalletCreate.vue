@@ -45,10 +45,10 @@ export default {
   data() {
     return {
       wallet: {
-        name: 'wallet01',
-        password: 'Password123',
+        name: '',
+        password: '',
         use_words : false,
-        words: 'devote fortune face surprise capable surprise tent tumble sign sausage napkin crunch cake torch stem solve company name void elephant welcome rally paddle adapt',
+        words: '',
       }
     }
   },

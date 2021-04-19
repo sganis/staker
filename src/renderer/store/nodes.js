@@ -45,8 +45,7 @@ export default {
             let r = await connectHost(n.host, n.user, n.password);
             console.log(r);
             if (r.rc === 0) {
-              commit('setMessage', `Connected to ${n.host}: ${r.stdout}`);
-              //await sleep(1000);
+              // await sleep(1000);
             
               if (n.password) {
                 n.password = '';
@@ -65,9 +64,7 @@ export default {
                 }
                 //await sleep(1000);
                 
-              } 
-               
-              
+              }              
               // persist list of nodes
               let arr = JSON.parse(JSON.stringify(getters.getNodes));
               arr.forEach(n => n.connected=false);
@@ -76,12 +73,12 @@ export default {
               n.connected = true;
               commit('updateNode', n);  
               setSettings('current_node', n.host);
+              r.stdout = `Connected to ${n.host}`;
             } else {
-                commit('setError',r.stderr);
-                commit('setMessage', '');
+                //r.stdout = '';
             }
-            commit('workEnd');
-            console.log('loading:', getters.getLoading);
+            commit('workEnd', r);              
+            //console.log('loading:', getters.getLoading);
             return new Promise(res => {res(r)});
             
         },
@@ -181,13 +178,15 @@ export default {
         },
         workEnd(state, r={}) {
             state.loading = false;
-            if (r && r.stderr) {
+            if (r.stderr) {
+                state.message = '';
                 state.error = r.stderr; 
                 setTimeout(()=> state.error = '', 3000);
             }
-            else if (r && r.stdout) {
+            else if (r.stdout) {
+                state.error = '';
                 state.message = r.stdout; 
-                setTimeout(()=> state.message = '', 3000);
+                setTimeout(()=> state.message = '', 1000);
             }
         },
         

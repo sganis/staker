@@ -1,10 +1,10 @@
 <template>
-    <div class="row flex-grow-1">
-        <NodeList/>
-        <div class="col">
-            <Node :node="node"/>
-        </div>
-    </div>
+  <div class="left">
+    <NodeList/>
+  </div>
+  <div class="main">
+    <Node :node="node"/>
+  </div> 
 </template>
 
 <script>

@@ -1,6 +1,6 @@
 <template>  
-<div class="row">
-<nav class="navbar navbar-dark bg-dark topbar">
+<div>
+<nav class="navbar navbar topbar">
   <div class="logo">
     <router-link to="/"><img src="/images/logo.png" alt="" width="30" height="30"></router-link>
   </div>
@@ -22,12 +22,20 @@
 </div>
 </template>
 
+<script>
+
+</script>
 
 <style scoped>
 .logo {
     padding-left: 10px;
 }
 .fcolor {
-  color: white;
+  /* color: white; */
+}
+.topbar {
+  padding: 0;
+  margin: 0;
+  height: 70px;
 }
 </style>

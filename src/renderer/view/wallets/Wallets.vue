@@ -1,10 +1,10 @@
 <template>
-    <div class="row flex-grow-1">
-        <WalletList/>
-        <div class="col">
-            <Wallet :wallet="wallet"/>
-        </div>
-    </div>
+  <div class="left">
+    <WalletList/>
+  </div>
+  <div class="main">
+    <Wallet :wallet="wallet"/>
+  </div> 
 </template>
 
 <script>
