@@ -11,12 +11,12 @@
   <li class="nav-item">
     <router-link to="/wallets" class="nav-link fcolor">Wallets</router-link>
   </li> 
-  <li class="nav-item">
+  <!-- <li class="nav-item">
     <router-link to="/explorer" class="nav-link fcolor">Explorer</router-link>
   </li> 
   <li class="nav-item">
     <router-link to="/settings" class="nav-link fcolor">Settings</router-link>
-  </li>
+  </li> -->
 </ul>
 </nav>
 </div>

@@ -38,22 +38,23 @@
     </div>
     </div>
     
-    
 </div>
 </template>
 
 <script>
 
 import {mapGetters, mapActions} from 'vuex';
-//import Progress from '../common/Progress'
+
 
 export default {
+    //components: { Modal },
     props: ['node'],
     //components: {Progress},
     data () {
         return {
-            polling: null
-        }
+            polling: null,
+            isModalVisible: false,
+       }
     },
     computed: {
         ...mapGetters('nodes',['getNodeStatus','getNetworkInfo']),
@@ -89,7 +90,7 @@ export default {
                 this.updateNodeStatus(this.node);   
                 this.updateNetworkInfo();   
             }, 5000);
-        }
+        },
     },
     beforeUnmount () {
         clearInterval(this.polling);
