@@ -8,9 +8,9 @@ ROOT=$HOME/cardano
 # cd $ROOT/relay
 # it must start in the node folder (relay or producer)
 cardano-wallet serve \
-	--testnet testnet-byron-genesis.json \
+	--testnet $ROOT/relay/testnet-byron-genesis.json \
   	--node-socket $ROOT/node.socket \
-  	--database ./wallets \
+  	--database $ROOT/relay/wallets \
   	--log-level NOTICE
 
 

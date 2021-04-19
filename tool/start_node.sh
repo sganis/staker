@@ -8,12 +8,12 @@ ROOT=$HOME/cardano
 # cd $ROOT/relay
 # it must start in the node folder (relay or producer)
 cardano-node run \
- 	--topology testnet-topology.json \
- 	--database-path db \
+ 	--topology $ROOT/relay/testnet-topology.json \
+ 	--database-path $ROOT/relay/db \
 	--socket-path $ROOT/node.socket \
 	--host-addr 0.0.0.0 \
 	--port 3001 \
-	--config testnet-config.json
+	--config $ROOT/relay/testnet-config.json
 
 
 
