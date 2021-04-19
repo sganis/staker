@@ -106,15 +106,17 @@ export default {
             let cmd = `cardano-wallet wallet get ${w.id}`;
             let r = await runRemote(cmd);
             console.log(r);
-            w = JSON.parse(r.stdout.trim())
-            cmd = `cardano-wallet address list ${w.id}`;
-            r = await runRemote(cmd);
-            w.addresses = JSON.parse(r.stdout.trim());
-            cmd = `cardano-wallet transaction list ${w.id}`;
-            r = await runRemote(cmd);
-            w.transactions = JSON.parse(r.stdout.trim());
-            commit('update', w); 
-            dispatch('getAdaUsd', w);
+            if (r.rc === 0) {
+                w = JSON.parse(r.stdout.trim())
+                cmd = `cardano-wallet address list ${w.id}`;
+                r = await runRemote(cmd);
+                w.addresses = JSON.parse(r.stdout.trim());
+                cmd = `cardano-wallet transaction list ${w.id}`;
+                r = await runRemote(cmd);
+                w.transactions = JSON.parse(r.stdout.trim());
+                commit('update', w); 
+                dispatch('getAdaUsd', w);
+            }
         },
         async getAdaUsd({commit}, w) {
             try {
@@ -155,8 +157,13 @@ export default {
                 if (r.stderr.includes('I already know of a wallet with this id'))
                     r.stderr = 'These words will produce an already available wallet';
             } else {
+                w.id = JSON.parse(r.stdout.trim()).id;
+                console.log('new id: '+ w.id);
                 r.stderr = '';
-                dispatch('load');   
+                if(!w.use_words)
+                    r.newwords = words;
+                commit('update', w);
+                //dispatch('load', w);   
             }
             commit('workEnd', r);
             return new Promise(res=>{res(r)});

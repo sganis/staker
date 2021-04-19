@@ -1,13 +1,14 @@
 <template>
     <div>
+        <!-- <pre>{{wallet}}</pre> -->
         <h2>Summary </h2>
         <div v-if="wallet">
             <div>Name: {{wallet.name}}</div>
             <div>ID: {{wallet.id}}</div>
             <div>Sync: {{syncPercent}}%</div>
-            <div>Epoch: {{wallet.tip.epoch_number}}</div>
+            <div>Epoch: {{wallet.tip && wallet.tip.epoch_number}}</div>
             <!-- <div>Balance: {{wallet.balance.total.quantity}}</div> -->
-            <div>Delegation: {{wallet.delegation.active.status}}</div>
+            <div>Delegation: {{wallet.delegation && wallet.delegation.active.status}}</div>
             <!-- <pre>{{wallet.transactions}}</pre> -->
             <br/>
         </div>
@@ -76,7 +77,7 @@
                 </tr>
             </thead>
             <tbody>
-                <tr v-for="t in wallet.transactions" :key="t.id">
+                <tr v-for="t in wallet.transactions || []" :key="t.id">
                 <td>{{t.inserted_at && t.inserted_at.time.split('T')[0]}}</td>
                 <td>{{t.status}}</td>
                 <td>{{t.amount.quantity/1000000}}</td>
@@ -155,12 +156,14 @@ export default {
     computed: {
         ...mapGetters('wallets',['getLoading']),        
         balance() {
-            return this.wallet.balance.total.quantity/1000000;
+            return this.wallet.balance 
+                ? this.wallet.balance.total.quantity/1000000
+                : 0;
         },
         syncPercent() {
-            if (this.wallet.state.status == 'ready')
+            if (this.wallet.state && this.wallet.state.status == 'ready')
                 return 100;
-            return this.wallet.state.progress.quantity;
+            return this.wallet.state ? this.wallet.state.progress.quantity: 0;
         }
     },
     methods: {
