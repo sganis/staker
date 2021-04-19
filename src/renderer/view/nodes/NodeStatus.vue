@@ -2,6 +2,7 @@
 <div>
     <!-- <pre> {{ getNetworkInfo }}</pre> -->
     <h2>Node status</h2>
+    <!-- <Progress :percent="netinfo.sync_progress"/> -->
     <span>  Sync status: {{ netinfo.sync_progress }}<br/>
             Epoch: {{ netinfo.node_epoch }}/{{ netinfo.network_epoch }}<br/>
             <!-- Slot: {{ netinfo.node_slot }}/{{ netinfo.network_slot }} -->
@@ -44,9 +45,11 @@
 <script>
 
 import {mapGetters, mapActions} from 'vuex';
+//import Progress from '../common/Progress'
 
 export default {
     props: ['node'],
+    //components: {Progress},
     data () {
         return {
             polling: null

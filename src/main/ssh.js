@@ -365,9 +365,10 @@ export async function generateKeys(user, host) {
 }
 
 export async function runRemote(cmd, prompt) {
-    console.log('running command:', cmd);
+    //console.log('running command:', cmd);
     let ssh = await connections.getCurrentConnection();
     if (!ssh) {
+        console.log(cmd);
         return {stderr: 'no connection', stdout: '', rc : -1};
     }
     return ssh.exec(cmd, prompt);

@@ -1,7 +1,7 @@
 <template>
   <div>
     <h1>Create Wallet</h1>
-    <div>
+    <div v-if="!newwords">
     <form @submit.prevent="onSubmit">
       <div class="form-group ">
         <input id="name" v-model="wallet.name" placeholder="Wallet name" 
@@ -30,6 +30,14 @@
     </form>
     <br/>
     </div>
+    <div v-if="newwords">
+      <p> Take note of these recovery words: </p>
+      <form>
+        <div class="form-group">
+          <textarea :value="newwords" class="form-control" />
+        </div>
+      </form>
+    </div>
   </div>
 </template>
 
@@ -37,7 +45,6 @@
 import Error from "../common/Error"
 import Spinner from "../common/Spinner"
 import { mapGetters, mapActions } from 'vuex'
-import {sleep} from '../../../common/util'
 
 export default {
   components : { Error, Spinner },
@@ -49,23 +56,26 @@ export default {
         password: '',
         use_words : false,
         words: '',
-      }
+      },
+      newwords: '',
     }
   },
   computed: {
     ...mapGetters('wallets',['getLoading'])
   },
   methods: {
-    ...mapActions('wallets', ['updateWallet','createWallet']),
+    ...mapActions('wallets', ['update','create']),
 
     onSubmit: async function() {
-        let r = await this.createWallet(this.wallet);
+        let r = await this.create(this.wallet);
         if (r.rc !== 0) {
             // something was wrong
             // 1. week password
             // 2. invalid words
             // 3. invalid name?
             console.log(r.stderr);
+        } else {
+          this.newwords = r.newwords;
         }
       }
     }  
