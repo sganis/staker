@@ -91,7 +91,7 @@ def get_network_information():
         return json.loads(o.strip())
     return {}
 
-time_status = 0
+time_sync = 0
 node_sync = 0
 node_status = get_node_status()
 wallet_status = get_wallet_status()
@@ -105,11 +105,11 @@ if wallet_status == 1: # running
         node_time = netinfo['node_tip']['time']
         network_time_d = datetime.strptime(network_time, '%Y-%m-%dT%H:%M:%SZ')
         node_time_d    = datetime.strptime(node_time, '%Y-%m-%dT%H:%M:%SZ')
-        time_status = 1
+        time_sync = 1
         if (network_time_d - node_time_d).total_seconds() > 60:
             # print(network_time)
             # print(node_time)
-            time_status = 2
+            time_sync = 2
         if netinfo['sync_progress']['status'] == 'ready' :
             node_sync = 100
         else:
@@ -122,7 +122,7 @@ status = {
     'node_status': node_status,      
     'node_sync': node_sync,      
     'wallet_status': wallet_status,
-    'time_status': time_status,
+    'time_sync': time_sync,
     'network_time': network_time,
     'node_time': node_time,
 
