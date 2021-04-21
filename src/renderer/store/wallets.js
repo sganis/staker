@@ -94,18 +94,16 @@ export default {
         async loadAll({commit}) {
             let cmd = 'cardano-wallet wallet list';
             let r = await runRemote(cmd);
-            console.log(r);
-            let wallets = [];
-            JSON.parse(r.stdout.trim()).forEach(async (w) => {
-                commit('update', w);
-            });
-            console.log(wallets);
-            
+            if (r.rc ===0 ) {
+                JSON.parse(r.stdout.trim()).forEach(async (w) => {
+                    commit('update', w);
+                });
+            }            
         },
         async load({commit, dispatch}, w) {
             let cmd = `cardano-wallet wallet get ${w.id}`;
             let r = await runRemote(cmd);
-            console.log(r);
+            // console.log(r);
             if (r.rc === 0) {
                 w = JSON.parse(r.stdout.trim())
                 cmd = `cardano-wallet address list ${w.id}`;

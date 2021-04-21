@@ -3,7 +3,7 @@
     <div class="d-flex flex-column h-100" >        
         <div class="row h-100 flex-grow-1 p-0 m-0">
           <NodeConnect v-if="!node || (node && !node.connected)" :node="node"/>
-          <NodeStatus v-if="node && node.connected" :node="node"/>                
+          <NodeView v-if="node && node.connected" :node="node"/>                
         </div>
     </div>
     <br/>
@@ -39,11 +39,11 @@
 <script>
 
 import NodeConnect from "./NodeConnect"
-import NodeStatus from "./NodeStatus"
+import NodeView from "./NodeView"
 import {mapGetters, mapActions} from 'vuex'
 
 export default {
-  components: {NodeConnect, NodeStatus},
+  components: {NodeConnect, NodeView},
   props: ['node'],
   data() {
     return {
