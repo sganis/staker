@@ -23,6 +23,7 @@
     "axios": "^0.21.1",
     "bootstrap": "^5.0.0-beta3",
     "bootstrap-icons": "^1.4.1",
+    "bootstrap-icons-vue": "^0.6.0",
     "core-js": "^3.6.5",
     "ssh2": "^0.8.9",
     "vue": "^3.0.0",

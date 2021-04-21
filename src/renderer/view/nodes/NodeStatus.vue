@@ -1,15 +1,26 @@
 <template>
 <div>
-    <div class="h3">{{node.host}}</div>
-    <div class="d-flex justify-content-center">{{netinfo.sync_progress}}</div>
+    <div class="h3" :style="{color: node.connected ? 'black' : 'gray'}">{{node.host}}</div>
+    <div class="d-flex justify-content-center">
+        <BIconLightbulbFill :style="{color: nodeConnectedColor}" /> &nbsp;&nbsp;
+        <BIconGearFill :style="{color: nodeStatusColor}" /> &nbsp;&nbsp;
+        <BIconWalletFill :style="{color: walletStatusColor}" /> &nbsp;&nbsp;
+        <BIconStopwatchFill :style="{color: timeStatusColor}" /> &nbsp;&nbsp;
+        
+        <!-- {{netinfo.sync_progress}} -->
+    </div>
 </div>
 </template>
 
 <script>
 import {mapGetters, mapActions} from 'vuex';
+import {
+    BIconLightbulbFill,BIconStopwatchFill, BIconGearFill, BIconWalletFill
+} from 'bootstrap-icons-vue'
 
 export default {
     props: ['node'],
+    components : {BIconLightbulbFill,BIconStopwatchFill, BIconGearFill, BIconWalletFill},
     data () {
         return {
             polling: null,
@@ -17,6 +28,29 @@ export default {
     },
     computed: {
         ...mapGetters('nodes',['getNodeStatus','getNetworkInfo']),
+        nodeConnectedColor() {
+            return this.node.connected ? 'green' : 'gray';
+        },
+        nodeStatusColor() {
+            return !this.node.connected ? 'gray' :
+            this.node.status.node_status === 4 ? 'green' :
+            this.node.status.node_status === 3 ? 'orange' :
+            this.node.status.node_status === 2 ? 'red' :
+             'gray';
+        },
+        walletStatusColor() {
+            return !this.node.connected ? 'gray' :
+            this.node.status.wallet_status === 4 ? 'green' :
+            this.node.status.wallet_status === 3 ? 'darkorange' :
+            this.node.status.wallet_status === 2 ? 'red' :
+             'gray';
+        },
+        timeStatusColor() {
+            return !this.node.connected ? 'gray' :
+            this.node.status.time_status === 1 ? 'red' :
+            this.node.status.time_status === 2 ? 'green' :
+             'gray';
+        },
         netinfo() {
             if (!this.getNetworkInfo.sync_progress)
                 return {};
@@ -36,7 +70,7 @@ export default {
         pollData() {
             this.polling = setInterval(() => {
                 this.updateNodeStatus(this.node);   
-                this.updateNetworkInfo();   
+                // this.updateNetworkInfo();   
             }, 5000);
         },
     },

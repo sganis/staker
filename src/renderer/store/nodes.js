@@ -89,6 +89,8 @@ export default {
             if (r.rc === 0) {
                 n.status = JSON.parse(r.stdout);
             } else {
+                console.log('error getting node status: '+ r.stderr);
+                    
                 n.status = r.stderr;
             }
             // update state
