@@ -26,7 +26,7 @@ WantedBy=multi-user.target
 EOF"
 
 sudo systemctl daemon-reload
-sudo systemctl enable cardano.service
+sudo systemctl enable cardano-node.service
 
 sudo bash -c "cat << 'EOF' > /etc/systemd/system/cardano-wallet.service
 [Unit]
