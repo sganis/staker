@@ -369,8 +369,9 @@ export async function runRemote(cmd, prompt) {
     //console.log('running command:', cmd);
     let ssh = await connections.getCurrentConnection();
     if (!ssh) {
-        console.log(cmd);
-        return {stderr: 'no connection', stdout: '', rc : -1};
+        let stderr = 'no connection';
+        console.log(cmd + ' falied: '+ stderr);
+        return {stderr: stderr, stdout: '', rc : -1};
     }
     return ssh.exec(cmd, prompt);
 }

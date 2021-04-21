@@ -27,50 +27,40 @@ export default {
         }
     },
     computed: {
-        ...mapGetters('nodes',['getNodeStatus','getNetworkInfo']),
+        ...mapGetters('nodes',['getNodeStatus']),
         nodeConnectedColor() {
-            return this.node.connected ? 'green' : 'gray';
+            return this.node && this.node.connected ? 'green' : 'gray';
         },
         nodeStatusColor() {
-            return !this.node.connected ? 'gray' :
-            this.node.status.node_status === 4 ? 'green' :
-            this.node.status.node_status === 3 ? 'orange' :
-            this.node.status.node_status === 2 ? 'red' :
+            return this.node && !this.node.connected ? 'gray' :
+            this.node && this.node.status && this.node.status.node_status === 1 ? 'green' :
+            this.node && this.node.status && this.node.status.node_status === 2 ? 'red' :
+             'gray';
+        },
+        nodeSyncColor() {
+            return this.node && !this.node.connected ? 'gray' :
+            this.node && this.node.status && this.node.status.node_sync === 100 ? 'green' :
+            this.node && this.node.status && this.node.status.node_sync > 0 ? 'red' :
              'gray';
         },
         walletStatusColor() {
-            return !this.node.connected ? 'gray' :
-            this.node.status.wallet_status === 4 ? 'green' :
-            this.node.status.wallet_status === 3 ? 'darkorange' :
-            this.node.status.wallet_status === 2 ? 'red' :
+            return this.node && !this.node.connected ? 'gray' :
+            this.node && this.node.status && this.node.status.wallet_status === 1 ? 'green' :
+            this.node && this.node.status && this.node.status.wallet_status === 2 ? 'red' :
              'gray';
         },
         timeStatusColor() {
-            return !this.node.connected ? 'gray' :
-            this.node.status.time_status === 1 ? 'red' :
-            this.node.status.time_status === 2 ? 'green' :
+            return this.node && !this.node.connected ? 'gray' :
+            this.node && this.node.status && this.node.status.time_sync === 1 ? 'green' :
+            this.node && this.node.status && this.node.status.time_sync === 2 ? 'red' :
              'gray';
-        },
-        netinfo() {
-            if (!this.getNetworkInfo.sync_progress)
-                return {};
-            let ni = {};
-            ni.sync_progress = this.getNetworkInfo.sync_progress.status === 'ready'
-                ? '100%' 
-                : Math.trunc(this.getNetworkInfo.sync_progress.progress.quantity) + '%';
-            ni.network_epoch = this.getNetworkInfo.network_tip.epoch_number;
-            ni.network_slot = this.getNetworkInfo.network_tip.slot_number;
-            ni.node_epoch = this.getNetworkInfo.node_tip.epoch_number;
-            ni.node_slot = this.getNetworkInfo.node_tip.slot_number;
-            return ni;
         },
     },
     methods: {
-        ...mapActions('nodes',['updateNodeStatus','updateNetworkInfo']),
+        ...mapActions('nodes',['updateNodeStatus']),
         pollData() {
             this.polling = setInterval(() => {
-                this.updateNodeStatus(this.node);   
-                // this.updateNetworkInfo();   
+                this.updateNodeStatus(this.node);      
             }, 5000);
         },
     },
