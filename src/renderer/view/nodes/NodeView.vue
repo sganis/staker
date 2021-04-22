@@ -3,12 +3,17 @@
     <!-- <pre> {{ getNetworkInfo }}</pre> -->
     <h2>Node status</h2>
     <!-- <Progress :percent="netinfo.sync_progress"/> -->
-    <span>  Sync status: {{ netinfo.sync_progress }}<br/>
-            Epoch: {{ netinfo.node_epoch }}/{{ netinfo.network_epoch }}<br/>
-            <!-- Slot: {{ netinfo.node_slot }}/{{ netinfo.network_slot }} -->
-    </span>
+        <div>Node service: {{ node && node.status && node.status.node_status }}</div>
+        <div>Wallet service: {{ node && node.status && node.status.wallet_status }} </div>
+        <div>DB sync: {{ node && node.status && node.status.node_sync }}<br/>
+                <!-- Epoch: {{ netinfo.node_epoch }}/{{ netinfo.network_epoch }}<br/> -->
+                <!-- Slot: {{ netinfo.node_slot }}/{{ netinfo.network_slot }} -->
+        </div>
+        <div>Time sync: {{ node && node.status && node.status.time_sync }}</div>
+        
     <br/>
-    <br/>
+
+    <h2>System</h2>
     <div class="row">
     <div class="col-3">CPU: </div>
     <div class="col-3">Memory:</div>
@@ -36,8 +41,33 @@
         :style="{width: status.disk + '%'}">{{status.disk}}%</div>
         </div>
     </div>
+
     </div>
     
+    <br/>
+    <h2>Actions</h2>
+    
+    <div class="row">
+      <span>
+        <span v-if="node && !node.has_tools">Tools not installed.<br/></span>
+        <button v-if="node && node.connected" :node="node" 
+          @click="setup(node)"
+          :disabled="getLoading"
+          class="btn btn-success btn-width" >Install Tools</button>
+          &nbsp;
+        <button v-if="node && node.connected" :node="node" 
+          @click="disconnect(node)"
+          :disabled="getLoading"
+          class="btn btn-primary btn-width" >Disconnect</button>
+          &nbsp;
+        <button v-if="node && node.connected" :node="node"  
+          @click="remove(node)"
+          :disabled="getLoading"
+          class="btn btn-danger btn-width" >Remove</button>
+          &nbsp;
+      </span>
+    </div>
+  
 </div>
 </template>
 
@@ -45,32 +75,15 @@
 
 import {mapGetters, mapActions} from 'vuex';
 
-
 export default {
-    //components: { Modal },
     props: ['node'],
-    //components: {Progress},
     data () {
         return {
-            polling: null,
-            isModalVisible: false,
        }
     },
     computed: {
-        ...mapGetters('nodes',['getNodeStatus','getNetworkInfo']),
-        netinfo() {
-            if (!this.getNetworkInfo.sync_progress)
-                return {};
-            let ni = {};
-            ni.sync_progress = this.getNetworkInfo.sync_progress.status === 'ready'
-                ? '100%' 
-                : Math.trunc(this.getNetworkInfo.sync_progress.progress.quantity) + '%';
-            ni.network_epoch = this.getNetworkInfo.network_tip.epoch_number;
-            ni.network_slot = this.getNetworkInfo.network_tip.slot_number;
-            ni.node_epoch = this.getNetworkInfo.node_tip.epoch_number;
-            ni.node_slot = this.getNetworkInfo.node_tip.slot_number;
-            return ni;
-        },
+        ...mapGetters('nodes',['getNodeStatus','getLoading']),
+        
         status() {
             return {
                 disk: this.node.status && this.node.status.disk 
@@ -83,23 +96,23 @@ export default {
         },
     },
     methods: {
-        ...mapActions('nodes',['updateNodeStatus','updateNetworkInfo']),
-        pollData() {
-            this.polling = setInterval(() => {
-                //console.log('pulling data for node: '+ this.node.host)
-                this.updateNodeStatus(this.node);   
-                this.updateNetworkInfo();   
-            }, 5000);
+        ...mapActions('nodes',['updateNodeStatus',
+            'disconnectNode','deselectAllNodes','removeNode',
+            'setupNode','hasTools'
+        ]),
+    
+        disconnect(node) {
+            this.deselectAllNodes();
+            this.disconnectNode(node);
         },
+        setup(node) {
+            this.setupNode(node);
+        },
+        remove(node) {
+            this.deselectAllNodes();
+            this.removeNode(node);
+        }
     },
-    beforeUnmount () {
-        clearInterval(this.polling);
-        //console.log('destroyed');
-    },
-    mounted () {
-        this.pollData();
-        //console.log('mounted');
-    }
 }
 </script>
 

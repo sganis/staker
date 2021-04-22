@@ -13,14 +13,12 @@ export default {
             loading : false,
             error: '',
             message: '',
-            network_info: {},
         }
     },
     getters: {
         getNodes: (state) => state.nodes.filter(n => n.host !=='') || [],
         getNode: (state) => (host) => state.nodes.find(n => n.host === host),
         getNodeSelected: (state) => state.nodes.find(n => n.selected),
-        getNetworkInfo:(state)=> state.network_info,
         getLoading:(state)=> state.loading,
         getError:(state)=> state.error,
         getMessage:(state)=> state.message,
@@ -116,20 +114,14 @@ export default {
 
             if (r.rc === 0) {
                 n.status = r.stdout;
+                r.stdout = 'Tools installed.'
             } else {
                 n.status = r.stderr;
             }
             commit('updateNode', n);
-            commit('workEnd');
+            commit('workEnd', r);
         },
-        async updateNetworkInfo({commit}) {
-            let r = await runRemote('cardano-wallet network information');
-            if (r.rc === 0) {
-                commit('updateNetworkInfo', JSON.parse(r.stdout));
-            } else {
-                console.log('cannot get network information: '+ r.stderr);
-            }
-        },
+        
 
     },
 
@@ -167,9 +159,7 @@ export default {
                 state.nodes.splice(i,1)
             }
         },       
-        updateNetworkInfo(state, info) {
-            state.network_info = info;
-        },
+        
         setLoading(state, b) { state.loading = b; },
         setError(state, e) {state.error = e; setTimeout(()=> state.error = '', 3000)},
         setMessage(state, m) {state.message = m},
@@ -189,6 +179,9 @@ export default {
                 state.error = '';
                 state.message = r.stdout; 
                 setTimeout(()=> state.message = '', 1000);
+            } else {
+                state.error = '';
+                status.message = '';
             }
         },
         
