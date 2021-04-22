@@ -104,7 +104,7 @@ export default {
             }
             
             let appPath = getSettings('appPath');
-            let src = path.join(appPath,'tool');
+            let src = path.join(appPath,'tool','bin');
             let dst = 'cardano/bin'; 
             console.log('uploading src:', src);
             console.log('dst:', dst);

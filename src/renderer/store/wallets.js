@@ -158,6 +158,12 @@ export default {
                 w.id = JSON.parse(r.stdout.trim()).id;
                 console.log('new id: '+ w.id);
                 r.stderr = '';
+                // extract pool keys
+                r = await runRemote(`mkdir -p cardano/keys/${w.id}; cd cardano/keys/${w.id}; echo ${words} > words.prv; ../../bin/extract_keys.sh words.prv`);
+                if (r.rc != 0) {
+                    console.log(r);
+                }
+                
                 if(!w.use_words)
                     r.newwords = words;
                 commit('update', w);
