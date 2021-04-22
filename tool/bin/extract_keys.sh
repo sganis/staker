@@ -1,7 +1,21 @@
 #!/bin/bash 
-# Extract stake pool keys and address from wallet
+# Extract stake pool and payment keys and address from wallet
+# https://www.coincashew.com/coins/overview-ada/guide-how-to-build-a-haskell-stakepool-node
 # https://gist.github.com/ilap/3fd57e39520c90f084d25b0ef2b96894
 # https://github.com/input-output-hk/cardano-addresses
+
+# the block producer node requires 3 keys:
+# stake pool cold key (node.cert)
+# stake pool hot key (kes.skey)
+# stake pool VRF key (vrf.skey)
+
+# create kes and vrf keys
+# cardano-cli node key-gen-KES \
+#     --verification-key-file kes.vkey \
+#     --signing-key-file kes.skey
+# cardano-cli node key-gen-VRF \
+#     --verification-key-file vrf.vkey \
+#     --signing-key-file vrf.skey
 
 # Generated stake pool files:
 # stake.vkey stake.skey stake.addr payment.vkey payment.skey payment.addr
