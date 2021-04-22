@@ -6,6 +6,7 @@ import os
 import subprocess
 import json
 from datetime import datetime
+import re
 
 DIR = os.path.dirname(os.path.abspath(sys.argv[0]))
 
@@ -14,8 +15,8 @@ DIR = os.path.dirname(os.path.abspath(sys.argv[0]))
 # 1, ok, running, in sync
 # 2, bad, stopped, not sync
 
-def run(cmd):
-    p = subprocess.run(cmd, shell=True,encoding='utf8',
+def run(cmd, timeout=2):
+    p = subprocess.run(cmd, shell=True,encoding='utf8',timeout=timeout,
        stdout=subprocess.PIPE,stderr=subprocess.PIPE)
     return p.stdout.strip(),p.stderr.strip()
  
@@ -37,26 +38,6 @@ def get_disk():
     used = int(f[2])
     total = int(f[1])
     return used, total
- 
-def get_node_status():
-    if not os.path.exists(DIR + '/cardano-node'):
-        return 0
-
-    cmd = 'ps aux |grep cardano-node |grep -v grep|wc -l'
-    o,e = run(cmd)
-    if o == '0':
-        return 2 # service stopped
-    return 1 # service ok
-
-def get_wallet_status():
-    if not os.path.exists(DIR + '/cardano-wallet'):
-        return 0
-
-    cmd = 'ps aux |grep cardano-wallet |grep -v grep|wc -l'
-    o,e = run(cmd)
-    if o == '0':
-        return 2 # service stopped
-    return 1 # service running
 
 def get_network_information():
 # {
@@ -85,16 +66,56 @@ def get_network_information():
 #         "epoch_number": 128
 #     }
 # }
-    cmd = 'cardano-wallet network information'
+    cmd = 'timeout 1 cardano-wallet network information'
     o,e = run(cmd)
     if o:
         return json.loads(o.strip())
     return {}
 
+def get_services_information():
+    node = {}
+    wallet = {}
+    node['status'] = 0
+    wallet['status'] = 0
+    if os.path.exists(DIR + '/cardano-node'):
+        node['status'] = 2 # stopped
+
+    if os.path.exists(DIR + '/cardano-wallet'):
+        wallet['status'] = 2
+
+    if node['status'] > 0:    
+    
+        o,e = run(r"ps aux |grep ' cardano-'|grep -v grep")
+        for line in o.split('\n'):
+            if 'cardano-node' in line:
+                f = line.split()
+                if len(f) < 2: continue
+                node['user'] = f[0]
+                node['pid'] = f[1]
+                node['status'] = 1
+                m = re.match(r'.+(cardano-node.+)', line)
+                if m:
+                    node['cmd'] = m.group(1)
+            if 'cardano-wallet' in line:
+                f = line.split()
+                if len(f) < 2: continue
+                wallet['user'] = f[0]
+                wallet['pid'] = f[1]
+                wallet['status'] = 1
+                m = re.match(r'.+(cardano-wallet.+)', line)
+                if m:
+                    wallet['cmd'] = m.group(1)
+    return {'node_service': node, 'wallet_service': wallet}
+
+services = get_services_information()
+# print(services)
+node_service = services['node_service']
+wallet_service = services['wallet_service']
+
 time_sync = 0
 node_sync = 0
-node_status = get_node_status()
-wallet_status = get_wallet_status()
+node_status = node_service['status']
+wallet_status = wallet_service['status']
 network_time = ''
 node_time = ''
 
@@ -115,12 +136,16 @@ if wallet_status == 1: # running
         else:
             node_sync = netinfo['sync_progress']['progress']['quantity']   
 
+
+
 status = {
     'cpu': get_cpu(),
     'memory': get_memory(),
     'disk': get_disk(),
     'node_status': node_status,      
-    'node_sync': node_sync,      
+    'node_sync': node_sync,    
+    'node_service': node_service,
+    'wallet_service': wallet_service,  
     'wallet_status': wallet_status,
     'time_sync': time_sync,
     'network_time': network_time,

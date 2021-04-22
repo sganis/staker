@@ -1,4 +1,6 @@
 #!/bin/bash
+# run as normal user, not sudo or root
+# so $HOME is expanded to current user home
 sudo bash -c "cat << 'EOF' > /etc/systemd/system/cardano-node.service
 [Unit]
 Description=Cardano Node
@@ -31,7 +33,9 @@ sudo systemctl enable cardano-node.service
 sudo bash -c "cat << 'EOF' > /etc/systemd/system/cardano-wallet.service
 [Unit]
 Description=Cardano Wallet
-After=network.target
+After=cardano-node.service
+Requires=cardano-node.service
+PartOf=cardano-node.service
 
 [Service]
 Type=simple
