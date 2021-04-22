@@ -6,8 +6,13 @@ ROOT=$HOME/cardano
 
 mkdir -p $ROOT
 mkdir -p $ROOT/keys
+mkdir -p $ROOT/bin
+mkdir -p $ROOT/config
 
-cp -r $DIR/bin $ROOT
-cp -r $DIR/config $ROOT
+cp -r $DIR/* $ROOT/bin
+cp -r $DIR/../config/* $ROOT/config
+
+$DIR/systemd.sh
+
 
 

@@ -1,11 +1,14 @@
 #!/bin/bash 
-# Extract stake pool keys and address from daedalus
+# Extract stake pool keys and address from wallet
 # https://gist.github.com/ilap/3fd57e39520c90f084d25b0ef2b96894
 # https://github.com/input-output-hk/cardano-addresses
 
+# Generated stake pool files:
+# stake.vkey stake.skey stake.addr payment.vkey payment.skey payment.addr
+# Address to fund from wallet: payment.addr
+
 # Generate the master key from mnemonics and derive the stake account keys 
 # as extended private and public keys (xpub, xprv)
-
 cardano-address key from-recovery-phrase Shelley < $1 > root.prv
 cat root.prv |cardano-address key child 1852H/1815H/0H/2/0 > stake.xprv
 cat root.prv |cardano-address key child 1852H/1815H/0H/0/0 > payment.xprv
@@ -72,6 +75,3 @@ cardano-cli address build \
 echo "Important the base.addr and the payment.addr_candidate must be the same"
 diff -w payment.addr base.addr_candidate && echo ok || echo failed
 
-# stake pool files:
-# stake.vkey stake.skey stake.addr payment.vkey payment.skey payment.addr
-# address to fund from daedalus: payment.addr
