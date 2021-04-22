@@ -1,0 +1,5 @@
+[user]
+	email = sganis@gmail.com
+	name = San
+[core]
+	autocrlf = false
