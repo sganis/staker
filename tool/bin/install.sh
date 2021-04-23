@@ -11,7 +11,6 @@ mkdir -p $ROOT/config
 
 cp -r $DIR/* $ROOT/bin
 cp -r $DIR/../config/* $ROOT/config
-chmod 755 $ROOT/bin/*
 
 $DIR/systemd.sh
 

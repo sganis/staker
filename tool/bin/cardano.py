@@ -349,20 +349,47 @@ def register_pool():
 
 if __name__ == '__main__':
 
-	p = _get_args()
+	o,e = run('cardano-wallet address list 377b5fb2b90a5f937b1a72b309787fb1e26e28ba')
+	addresses = json.loads(o)
+	a_count = len(addresses)
+	total = 0
 
-	ok = False
-	if p.command == 'tx':
-		ok = send(p.from_addr, p.to_addr, p.ada, p.from_skey)	
-	elif p.command == 'address':
-		if p.name:
-			ok = address(p.name)
-		elif p.list:
-			ok = get_addresses()
-	elif p.command == 'balance':
-		ok = balance(p.name)
+	for i,a in enumerate(addresses):
+		a_id = a['id']
+		a_state = a['state']
+		o,e = run(f'cardano-cli query utxo --address {a_id} --testnet-magic 1097911063 --mary-era')
+		balance = 0
+		for line in o.split('\n'):
+			if line.startswith('TxHash') or line.startswith('----'):
+				continue
+			f = line.split()
+			if len(f)>2:
+				balance += int(f[2])
+		total += balance
+		if balance > 0:
+			print(i)
+			print(a_id)
+			print(f'state: {a_state}, balance: {balance}')
 
-	sys.exit(0 if ok else 1)
+	print(f'wallet balance: {total}')
+	print(f'addresses: {a_count}')
+	
+
+
+	# p = _get_args()
+
+	# ok = False
+	# if p.command == 'tx':
+	# 	ok = send(p.from_addr, p.to_addr, p.ada, p.from_skey)	
+	# elif p.command == 'address':
+	# 	if p.name:
+	# 		ok = address(p.name)
+	# 	elif p.list:
+	# 		ok = get_addresses()
+	# elif p.command == 'balance':
+	# 	ok = balance(p.name)
+
+	# sys.exit(0 if ok else 1)
 
 	# assert len(sys.argv) > 3  # usage: prog <from> <to> <ada_amount>
 	# from_addr = open(sys.argv[1]).read()
