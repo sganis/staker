@@ -1,18 +1,11 @@
 <template>
 <div>
-    <!-- <pre> {{ getNetworkInfo }}</pre> -->
     <h2>Node status</h2>
-    <!-- <Progress :percent="netinfo.sync_progress"/> -->
-        <div>Node service: {{ node && node.status && node.status.node_status }}</div>
-        <div>Wallet service: {{ node && node.status && node.status.wallet_status }} </div>
-        <div>DB sync: {{ node && node.status && node.status.node_sync }}<br/>
-                <!-- Epoch: {{ netinfo.node_epoch }}/{{ netinfo.network_epoch }}<br/> -->
-                <!-- Slot: {{ netinfo.node_slot }}/{{ netinfo.network_slot }} -->
-        </div>
-        <div>Time sync: {{ node && node.status && node.status.time_sync }}</div>
-        
-    <br/>
-
+        <div>Node service: {{ status.nodeService }}</div>
+        <div>Wallet service: {{ status.walletService }} </div>
+        <div>Node sync: {{ status.nodeSync }}</div>
+        <div>Time sync: <span v-html="status.timeSync"></span></div>
+        <br/>
     <h2>System</h2>
     <div class="row">
     <div class="col-3">CPU: </div>
@@ -85,13 +78,28 @@ export default {
         ...mapGetters('nodes',['getNodeStatus','getLoading']),
         
         status() {
-            return {
-                disk: this.node.status && this.node.status.disk 
-                    ? Math.round(this.node.status.disk[0]/this.node.status.disk[1] * 100) : 0,
-                memory: this.node.status && this.node.status.memory 
-                    ? Math.round(this.node.status.memory[0]/this.node.status.memory[1] * 100) : 0,
-                cpu: this.node.status && this.node.status.cpu 
-                    ? Math.round(this.node.status.cpu * 100) : 0,
+            return !this.node.status ? {
+                nodeService: 'n/a',
+                walletService: 'n/a',
+                nodeSync: 'n/a',
+                timeSync: 'n/a',
+                disk: 'n/a',
+                memory: 'n/a',
+                cpu: 'n/a',
+            } : {
+                nodeService: this.node.status.node_status === 1 ? 'Running' 
+                             : this.node.status.node_status === 2 ? 'Stopped'
+                             : 'Not installed',
+                walletService: this.node.status.wallet_status === 1 ? 'Running'
+                             : this.node.status.wallet_status === 2 ? 'Stopped'
+                             : 'Not installed',
+                nodeSync: this.node.status.node_sync ? this.node.status.node_sync +'%' : 'n/a',  
+                timeSync: this.node.status.time_sync === 1 ? 'Ok'
+                             :`Out of sync:<br/>Network: ${this.node.status.network_time}<br/>Node: ${this.node.status.node_time}`,
+                disk: Math.round(this.node.status.disk[0]/this.node.status.disk[1] * 100),
+                memory: Math.round(this.node.status.memory[0]/this.node.status.memory[1] * 100),
+                cpu: Math.round(this.node.status.cpu * 100),
+            
             }
         },
     },
