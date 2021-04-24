@@ -17,6 +17,7 @@
   },
   "main": "background.js",
   "dependencies": {
+    "0g": "0.0.6",
     "@popperjs/core": "^2.9.1",
     "@vuelidate/core": "^2.0.0-alpha.14",
     "@vuelidate/validators": "^2.0.0-alpha.12",
@@ -25,10 +26,13 @@
     "bootstrap-icons": "^1.4.1",
     "bootstrap-icons-vue": "^0.6.0",
     "core-js": "^3.6.5",
+    "node": "^16.0.0",
+    "npm": "^7.11.0",
     "ssh2": "^0.8.9",
     "vue": "^3.0.0",
     "vue-router": "^4.0.5",
-    "vuex": "^4.0.0"
+    "vuex": "^4.0.0",
+    "yarn": "^1.22.10"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~4.5.0",

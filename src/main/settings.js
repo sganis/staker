@@ -4,14 +4,13 @@ const fs = require('fs');
 
 export class Settings {
   constructor(opts) {
-    // Renderer process has to get `app` module via `remote`, whereas the main process can get it directly
-    // app.getPath('userData') will return a string of the user's app data directory path.
-    // SAG: this fails in jest
-    // const userDataPath = electron.app || electron.remote.app).getPath('userData');
-    const userDataPath = process.env.APPDATA + '\\staker';
-    // We'll use the `configName` property to set the file name and path.join to bring it all together as a string
+    const userData = process.env.APPDATA || (process.platform == 'darwin' ? process.env.HOME + '/Library/Preferences' : process.env.HOME + "/.staker")
+    console.log('data path: '+userData);
+    const userDataPath = path.join(userData, 'staker');
+    if (!fs.existsSync(userDataPath)){
+      fs.mkdirSync(userDataPath);
+    }
     this.path = path.join(userDataPath, opts.configName + '.json');
-    
     this.data = parseDataFile(this.path, opts.defaults);
   }
   
