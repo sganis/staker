@@ -3,4 +3,6 @@
 	name = San
 [core]
 	autocrlf = false
+[alias]
+    co = "!f() { git pull && git commit -am \"$@\" && git push; }; f"
 
