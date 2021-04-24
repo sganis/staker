@@ -78,14 +78,14 @@ export default {
         ...mapGetters('nodes',['getNodeStatus','getLoading']),
         
         status() {
-            return !this.node.status ? {
+            return !this.node || !this.node.status || !this.node.status.node_status ? {
                 nodeService: 'n/a',
                 walletService: 'n/a',
                 nodeSync: 'n/a',
                 timeSync: 'n/a',
-                disk: 'n/a',
-                memory: 'n/a',
-                cpu: 'n/a',
+                disk: 0,
+                memory: 0,
+                cpu: 0,
             } : {
                 nodeService: this.node.status.node_status === 1 ? 'Running' 
                              : this.node.status.node_status === 2 ? 'Stopped'
