@@ -24,21 +24,29 @@ def run(cmd):
 	return stdout, stderr
 
 def _get_protocol():
-	cmd = f'''cardano-cli query protocol-parameters--out-file protocol.json {NETWORK} --mary-era'''
+	cmd = f'''cardano-cli query protocol-parameters --out-file protocol.json {NETWORK} --mary-era'''
+	# print(cmd)
 	run(cmd)
 
-def _get_tx_hash(addr):
+def _get_utxo(addr):
 	cmd = f'''cardano-cli query utxo --address {addr} {NETWORK} --mary-era'''
 	o,e = run(cmd)
 	# print(o)
-	line = o.split('\n')[-1].split()
-	# hash, index, balance
-	return line[0], line[1], int(line[2])
+	lines = o.split('\n')[2:]
+	utxo = []
+	for line in lines:
+		# hash, index, balance
+		f = line.split()
+		if len(f) > 2:
+			utxo.append(f)
+	return utxo
 
-def _calculate_min_fee(tx_out_count, witness_count):
+def _calculate_min_fee(tx_in_count, tx_out_count, witness_count):
 	cmd = 'cardano-cli transaction calculate-min-fee '
-	cmd += '--tx-body-file tx.draft --tx-in-count 1 '
-	cmd += f'--tx-out-count {tx_out_count} --witness-count {witness_count} '
+	cmd += f'--tx-body-file tx.draft '
+	cmd += f'--tx-in-count {tx_in_count} '
+	cmd += f'--tx-out-count {tx_out_count} '
+	cmd += f'--witness-count {witness_count} '
 	cmd += '--byron-witness-count 0 --protocol-params-file protocol.json '
 	cmd += f'{NETWORK}'
 	o,e = run(cmd)
@@ -132,55 +140,69 @@ def address(name):
 
 def balance(address):
 	lovelaces = 0
-	cmd = f'cardano-cli query utxo --address {address} {NETWORK} --mary-era'
-	o,e=run(cmd)
-	if e:
-		sys.stderr.write(e)
-		return False
-	else:
-		for line in o.split('\n')[2:]:
-			f = line.split()
-			if len(f) > 2:
-				lovelaces += int(f[2])
-		print(lovelaces/1_000_000.0)
-		return True 
+	utxo = _get_utxo(address)
+	for u in utxo:
+		lovelaces += int(u[2])
+	print(lovelaces/1_000_000.0)
+	return True 
 
 def send(from_addr, to_addr, ada, from_skey):
 	print(f'sending {ada} ADA\nFrom: {from_addr}\nTo  : {to_addr}')
 	_get_protocol()
-	txhash, txtx, balance = _get_tx_hash(from_addr)
+	balance = 0
+	utxo = _get_utxo(from_addr)
+	tx_in = ''
+	tx_in_count = 0
+	lovelaces = int(float(ada) * 1_000_000)
+	min_input = lovelaces + 2_000_000
+
+	for u in utxo:
+		txhash = u[0]
+		idx = u[1]
+		tx_in += f'--tx-in {txhash}#{idx} '
+		tx_in_count += 1
+		balance += int(u[2])
+		if balance > min_input:
+			break
+
 	cmd = 'cardano-cli transaction build-raw '
-	cmd += f'--tx-in {txhash}#{txtx} '
+	cmd += f'{tx_in}'
 	cmd += f'--tx-out {to_addr}+0 '
 	cmd += f'--tx-out {from_addr}+0 '
 	cmd += '--invalid-hereafter 0 --fee 0 --out-file tx.draft'
-	return
-	
+	# print(cmd)
 	run(cmd)
-	lovelaces = int(ada) * 1_000_000
-	fee = _calculate_min_fee(2, 1)
+	
+	fee = _calculate_min_fee(tx_in_count, 2, 1)
 	ttl = _get_ttl()
-	change = balance - lovelaces - fee
+
+	change = int(balance - lovelaces - fee)
+	assert change > 1_000_000 # minimum output today
+	
 	cmd = 'cardano-cli transaction build-raw '
-	cmd += f'--tx-in {txhash}#{txtx} '
+	cmd += f'{tx_in}'
 	cmd += f'--tx-out {to_addr}+{lovelaces} '
 	cmd += f'--tx-out {from_addr}+{change} '
 	cmd += f'--invalid-hereafter {ttl} '
 	cmd += f'--fee {fee} --out-file tx.raw'
+	print(cmd)
 	o,e = run(cmd)
-	print(o)
-
+	
 	cmd = 'cardano-cli transaction sign --tx-body-file tx.raw '
 	cmd += f'--signing-key-file {from_skey} --out-file tx.signed {NETWORK}'
+	print(cmd)
 	o,e = run(cmd)
 	
 	o,e = run(f'cardano-cli transaction submit --tx-file tx.signed {NETWORK}')
 	print(o)
 	if e:
 		print(f'error: {e}')
+	
+	# cleanup
+	run('rm protocol.json tx.draft tx.raw tx.signed')
 
-	print(_get_tx_hash(from_addr))
-	print(_get_tx_hash(to_addr))
+	print(_get_utxo(from_addr))
+	print(_get_utxo(to_addr))
 
 def register_stake_address(stake_addr_file, stake_skey_file, stake_vkey_file, payment_addr_file, payment_skey_file):
 	stake_addr = open(stake_addr_file).read()
