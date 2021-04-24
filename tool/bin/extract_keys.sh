@@ -9,77 +9,49 @@ TESTNET_MAGIC="--testnet-magic 1097911063"
 MAINNET_MAGIC="--mainnet"
 MAGIC="$TESTNET_MAGIC"
 ROOT=$HOME/cardano
-
-# the block producer node requires 3 keys:
-# stake pool cold key (node.cert)
-# stake pool hot key (kes.skey)
-# stake pool VRF key (vrf.skey)
-
-# Make cold keys and counter
-cardano-cli node key-gen \
-    --cold-verification-key-file node.vkey \
-    --cold-signing-key-file node.skey \
-    --operational-certificate-issue-counter node.counter
-
-# generate pool id
-cardano-cli stake-pool id \
-	--cold-verification-key-file node.vkey \
-	--output-format hex > stakepoolid.txt
-
-
-# create kes keys
-# KES (key evolving signature) keys are created to secure your stake pool
-# against hackers who might compromise your keys. 
-# On mainnet, you will need to regenerate the KES key every 90 days.
-cardano-cli node key-gen-KES \
-    --verification-key-file kes.vkey \
-    --signing-key-file kes.skey
-
-# create vrf keys
-cardano-cli node key-gen-VRF \
-    --verification-key-file vrf.vkey \
-    --signing-key-file vrf.skey
-
-slotsPerKESPeriod=$(cat ${ROOT}/config/testnet-shelley-genesis.json | jq -r '.slotsPerKESPeriod')
-echo slotsPerKESPeriod: ${slotsPerKESPeriod}
-slotNo=$(cardano-cli query tip $MAGIC | jq -r '.slotNo')
-echo slotNo: ${slotNo}
-kesPeriod=$((${slotNo} / ${slotsPerKESPeriod}))
-echo kesPeriod: ${kesPeriod}
-
-# create operational certificate
-cardano-cli node issue-op-cert \
-    --kes-verification-key-file kes.vkey \
-    --cold-signing-key-file node.skey \
-    --operational-certificate-issue-counter node.counter \
-    --kes-period ${kesPeriod} \
-    --out-file node.cert
+TESTNET=0
+MAINNET=1
+NETWORK=$TESTNET
 
 # Generated payment and stake keys and addresses
 # stake.vkey stake.skey stake.addr payment.vkey payment.skey payment.addr
 # Address to fund from wallet: payment.addr
 
 # Generate the master key from mnemonics and derive the stake account keys 
-# as extended private and public keys (xpub, xprv)
+# as extended private and public keys (xpub, xvk)
 cardano-address key from-recovery-phrase Shelley < $1 > root.prv
 cat root.prv |cardano-address key child 1852H/1815H/0H/2/0 > stake.xprv
 cat root.prv |cardano-address key child 1852H/1815H/0H/0/0 > payment.xprv
+cat payment.xprv \
+	|cardano-address key public --with-chain-code \
+	|tee payment.xpub \
+	|cardano-address address payment --network-tag $NETWORK \
+	|cardano-address address delegation $(cat stake.xprv |cardano-address key public --with-chain-code |tee stake.xpub) \
+	> base.addr_candidate 
 
-TESTNET=0
-MAINNET=1
-NETWORK=$TESTNET
+# generate payment and stake verification keys
+# cardano-address key child 1852H/1815H/0H/0/0 < root.prv \
+# 	| cardano-address key public --with-chain-code > payment.xvk
+# cardano-address key child 1852H/1815H/0H/2/0 < root.prv \
+# 	| cardano-address key public --with-chain-code > stake.xvk
 
-cat payment.xprv |cardano-address key public --with-chain-code \
-	|tee payment.xpub |cardano-address address payment --network-tag $NETWORK \
-	|cardano-address address delegation $(cat stake.xprv | cardano-address key public --with-chain-code | tee stake.xpub) \
-	|tee base.addr_candidate 
-# |cardano-address address inspect
-# echo "Generated from 1852H/1815H/0H/{0,2}/0"
-# cat base.addr_candidate
-# echo
+# # generate payment and stake addresses from a payment verification key
+# cardano-address address payment --network-tag $NETWORK < payment.xvk > payment.addr2
+# cardano-address address stake --network-tag $NETWORK < stake.xvk > stake.addr2
 
-# XPrv/XPub conversion to normal private and public key, keep in mind the 
-# keypars are not a valind Ed25519 signing keypairs.
+# # public keys
+# cat payment.xprv |cardano-address key public --with-chain-code > payment.xpub 
+# cat stake.xprv   |cardano-address key public --with-chain-code > stake.xpub
+
+# # generate a delegated payment address from a stake key
+# cardano-address address delegation $(cat stake.xvk) < payment.addr2 > payment-delegated.addr
+
+
+# cat payment.xpub |cardano-address address payment --network-tag $NETWORK \
+# 	|cardano-address address delegation $(cat stake.xprv |cardano-address key public --with-chain-code |tee stake.xpub) > base.addr_candidate 
+
+# xvk/XPub conversion to normal private and public key, keep in mind the 
+# keypairs are not a valind Ed25519 signing keypairs.
 SESKEY=$( cat stake.xprv | bech32 | cut -b -128 )$( cat stake.xpub | bech32)
 PESKEY=$( cat payment.xprv | bech32 | cut -b -128 )$( cat payment.xpub | bech32)
 
@@ -100,9 +72,12 @@ cat << EOF > payment.skey
 EOF
 
 cardano-cli key verification-key \
-	--signing-key-file stake.skey --verification-key-file stake.evkey
+	--signing-key-file stake.skey \
+	--verification-key-file stake.evkey
+
 cardano-cli key verification-key \
-	--signing-key-file payment.skey --verification-key-file payment.evkey
+	--signing-key-file payment.skey \
+	--verification-key-file payment.evkey
 
 cardano-cli key non-extended-key \
 	--extended-verification-key-file payment.evkey \
@@ -111,7 +86,6 @@ cardano-cli key non-extended-key \
 cardano-cli key non-extended-key \
 	--extended-verification-key-file stake.evkey \
 	--verification-key-file stake.vkey
-
 
 cardano-cli stake-address build \
 	--stake-verification-key-file stake.vkey $MAGIC > stake.addr
@@ -129,3 +103,5 @@ cardano-cli stake-address registration-certificate \
     --stake-verification-key-file stake.vkey \
     --out-file stake.cert
 
+# cleanup
+rm root.prv stake.x* payment.x* stake.evkey payment.evkey base.addr_candidate

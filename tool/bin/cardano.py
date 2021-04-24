@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# create transaction
+# Cardano stake pool operations
 import sys
 import os
 import subprocess
@@ -13,10 +13,9 @@ DIR = os.path.dirname(os.path.abspath(sys.argv[0]))
 KEYDIR = f'{home}/.staker/keys'
 
 NETWORK='--testnet-magic 1097911063'
-# NETWORK='--testnet-magic 3'
+# os.environ["CARDANO_NODE_SOCKET_PATH"] = path_to_socket
 
 def run(cmd):
-#	os.environ["CARDANO_NODE_SOCKET_PATH"] = path_to_socket
 	cmd = cmd.replace('\n','')
 	#print(f'CMD: {cmd}')
 	p = subprocess.run(cmd.replace('\n','').split(), capture_output=True)
@@ -77,7 +76,7 @@ def _get_args():
 	s.add_argument("--name", help="address name")
 	s.add_argument("--list", action='store_true', help="list all addresses")
 	s = subparsers.add_parser("balance", help='query balance of address')
-	s.add_argument("--name", help="address name")
+	s.add_argument("--address", required=True, help="address to query balance")
 	
 	# Parse
 	a = parser.parse_args()
@@ -131,26 +130,20 @@ def address(name):
 	# print('done.')
 	return True
 
-def balance(name):
-	addr_file = f'{KEYDIR}/{name}_paymt.addr'
-	if not os.path.exists(addr_file):
-		sys.stderr.write('invalid address.\n')
-		return False
-	addr = open(addr_file).read()
-	cmd = f'cardano-cli query utxo --address {addr} {NETWORK} --mary-era'
+def balance(address):
+	lovelaces = 0
+	cmd = f'cardano-cli query utxo --address {address} {NETWORK} --mary-era'
 	o,e=run(cmd)
 	if e:
 		sys.stderr.write(e)
 		return False
 	else:
-		try:
-			line = o.split('\n')[-1].split()
-			balance = int(line[2])/1000000.0
-			print(balance)
-			return True
-		except Exception as ex:
-			print('n/a')
-			return False 
+		for line in o.split('\n')[2:]:
+			f = line.split()
+			if len(f) > 2:
+				lovelaces += int(f[2])
+		print(lovelaces/1_000_000.0)
+		return True 
 
 def send(from_addr, to_addr, ada, from_skey):
 	print(f'sending {ada} ADA\nFrom: {from_addr}\nTo  : {to_addr}')
@@ -161,6 +154,8 @@ def send(from_addr, to_addr, ada, from_skey):
 	cmd += f'--tx-out {to_addr}+0 '
 	cmd += f'--tx-out {from_addr}+0 '
 	cmd += '--invalid-hereafter 0 --fee 0 --out-file tx.draft'
+	return
+	
 	run(cmd)
 	lovelaces = int(ada) * 1_000_000
 	fee = _calculate_min_fee(2, 1)
@@ -187,7 +182,7 @@ def send(from_addr, to_addr, ada, from_skey):
 	print(_get_tx_hash(from_addr))
 	print(_get_tx_hash(to_addr))
 
-def register(stake_addr_file, stake_skey_file, stake_vkey_file, payment_addr_file, payment_skey_file):
+def register_stake_address(stake_addr_file, stake_skey_file, stake_vkey_file, payment_addr_file, payment_skey_file):
 	stake_addr = open(stake_addr_file).read()
 	stake_skey = open(stake_addr_file).read()
 	payment_addr = open(payment_addr_file).read()
@@ -238,8 +233,8 @@ def register(stake_addr_file, stake_skey_file, stake_vkey_file, payment_addr_fil
 
 def generate_pool_keys():
 	cmd = '''cardano-cli node key-gen 
-		--cold-verification-key-file cold.vkey 
-		--cold-signing-key-file cold.skey 
+		--cold-verification-key-file node.vkey 
+		--cold-signing-key-file node.skey 
 		--operational-certificate-issue-counter-file cold.counter'''
 	run(cmd)
 	cmd = '''cardano-cli node key-gen-VRF 
@@ -260,7 +255,7 @@ def generate_pool_keys():
 
 	cmd = 'cardano-cli node issue-op-cert '
 	cmd += '--kes-verification-key-file kes.vkey '
-	cmd += '--cold-signing-key-file cold.skey '
+	cmd += '--cold-signing-key-file node.skey '
 	cmd += '--operational-certificate-issue-counter cold.counter '
 	cmd += f'--kes-period {kes_period} '
 	cmd += '--out-file node.cert'
@@ -281,7 +276,7 @@ def register_pool():
 	relay_dns = "adapool.chaintrust.com"
 
 	cmd = 'cardano-cli stake-pool registration-certificate '
-	cmd += '--cold-verification-key-file cold.vkey '
+	cmd += '--cold-verification-key-file node.vkey '
 	cmd += '--vrf-verification-key-file vrf.vkey '
 	cmd += f'--pool-pledge {pledge} '
 	cmd += f'--pool-cost {cost} '
@@ -297,7 +292,7 @@ def register_pool():
 
 	cmd = '''cardano-cli stake-address delegation-certificate 
 		--stake-verification-key-file stake.vkey 
-		--cold-verification-key-file cold.vkey 
+		--cold-verification-key-file node.vkey 
 		--out-file delegation.cert'''
 	run(cmd)
 
@@ -334,7 +329,7 @@ def register_pool():
 	cmd = 'cardano-cli transaction sign --tx-body-file tx.raw '
 	cmd += '--signing-key-file payment.skey '
 	cmd += '--signing-key-file stake.skey '
-	cmd += '--signing-key-file cold.skey '
+	cmd += '--signing-key-file node.skey '
 	cmd += f'--out-file tx.signed {NETWORK}'
 	o,e = run(cmd)
 
@@ -343,53 +338,53 @@ def register_pool():
 	if e:
 		print(f'error: {e}')
 	# verify
-	# poolId=`cardano-cli stake-pool id --cold-verification-key-file cold.vkey --output-format "hex"`
+	# poolId=`cardano-cli stake-pool id --cold-verification-key-file node.vkey --output-format "hex"`
 	# cardano-cli query ledger-state {NETWORK} --mary-era | grep publicKey | grep <poolId>
 
 
 if __name__ == '__main__':
 
-	o,e = run('cardano-wallet address list 377b5fb2b90a5f937b1a72b309787fb1e26e28ba')
-	addresses = json.loads(o)
-	a_count = len(addresses)
-	total = 0
+	# o,e = run('cardano-wallet address list 377b5fb2b90a5f937b1a72b309787fb1e26e28ba')
+	# addresses = json.loads(o)
+	# a_count = len(addresses)
+	# total = 0
 
-	for i,a in enumerate(addresses):
-		a_id = a['id']
-		a_state = a['state']
-		o,e = run(f'cardano-cli query utxo --address {a_id} --testnet-magic 1097911063 --mary-era')
-		balance = 0
-		for line in o.split('\n'):
-			if line.startswith('TxHash') or line.startswith('----'):
-				continue
-			f = line.split()
-			if len(f)>2:
-				balance += int(f[2])
-		total += balance
-		if balance > 0:
-			print(i)
-			print(a_id)
-			print(f'state: {a_state}, balance: {balance}')
+	# for i,a in enumerate(addresses):
+	# 	a_id = a['id']
+	# 	a_state = a['state']
+	# 	o,e = run(f'cardano-cli query utxo --address {a_id} --testnet-magic 1097911063 --mary-era')
+	# 	balance = 0
+	# 	for line in o.split('\n'):
+	# 		if line.startswith('TxHash') or line.startswith('----'):
+	# 			continue
+	# 		f = line.split()
+	# 		if len(f)>2:
+	# 			balance += int(f[2])
+	# 	total += balance
+	# 	if balance > 0:
+	# 		print(i)
+	# 		print(a_id)
+	# 		print(f'state: {a_state}, balance: {balance}')
 
-	print(f'wallet balance: {total}')
-	print(f'addresses: {a_count}')
+	# print(f'wallet balance: {total}')
+	# print(f'addresses: {a_count}')
 	
 
 
-	# p = _get_args()
+	p = _get_args()
 
-	# ok = False
-	# if p.command == 'tx':
-	# 	ok = send(p.from_addr, p.to_addr, p.ada, p.from_skey)	
-	# elif p.command == 'address':
-	# 	if p.name:
-	# 		ok = address(p.name)
-	# 	elif p.list:
-	# 		ok = get_addresses()
-	# elif p.command == 'balance':
-	# 	ok = balance(p.name)
+	ok = False
+	if p.command == 'tx':
+		ok = send(p.from_addr, p.to_addr, p.ada, p.from_skey)	
+	elif p.command == 'address':
+		if p.name:
+			ok = address(p.name)
+		elif p.list:
+			ok = get_addresses()
+	elif p.command == 'balance':
+		ok = balance(p.address)
 
-	# sys.exit(0 if ok else 1)
+	sys.exit(0 if ok else 1)
 
 	# assert len(sys.argv) > 3  # usage: prog <from> <to> <ada_amount>
 	# from_addr = open(sys.argv[1]).read()
@@ -406,11 +401,11 @@ if __name__ == '__main__':
 	# stake_skey_file = stake_addr_file.split('.')[0] + '.skey'
 	# stake_vkey_file = stake_addr_file.split('.')[0] + '.vkey'
 
-	# register(stake_addr_file, stake_skey_file, stake_vkey_file,
+	# register_stake_address(stake_addr_file, stake_skey_file, stake_vkey_file,
 	# 	 payment_addr_file, payment_skey_file)
 
 	# generate stake pool keys
-	#generate_pool_keys()
+	# generate_pool_keys()
 
 	# register stake pool
 	# register_pool()

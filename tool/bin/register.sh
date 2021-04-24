@@ -70,7 +70,7 @@ cardano-cli transaction sign $MAGIC \
     --out-file tx.signed
 
 # submit transaction to register stake address
-# cardano-cli transaction submit $MAGIC  --tx-file tx.signed
+cardano-cli transaction submit $MAGIC  --tx-file tx.signed
 
 # register pool
 cardano-cli stake-pool metadata-hash \
