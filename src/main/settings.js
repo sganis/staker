@@ -4,8 +4,11 @@ const fs = require('fs');
 
 export class Settings {
   constructor(opts) {
-    const userData = process.env.APPDATA || (process.platform == 'darwin' ? process.env.HOME + '/Library/Preferences' : process.env.HOME + "/.staker")
-    console.log('data path: '+userData);
+    const userData = process.env.APPDATA || 
+                    (process.platform == 'darwin' 
+                      ? process.env.HOME + '/Library/Preferences' 
+                      : process.env.HOME)
+    console.log('data path: ' + userData);
     const userDataPath = path.join(userData, 'staker');
     if (!fs.existsSync(userDataPath)){
       fs.mkdirSync(userDataPath);
