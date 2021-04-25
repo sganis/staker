@@ -10,7 +10,9 @@ import argparse
 home = os.environ['HOME']
 #path_to_socket = f"{home}/ada/relay/db/node.socket"
 DIR = os.path.dirname(os.path.abspath(sys.argv[0]))
-KEYDIR = f'{home}/.staker/keys'
+ROOT=f'{home}/cardano'
+CONF=f'{ROOT}/config'
+KEYS = f'{ROOT}/keys'
 
 NETWORK='--testnet-magic 1097911063'
 # os.environ["CARDANO_NODE_SOCKET_PATH"] = path_to_socket
@@ -94,19 +96,6 @@ def _get_args():
 	
 	return a
 
-def get_addresses():
-	if not os.path.exists(KEYDIR):
-		sys.stderr.write(f'key dir does not exist.\n')
-		return False
-	addr = []
-	for f in os.listdir(KEYDIR):
-		if '_paymt.addr' in f:
-			with open(f'{KEYDIR}/{f}') as r:
-				address = r.read()
-				name = f.replace('_paymt.addr','')
-				a = {'name': name, 'address': address}
-				addr.append(a)
-	print(json.dumps(addr))
 
 def address(name):
 	if os.path.exists(f'{KEYDIR}/{name}_paymt.addr'):
@@ -254,33 +243,27 @@ def register_stake_address(stake_addr_file, stake_skey_file, stake_vkey_file, pa
 	print(_get_tx_hash(payment_addr))
 
 def generate_pool_keys():
-	cmd = '''cardano-cli node key-gen 
-		--cold-verification-key-file node.vkey 
-		--cold-signing-key-file node.skey 
-		--operational-certificate-issue-counter-file cold.counter'''
+	cmd = 'cardano-cli node key-gen '
+	cmd += f'--cold-verification-key-file {KEYS}/node.vkey --cold-signing-key-file {KEYS}/node.skey '
+	cmd += f'--operational-certificate-issue-counter-file {KEYS}/node.counter'
 	run(cmd)
-	cmd = '''cardano-cli node key-gen-VRF 
-		--verification-key-file vrf.vkey 
-		--signing-key-file vrf.skey'''
+	cmd = 'cardano-cli node key-gen-VRF '
+	cmd += f'--verification-key-file {KEYS}/vrf.vkey --signing-key-file {KEYS}/vrf.skey'
 	run(cmd)
-	cmd = '''cardano-cli node key-gen-KES 
-		--verification-key-file kes.vkey 
-		--signing-key-file kes.skey'''
+	cmd = 'cardano-cli node key-gen-KES '
+	cmd += f'--verification-key-file {KEYS}/kes.vkey --signing-key-file {KEYS}/kes.skey'
 	run(cmd)
-	js = json.loads(open('../relay/testnet-shelley-genesis.json').read())
+
+	js = json.loads(open(f'{CONF}/testnet-shelley-genesis.json').read())
 	slots_per_kes = js['slotsPerKESPeriod']
-	print(slots_per_kes)
 	slot_no = _get_tip_slot_number()
-	print(slot_no)
 	kes_period = int(slot_no / slots_per_kes)
-	print(kes_period)
 
 	cmd = 'cardano-cli node issue-op-cert '
-	cmd += '--kes-verification-key-file kes.vkey '
-	cmd += '--cold-signing-key-file node.skey '
-	cmd += '--operational-certificate-issue-counter cold.counter '
-	cmd += f'--kes-period {kes_period} '
-	cmd += '--out-file node.cert'
+	cmd += f'--kes-verification-key-file {KEYS}/kes.vkey '
+	cmd += f'--cold-signing-key-file {KEYS}/node.skey '
+	cmd += f'--operational-certificate-issue-counter {KEYS}/node.counter '
+	cmd += f'--kes-period {kes_period} --out-file {KEYS}/node.cert'
 	run(cmd)
 
 def register_pool():
@@ -359,13 +342,29 @@ def register_pool():
 	print(o)
 	if e:
 		print(f'error: {e}')
-	# verify
-	# poolId=`cardano-cli stake-pool id --cold-verification-key-file node.vkey --output-format "hex"`
-	# cardano-cli query ledger-state {NETWORK} --mary-era | grep publicKey | grep <poolId>
+
+def is_pool_registered():
+	nodekey = f'{KEYS}/node.vkey'
+	if not os.path.exists(nodekey):
+		sys.stderr.write(f'{nodekey} not found\n')
+		return False
+
+	o,e = run(f'cardano-cli stake-pool id --cold-verification-key-file {KEYS}/node.vkey --output-format hex')
+	nodeid = o.strip()
+	print(f'node id: {nodeid}')
+
+	if nodeid:
+		o,e = run(f'cardano-cli query ledger-state {NETWORK} --mary-era') # | grep publicKey | grep {nodeid}')
+		for line in o.split('\n'):
+			if 'publicKey' in line and nodeid in line:
+				return True
+	return False
 
 
 if __name__ == '__main__':
 
+	print(is_pool_registered())
+	sys.exit()
 	# o,e = run('cardano-wallet address list 377b5fb2b90a5f937b1a72b309787fb1e26e28ba')
 	# addresses = json.loads(o)
 	# a_count = len(addresses)
