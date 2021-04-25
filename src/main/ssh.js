@@ -336,29 +336,6 @@ export async function updatePassphrase(wallet_id, currentpass, newpass) {
     return r;
 }
 
-export async function createWallet(name, password, use_words, words) {
-    // console.log('Creating wallet...');
-    // let prompt = [
-    //     { 
-    //         question: 'current passphrase:',
-    //         answer: currentpass,
-    //     },
-    //     { 
-    //         question: 'new passphrase:',
-    //         answer: newpass,
-    //     },
-    //     { 
-    //         question: 'second time:',
-    //         answer: newpass,
-    //     },
-    // ]
-
-    // let cmd = `cardano-wallet wallet update passphrase ${wallet_id}`;
-    // let r = await runRemote(cmd, prompt);
-    // return r;
-}
-
-
 export async function generateKeys(user, host) {
     // todo
     console.log('Generating new ssh keys...');
@@ -407,31 +384,23 @@ export async function download(src, dst) {
     return null
 }
 
-export async function setupSsh(host, user, password) {
+export async function setupSsh() {
     let homedir = settings.get('homedir');
+    let appPath = settings.get('appPath');
+    let sshkeygen = `${appPath}\\tool\\bin\\ssh-keygen.exe`;
     let seckey = homedir + '\\.ssh\\id_rsa';
     let pubkey = homedir + '\\.ssh\\id_rsa.pub';
-    
-    let r = await runRemote('mkdir -p .ssh; chmod 700 .ssh')
-    console.log(r);
-    r = await upload(pubkey, '.ssh/staker.pub');
-    console.log(r);
-    r = await runRemote('cat .ssh/staker.pub >> .ssh/authorized_keys; chmod 644 .ssh/authorized_keys')
-    console.log(r);
-    
-    // console.log('Setting up ssh keys...');
-    // let prompt = [
-    //     { 
-    //         question: 'password:',
-    //         answer: password,
-    //     }
-    // ]
-    // console.log(prompt);
+    let r = null;
 
-    // let appPath = settings.get('appPath');
-    // let cmd = `${appPath}\\tool\\bin\\setupssh.bat ${user} ${host} 22`;
-    // //let cmd = `${appPath}\\tool\\bin\\hello.bat 3 5SS`;
-    // let r = await runLocal(cmd, prompt);
+    if (!fs.existsSync(seckey)) {
+        r = await runLocal(`mkdir %USERPROFILE%\\.ssh 2>nul & ${sshkeygen} -q -N "" -f ${seckey}`);
+        if (r.rc !== 0)
+            console.log(r); 
+    }
+
+    let pkeystr = readFileSync(pubkey, 'utf8');
+    r = await runRemote(`mkdir -p .ssh; chmod 700 .ssh; echo "${pkeystr.trim()}" >> .ssh/authorized_keys; chmod 644 .ssh/authorized_keys`)
+    // console.log(r);
     return r;
 }
 
