@@ -5,6 +5,7 @@ const readFileSync = require('fs').readFileSync;
 const homedir = process.env.USERPROFILE || process.env.HOME; 
 const pkeypath = path.join(homedir, '.ssh', 'id_rsa');
 import {settings} from './settings'
+import {runLocal} from './command'
 
 class Connections {
     constructor() {
@@ -140,6 +141,7 @@ export class Ssh {
                 } else if (e.level === 'client-socket') {
                     msg = 'Connection refused: '+ e;
                 } else if (e.level === 'client-authentication') {
+                    console.log(e);
                     msg = 'Authentication failed';
                 }
                 console.log(msg);
@@ -405,9 +407,32 @@ export async function download(src, dst) {
     return null
 }
 
-export async function setupSsh(host, user) {
-    // todo
-    return new Promise(resolve => { setTimeout(resolve, 3000, {rc: -1,stderr:'not implemented'}) });
+export async function setupSsh(host, user, password) {
+    let homedir = settings.get('homedir');
+    let seckey = homedir + '\\.ssh\\id_rsa';
+    let pubkey = homedir + '\\.ssh\\id_rsa.pub';
+    
+    let r = await runRemote('mkdir -p .ssh; chmod 700 .ssh')
+    console.log(r);
+    r = await upload(pubkey, '.ssh/staker.pub');
+    console.log(r);
+    r = await runRemote('cat .ssh/staker.pub >> .ssh/authorized_keys; chmod 644 .ssh/authorized_keys')
+    console.log(r);
+    
+    // console.log('Setting up ssh keys...');
+    // let prompt = [
+    //     { 
+    //         question: 'password:',
+    //         answer: password,
+    //     }
+    // ]
+    // console.log(prompt);
+
+    // let appPath = settings.get('appPath');
+    // let cmd = `${appPath}\\tool\\bin\\setupssh.bat ${user} ${host} 22`;
+    // //let cmd = `${appPath}\\tool\\bin\\hello.bat 3 5SS`;
+    // let r = await runLocal(cmd, prompt);
+    return r;
 }
 
 export async function createAddress(name) {

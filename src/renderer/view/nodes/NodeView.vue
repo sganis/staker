@@ -1,6 +1,7 @@
 <template>
 <div>
     <h2>Node status</h2>
+        <div>Node role: {{ status.nodeRole }}</div>
         <div>Node service: {{ status.nodeService }}</div>
         <div>Wallet service: {{ status.walletService }} </div>
         <div>Node sync: {{ status.nodeSync }}</div>
@@ -79,6 +80,7 @@ export default {
         
         status() {
             return !this.node || !this.node.status || !this.node.status.node_status ? {
+                nodeRole: 'n/a',
                 nodeService: 'n/a',
                 walletService: 'n/a',
                 nodeSync: 'n/a',
@@ -87,6 +89,7 @@ export default {
                 memory: 0,
                 cpu: 0,
             } : {
+                nodeRole: this.node.status.node_role,
                 nodeService: this.node.status.node_status === 1 ? 'Running' 
                              : this.node.status.node_status === 2 ? 'Stopped'
                              : 'Not installed',

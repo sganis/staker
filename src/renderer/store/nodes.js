@@ -46,17 +46,15 @@ export default {
               // await sleep(1000);
             
               if (n.password) {
-                n.password = '';
                 // setup ssh
                 commit('setMessage', 'Setting up ssh keys...');          
-                r = await setupSsh(n.host, n.user);
+                r = await setupSsh(n.host, n.user, n.password);
+                n.password = '';
                 //await sleep(1000);
                 if (r.rc === 0) {
                     commit('setMessage','Ssh keys ok.');
                 } else {
-                    commit('setLoading',false);
-                    commit('setMessage','');
-                    commit('setError',"Ssh keys setup failed: "+ r.stderr);  
+                    r.stderr = "Ssh keys setup failed: "+ r.stderr;  
                     console.log(n.error);
                     //const sleep = ms => new Promise(res => setTimeout(res, ms));
                 }

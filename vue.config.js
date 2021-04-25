@@ -26,7 +26,7 @@ module.exports = {
                     buildResources: "src/resources",
                 },
                 extraFiles: [
-                        "tool/*.py", "tool/*.sh",                  
+                        "tool/bin/*","tool/config/*",                  
                 ]
             }           
         },        

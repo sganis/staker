@@ -2,25 +2,67 @@
 const spawn = require('child_process').spawn;
 
 
-export async function runLocal(cmd) {
+export async function runLocal(cmd, prompt) {
     return new Promise(resolve => {
-        //console.log('running local command promise:' + cmd); 
+        console.log('running local command promise: ' + cmd); 
         let stdout = '';
         let stderr = '';
-        const p = spawn(cmd, { shell: true, encoding:'utf8' });
-        p.on('error', function(error) {
-            //console.log('Oh noez, teh errurz: ' + error);
-            stderr = error;
+        let stderr_line = '';
+        let stdout_line = '';
+
+        let cmdlist = cmd.split();
+        const stream = spawn('cmd.exe', ['/c', ...cmdlist], {
+             encoding:'utf8', shell: true
         });
-        p.stdout.on('data', (data) => {
-            //console.log(`stdout: ${data}`);
-            stdout += data;           
+        stream.on('error', function(error) {
+            console.log('Oh noez, teh errurz: ' + error);
+
+            reject({
+                cmd: cmd,
+                stdout: '',
+                stderr: error,
+                rc : -1
+            });
         });
-        p.stderr.on('data', (data) => {
-            //console.error(`stderr: ${data}`);
-            stderr += data;           
+        stream.stdout.on('data', (data) => {
+            console.log(`stdout: ${data}`);
+            stdout += data;
+            stdout_line += data;                      
+            if (prompt && stdout_line.indexOf(':')) {
+                console.log('stdout_line data: '+stdout_line);                        
+                prompt.forEach(p => {
+                    if (stdout_line.includes(p.question)) {
+                        //console.log('question found, sending: '+p.answer);                        
+                        
+                        stream.stdin.write(p.answer + '\r\n');
+                        stdout_line = '';
+                        console.log([p.answer]);
+                    }
+                });
+                // console.log('stderr data2: '+data);                                                                 
+            }           
         });
-        p.on('close', (code) => {
+        stream.stderr.on('data', (data) => {
+            console.log(`stderr: ${data}`);
+            stderr += data;   
+            stderr_line += data;                      
+            if (prompt && stderr_line.indexOf(':')) {
+                console.log('stderr_line data: '+stderr_line);                        
+                prompt.forEach(p => {
+                    if (stderr_line.includes(p.question)) {
+                        //console.log('question found, sending: '+p.answer);                        
+                        
+                        stream.stdin.write(p.answer + '\r\n');
+                        stderr_line = '';
+                        console.log([p.answer]);
+                    }
+                });
+                // console.log('stderr data2: '+data);                                                                 
+            }        
+        });
+        stream.on('close', (code) => {
+            console.log(`runLocal close with code: ${code}`);
+            stream.stdin.end()
             resolve({ 
                 cmd: cmd,
                 stdout: stdout.trim(),
