@@ -76,7 +76,10 @@ def get_services_information():
     node = {}
     wallet = {}
     node['status'] = 0
+    node['cmd'] = ''
     wallet['status'] = 0
+    wallet['cmd'] = ''
+
     if os.path.exists(DIR + '/cardano-node'):
         node['status'] = 2 # stopped
 
@@ -112,6 +115,9 @@ services = get_services_information()
 node_service = services['node_service']
 wallet_service = services['wallet_service']
 
+node_role = ('PRODUCER' if 'operational-certificate' in node_service['cmd'] 
+              else 'RELAY' if node_service['cmd']
+              else 'n/a')
 time_sync = 0
 node_sync = 0
 node_status = node_service['status']
@@ -142,6 +148,7 @@ status = {
     'cpu': get_cpu(),
     'memory': get_memory(),
     'disk': get_disk(),
+    'node_role': node_role,      
     'node_status': node_status,      
     'node_sync': node_sync,    
     'node_service': node_service,
