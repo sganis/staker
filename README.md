@@ -19,7 +19,6 @@ TODO
 
 - Install tools and services
 - Configure as producer/relay
-- Start/stop/restart services
 - Generate pool keys
 - Register stake address
 - Register/update/deregister pool

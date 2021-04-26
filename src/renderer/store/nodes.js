@@ -93,42 +93,47 @@ export default {
         },
         async installNode({commit}, n) {
             commit('workStart', 'Installing cardano-node...');   
-            let r = await runRemote('mkdir -p cardano/bin cardano/config');
-            if (r.rc !== 0) {
-                commit('workEnd', r.stderr);
-                commit('updateNode', n);
-                return; 
-            }
-            let appPath = getSettings('appPath');
-            let src = path.join(appPath,'tool','bin');
-            let dst = 'cardano/bin'; 
-            console.log('uploading src:', src);
-            console.log('dst:', dst);
-            r = await upload(src, dst);
-            console.log(r);
-            if (r.rc !== 0) {
-                commit('workEnd', r.stderr);
-                commit('updateNode', n);
-                return; 
-            }
-            src = path.join(appPath,'tool','config');
-            dst = 'cardano/config'; 
-            console.log('uploading src:', src);
-            console.log('dst:', dst);
-            r = await upload(src, dst);
-            console.log(r);
-            if (r.rc !== 0) {
-                commit('workEnd', r.stderr);
-                commit('updateNode', n);
-                return; 
-            }            
+            let r = null;
+            
+            // upload files
+            // r = await runRemote('mkdir -p cardano/bin cardano/config');
+            // if (r.rc !== 0) {
+            //     commit('workEnd', r.stderr);
+            //     commit('updateNode', n);
+            //     return; 
+            // }
+
+            // let appPath = getSettings('appPath');
+            // let src = path.join(appPath,'tool','bin');
+            // let dst = 'cardano/bin'; 
+            // console.log('uploading src:', src);
+            // console.log('dst:', dst);
+            // r = await upload(src, dst);
+            // console.log(r);
+            // if (r.rc !== 0) {
+            //     commit('workEnd', r.stderr);
+            //     commit('updateNode', n);
+            //     return; 
+            // }
+            // src = path.join(appPath,'tool','config');
+            // dst = 'cardano/config'; 
+            // console.log('uploading src:', src);
+            // console.log('dst:', dst);
+            // r = await upload(src, dst);
+            // console.log(r);
+            // if (r.rc !== 0) {
+            //     commit('workEnd', r.stderr);
+            //     commit('updateNode', n);
+            //     return; 
+            // }            
             let prompt = [
                 {
                     question: 'password',
                     answer: 'san',
                 }
-            ]
-            r = await runRemote('sudo /bin/bash cardano/bin/install.sh', prompt);
+            ];
+            
+            r = await runRemote('sudo bash cardano/bin/install.sh', prompt, true);
             console.log(r);
             if (r.rc !== 0) {
                 commit('workEnd', r.stderr);
