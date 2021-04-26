@@ -87,8 +87,14 @@ systemctl enable cardano-wallet.service
 grep -qF '/bin/systemctl' /etc/sudoers 
 if [ $? -ne 0 ];then
 	chmod 640 /etc/sudoers
-	bash -c "echo \"$USER ALL = NOPASSWD: /bin/systemctl\" >> /etc/sudoers"
+	echo "$USER ALL = NOPASSWD: /bin/systemctl" >> /etc/sudoers
 	chmod 440 /etc/sudoers
+fi
+
+# add cardano/bin folder to PATH
+grep -qF '/cardano/bin' $HOME/.bashrc
+if [ $? -ne 0 ];then
+	echo "export PATH=$HOME/cardano/bin:$PATH" >> $HOME/.bashrc
 fi
 
 
