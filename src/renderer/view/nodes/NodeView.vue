@@ -73,7 +73,7 @@
       <span>
         <span v-if="node && !node.has_tools">Tools not installed.<br/></span>
         <button v-if="node && node.connected" :node="node" 
-          @click="setup(node)"
+          @click="installNode(node)"
           :disabled="getLoading"
           class="btn btn-success btn-width" >Install Tools</button>
           &nbsp;
@@ -138,15 +138,12 @@ export default {
     methods: {
         ...mapActions('nodes',['updateNodeStatus',
             'disconnectNode','deselectAllNodes','removeNode',
-            'setupNode','hasTools','serviceAction'
+            'installNode','hasTools','serviceAction'
         ]),
     
         disconnect(node) {
             this.deselectAllNodes();
             this.disconnectNode(node);
-        },
-        setup(node) {
-            this.setupNode(node);
         },
         remove(node) {
             this.deselectAllNodes();

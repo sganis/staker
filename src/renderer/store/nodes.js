@@ -38,28 +38,27 @@ export default {
                 commit('updateNode', n); 
             }
         },
-        async connectNode({commit, getters}, n) {
+        async connectNode({commit, dispatch, getters}, n) {
             commit('workStart', `Connecting to ${n.host}...`);
             let r = await connectHost(n.host, n.user, n.password);
             console.log(r);
             if (r.rc === 0) {
               // await sleep(1000);
-            
-              if (n.password) {
-                // setup ssh
-                commit('setMessage', 'Setting up ssh keys...');          
-                r = await setupSsh(n.host, n.user, n.password);
-                n.password = '';
-                //await sleep(1000);
-                if (r.rc === 0) {
-                    commit('setMessage','Ssh keys ok.');
-                } else {
-                    r.stderr = "Ssh keys setup failed: "+ r.stderr;  
-                    console.log(n.error);
-                    //const sleep = ms => new Promise(res => setTimeout(res, ms));
-                }
-                //await sleep(1000);
-                
+                await dispatch('updateNodeStatus', n);
+                if (n.password) {
+                    // setup ssh
+                    commit('setMessage', 'Setting up ssh keys...');          
+                    r = await setupSsh(n.host, n.user, n.password);
+                    n.password = '';
+                    //await sleep(1000);
+                    if (r.rc === 0) {
+                        commit('setMessage','Ssh keys ok.');
+                    } else {
+                        r.stderr = "Ssh keys setup failed: "+ r.stderr;  
+                        console.log(n.error);
+                        //const sleep = ms => new Promise(res => setTimeout(res, ms));
+                    }
+                    //await sleep(1000);                
               }              
               // persist list of nodes
               let arr = JSON.parse(JSON.stringify(getters.getNodes));
@@ -83,41 +82,62 @@ export default {
             //let r = await runRemote(n.host, 'hostname;uptime;free -m;df -H /');
             let r = await runRemote('python3 cardano/bin/status.py');
             if (r.rc === 0) {
-                n.status = JSON.parse(r.stdout);
+                if (r.stdout)
+                    n.status = JSON.parse(r.stdout);
             } else {
-                console.log('error getting node status: '+ r.stderr);
-                    
+                console.log('error getting node status: '+ r.stderr);                    
                 n.status = r.stderr;
             }
             // update state
             commit('updateNode', n); 
         },
-        async setupNode({commit}, n) {
-            commit('workStart', 'Uploading tools...');   
-            let r = await runRemote('mkdir -p cardano/bin');
+        async installNode({commit}, n) {
+            commit('workStart', 'Installing cardano-node...');   
+            let r = await runRemote('mkdir -p cardano/bin cardano/config');
             if (r.rc !== 0) {
                 commit('workEnd', r.stderr);
                 commit('updateNode', n);
                 return; 
             }
-            
             let appPath = getSettings('appPath');
             let src = path.join(appPath,'tool','bin');
             let dst = 'cardano/bin'; 
             console.log('uploading src:', src);
             console.log('dst:', dst);
-
             r = await upload(src, dst);
-            await sleep(1000);
-
-            if (r.rc === 0) {
-                n.status = r.stdout;
-                r.stdout = 'Tools installed.'
-            } else {
-                n.status = r.stderr;
+            console.log(r);
+            if (r.rc !== 0) {
+                commit('workEnd', r.stderr);
+                commit('updateNode', n);
+                return; 
             }
-            commit('updateNode', n);
+            src = path.join(appPath,'tool','config');
+            dst = 'cardano/config'; 
+            console.log('uploading src:', src);
+            console.log('dst:', dst);
+            r = await upload(src, dst);
+            console.log(r);
+            if (r.rc !== 0) {
+                commit('workEnd', r.stderr);
+                commit('updateNode', n);
+                return; 
+            }            
+            let prompt = [
+                {
+                    question: 'password',
+                    answer: 'san',
+                }
+            ]
+            r = await runRemote('sudo /bin/bash cardano/bin/install.sh', prompt);
+            console.log(r);
+            if (r.rc !== 0) {
+                commit('workEnd', r.stderr);
+                commit('updateNode', n);
+                return; 
+            }
+            r.stdout = 'cardano-node installed.'
             commit('workEnd', r);
+            commit('updateNode', n);
         },
         async serviceAction({commit, dispatch}, s) {
             commit('workStart', `Service: ${s.action} ${s.service}...`);
@@ -182,12 +202,12 @@ export default {
             if (r.stderr) {
                 state.message = '';
                 state.error = r.stderr; 
-                setTimeout(()=> state.error = '', 3000);
+                setTimeout(()=> state.error = '', 5000);
             }
             else if (r.stdout) {
                 state.error = '';
                 state.message = r.stdout; 
-                setTimeout(()=> state.message = '', 1000);
+                setTimeout(()=> state.message = '', 5000);
             } else {
                 state.error = '';
                 state.message = '';

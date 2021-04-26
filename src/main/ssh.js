@@ -187,10 +187,13 @@ export class Ssh {
             }
         }
         return new Promise(resolve => {
-            that.conn.exec(cmd, (err, stream) => {
+            that.conn.exec(cmd, 
+                //{pty: true}, 
+                (err, stream) => {
                 let stdout = '';
                 let stderr = '';
                 let stderr_line = '';
+                let stdout_line = '';
                 if (err || !stream) {
                     that.busy = false;
                     return resolve({
@@ -201,6 +204,7 @@ export class Ssh {
                     });
                 }
                 stream.on('close', (rc) => {
+                    //console.log('ssh stream closed')
                     that.busy = false;
                     return resolve({ 
                         cmd: cmd,
@@ -210,11 +214,26 @@ export class Ssh {
                     } );
                 });
                 stream.on('data', (data) => {
-                    stdout += data;           
+                    stdout += data;
+                    stdout_line += data; 
+                    //console.log('stdout_line data: '+stdout_line);                        
+                                         
+                    if (prompt && stdout_line.indexOf(':')) {
+                        console.log('stdout_line data: '+stdout_line);                        
+                        prompt.forEach(p => {
+                            if (stdout_line.includes(p.question)) {
+                                stream.write(p.answer + '\n');
+                                stdout_line = '';
+                                console.log(p.answer);
+                            }
+                        });
+                        // console.log('stderr data2: '+data);                                                                 
+                    }           
                 })
                 stream.stderr.on('data', (data) => {
                     stderr += data;  
                     stderr_line += data;                      
+                    //console.log('stderr_line data: '+stderr_line);                        
                     if (prompt && stderr_line.indexOf(':')) {
                         console.log('stderr_line data: '+stderr_line);                        
                         prompt.forEach(p => {
