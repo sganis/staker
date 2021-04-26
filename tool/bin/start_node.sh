@@ -1,7 +1,7 @@
 #!/bin/bash
 # start cardano node as producer or relay
 
-# DIR=$(dirname $(readlink -f $0))
+DIR=$(dirname $(readlink -f $0))
 # NETOWORK="--testnet-magic 1097911063"
 ROOT=$HOME/cardano
 CONF=$ROOT/config
@@ -16,7 +16,7 @@ if [[ "$CARDANO_NODE_ROLE" == "PRODUCER" ]]; then
 	echo $PRODUCER_KEYS
 fi
 
-cardano-node run \
+$DIR/cardano-node run \
  	--host-addr 0.0.0.0 \
 	--port 3001 \
 	--database-path $ROOT/db \
