@@ -112,7 +112,7 @@ def get_services_information():
 
     if node['status'] > 0:    
     
-        o,e = run(r"ps aux |grep ' cardano-'|grep -v grep")
+        o,e = run(r"ps aux |grep '/cardano-'|grep -v grep")
         for line in o.split('\n'):
             if 'cardano-node' in line:
                 f = line.split()
