@@ -126,17 +126,6 @@ export default {
                 console.log(r);
             } else {
                 await dispatch('updateNodeStatus', s.node);
-                // if (s.action === 'stop') {
-                //     if (s.service === 'cardano-node')
-                //         s.node.status.node_status = 2;
-                //     else if (s.service === 'cardano-wallet')
-                //         s.node.status.wallet_status = 2;
-                // } else if (s.action === 'start') {
-                //     if (s.service === 'cardano-node')
-                //     s.node.status.node_status = 1;
-                // else if (s.service === 'cardano-wallet')
-                //     s.node.status.wallet_status = 1;
-                // }
                 commit('updateNode', s.node);
                 r.stdout = 'Success!';
             }

@@ -23,7 +23,7 @@
     </button>
     <br/>
     <br/>
-    <button class="btn btn-primary btn-width" type="button"
+    <!-- <button class="btn btn-primary btn-width" type="button"
         v-if="node && node.status && node.status.wallet_status === 2"
         @click="serviceAction({action:'start',service:'cardano-wallet',node: node})"
         :disabled="getLoading">
@@ -34,7 +34,7 @@
         @click="serviceAction({action:'stop',service:'cardano-wallet', node: node})"
         :disabled="getLoading">
         Stop Wallet
-    </button>
+    </button> -->
     <h2>System</h2>
     <div class="row">
     <div class="col-3">CPU: </div>
@@ -126,7 +126,8 @@ export default {
                              : 'Not installed',
                 nodeSync: this.node.status.node_sync ? this.node.status.node_sync +'%' : 'n/a',  
                 timeSync: this.node.status.time_sync === 1 ? 'Ok'
-                             :`Out of sync:<br/>Network: ${this.node.status.network_time}<br/>Node: ${this.node.status.node_time}`,
+                            : this.node.status.time_sync === 2 ? `Out of sync:<br/>Network: ${this.node.status.network_time}<br/>Node: ${this.node.status.node_time}`
+                            : 'n/a',
                 disk: Math.round(this.node.status.disk[0]/this.node.status.disk[1] * 100),
                 memory: Math.round(this.node.status.memory[0]/this.node.status.memory[1] * 100),
                 cpu: Math.round(this.node.status.cpu * 100),
