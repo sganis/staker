@@ -20,7 +20,6 @@ TODO
 - Install tools and services
 - Configure as producer/relay
 - Start/stop/restart services
-- Setup ssh at login
-- Generate keys
+- Generate pool keys
 - Register stake address
 - Register/update/deregister pool
