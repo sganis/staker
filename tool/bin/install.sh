@@ -13,6 +13,7 @@ if [[  "$DIR" != "$ROOT/bin" ]]; then
 	mkdir -p $ROOT/config
 	cp -r $DIR/../config/* $ROOT/config
 fi
+chmod 755 $ROOT/bin/*
 
 $DIR/systemd.sh
 
