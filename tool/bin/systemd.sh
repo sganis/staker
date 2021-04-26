@@ -12,7 +12,7 @@ Restart=on-failure
 RestartSec=5
 User=$USER
 LimitNOFILE=1048576
-WorkingDirectory=$HOME/cardano/relay
+WorkingDirectory=$HOME/cardano
 ExecStart=/bin/bash -l -c \"exec $HOME/cardano/bin/start_node.sh\"
 ExecStop=/bin/bash -l -c \"exec kill -2 \$(ps -ef | grep [c]ardano-node | tr -s ' ' | cut -d ' ' -f2)\"
 KillSignal=SIGINT
@@ -43,7 +43,7 @@ Restart=on-failure
 RestartSec=5
 User=$USER
 LimitNOFILE=1048576
-WorkingDirectory=$HOME/cardano/relay
+WorkingDirectory=$HOME/cardano
 ExecStart=/bin/bash -l -c \"exec $HOME/cardano/bin/start_wallet.sh\"
 ExecStop=/bin/bash -l -c \"exec kill -2 \$(ps -ef | grep [c]ardano-wallet | tr -s ' ' | cut -d ' ' -f2)\"
 KillSignal=SIGINT
@@ -60,3 +60,11 @@ EOF"
 
 sudo systemctl daemon-reload
 sudo systemctl enable cardano-wallet.service
+
+# add no sudo passoword to restart services
+sudo grep -qF '/bin/systemctl' /etc/sudoers 
+if [ $? -ne 0 ];then
+	sudo chmod 640 /etc/sudoers
+	sudo bash -c "echo \"$USER ALL = NOPASSWD: /bin/systemctl\" >> /etc/sudoers"
+	sudo chmod 440 /etc/sudoers
+fi
