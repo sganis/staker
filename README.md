@@ -17,7 +17,6 @@ Stake pool manager app
 TODO
 ----
 
-- Install tools and services
 - Configure as producer/relay
 - Generate pool keys
 - Register stake address

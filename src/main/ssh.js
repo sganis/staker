@@ -254,7 +254,6 @@ export class Ssh {
     }
 
     async upload(src, dst) {
-        console.log(`uploading ${src} -> ${dst}`);
         let that = this;
         if (!that.connected) {
             let r = await that.connect();
@@ -265,7 +264,7 @@ export class Ssh {
         }
         let stats = fs.statSync(src);
         if (stats.isDirectory()) {
-            return this.uploadFolder(src,dst);
+            return await this.uploadFolder(src,dst);
         } else {
             return new Promise(resolve => {
                 that.sftp.fastPut(src, dst, (err) => {
@@ -273,25 +272,33 @@ export class Ssh {
                     if (err)
                         rc = -1
                     resolve({stderr: err, stdout: '', rc : rc });    
+                    console.log(`uploaded ${src} -> ${dst}`);
                 });
             })
         }
     }
     async uploadFolder(src, dst) {
         console.log(`uploading folder ${src} -> ${dst}`);
-        return new Promise(resolve => {
-            fs.readdirSync(src).forEach(async (file) => {
-                let srcfile = path.join(src, file);
-                let dstfile = dst+'/' +file;
-                console.log(srcfile, dstfile);
-                let r = await this.upload(srcfile, dstfile);
-                if (r.rc !==0) {
-                    console.log(r);
-                    reject({ rc: -1, stderr: r.stderr })
-                }                
-              });
-              resolve({ stdout: 'all files uploaded.', rc: 0 })
-        });        
+        let tasks = [];
+        fs.readdirSync(src).forEach(async (file) => {
+            let srcfile = path.join(src, file);
+            let dstfile = dst+'/' +file;
+            console.log(srcfile, dstfile);
+            tasks.push(this.upload(srcfile, dstfile));                          
+        });
+        let results = await Promise.all(tasks);
+        let stdout = 'All uploaded ok';
+        let stderr = '';
+        let rc = 0;
+        results.forEach(r => {
+            if (r.rc !==0) {
+                console.log(r);
+                stderr = r.stderr;
+                stdout = '';
+                rc = -1;                
+            }
+        })
+        return {stdout: stdout, stderr: stderr, rc: rc};
     }
 
     async download(src, dst) {

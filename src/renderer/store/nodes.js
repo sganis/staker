@@ -94,38 +94,43 @@ export default {
         async installNode({commit}, n) {
             commit('workStart', 'Installing cardano-node...');   
             let r = null;
-            
-            // upload files
-            // r = await runRemote('mkdir -p cardano/bin cardano/config');
-            // if (r.rc !== 0) {
-            //     commit('workEnd', r.stderr);
-            //     commit('updateNode', n);
-            //     return; 
-            // }
+            let src = null;
+            let dst = null;
 
-            // let appPath = getSettings('appPath');
-            // let src = path.join(appPath,'tool','bin');
-            // let dst = 'cardano/bin'; 
-            // console.log('uploading src:', src);
-            // console.log('dst:', dst);
-            // r = await upload(src, dst);
-            // console.log(r);
-            // if (r.rc !== 0) {
-            //     commit('workEnd', r.stderr);
-            //     commit('updateNode', n);
-            //     return; 
-            // }
-            // src = path.join(appPath,'tool','config');
-            // dst = 'cardano/config'; 
-            // console.log('uploading src:', src);
-            // console.log('dst:', dst);
-            // r = await upload(src, dst);
-            // console.log(r);
-            // if (r.rc !== 0) {
-            //     commit('workEnd', r.stderr);
-            //     commit('updateNode', n);
-            //     return; 
-            // }            
+            // upload files
+            r = await runRemote('mkdir -p cardano/bin cardano/config');
+            if (r.rc !== 0) {
+                commit('workEnd', r.stderr);
+                commit('updateNode', n);
+                return; 
+            }
+
+            let appPath = getSettings('appPath');
+            
+            src = path.join(appPath,'tool','bin');
+            dst = 'cardano/bin'; 
+            // src = appPath+'\\tool\\bin\\install.sh';
+            // dst = 'cardano/bin/install.sh'; 
+            console.log('src:', src);
+            console.log('dst:', dst);
+            r = await upload(src, dst);
+            console.log(r);
+            if (r.rc !== 0) {
+                commit('workEnd', r.stderr);
+                commit('updateNode', n);
+                return; 
+            }
+            src = path.join(appPath,'tool','config');
+            dst = 'cardano/config'; 
+            console.log('uploading src:', src);
+            console.log('dst:', dst);
+            r = await upload(src, dst);
+            console.log(r);
+            if (r.rc !== 0) {
+                commit('workEnd', r.stderr);
+                commit('updateNode', n);
+                return; 
+            }            
             let prompt = [
                 {
                     question: 'password',
