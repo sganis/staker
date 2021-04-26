@@ -1,25 +1,24 @@
 #!/bin/bash
 # install script
+# run as sudo
 
-if [ $# -lt 2 ];then
-	echo "usage: ./$0 <user> <homedir>"
-	exit 1
-fi
-
-USER=$1
-HOME=$2
+USER=$SUDO_USER
+HOME=$(eval echo ~$USER)
 DIR=$(dirname $(readlink -f $0))
 ROOT=$HOME/cardano
 
 mkdir -p $ROOT
 mkdir -p $ROOT/keys
 
-if [[ "$DIR" != "$ROOT/bin" ]]; then
+if [ "$DIR" != "$ROOT/bin" ]; then
+	echo "deploying..."
 	mkdir -p $ROOT/bin
-	cp -r $DIR/* $ROOT/bin
+	cp -rv $DIR/* $ROOT/bin
 	mkdir -p $ROOT/config
-	cp -r $DIR/../config/* $ROOT/config
+	cp -rv $DIR/../config/* $ROOT/config
 fi
+
+echo "fixing permissions..."
 chmod 755 $ROOT/bin/*
 
 
