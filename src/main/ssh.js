@@ -387,20 +387,31 @@ export async function download(src, dst) {
 export async function setupSsh() {
     let homedir = settings.get('homedir');
     let appPath = settings.get('appPath');
-    let sshkeygen = `${appPath}\\tool\\bin\\ssh-keygen.exe`;
     let seckey = homedir + '\\.ssh\\id_rsa';
     let pubkey = homedir + '\\.ssh\\id_rsa.pub';
+
     let r = null;
 
     if (!fs.existsSync(seckey)) {
-        r = await runLocal(`mkdir %USERPROFILE%\\.ssh 2>nul & ${sshkeygen} -q -N "" -f ${seckey}`);
-        if (r.rc !== 0)
+        let keygen = '';
+        let cmd = '';
+        if (process.platform === 'win32') {
+            keygen = `${appPath}\\tool\\bin\\ssh-keygen.exe`;
+            cmd = `mkdir ${homedir}\\.ssh 2>nul & ${keygen} -q -N "" -f ${seckey}`
+        } else {
+            keygen = 'ssh-keygen';
+            cmd = `mkdir ${homedir}/.ssh >/dev/null; ${keygen} -q -N "" -f ${seckey}`
+        }
+        r = await runLocal(cmd);
+        if (r.rc !== 0) {
             console.log(r); 
-    }
-
+            return r;
+        }            
+    } 
     let pkeystr = readFileSync(pubkey, 'utf8');
     r = await runRemote(`mkdir -p .ssh; chmod 700 .ssh; echo "${pkeystr.trim()}" >> .ssh/authorized_keys; chmod 644 .ssh/authorized_keys`)
-    // console.log(r);
+    if (r.rc !== 0) 
+        console.log(r); 
     return r;
 }
 

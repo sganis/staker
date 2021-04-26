@@ -35,6 +35,10 @@ const username = settings.get('username') || os.userInfo().username.toLocaleLowe
 const homedir = process.env.USERPROFILE || process.env.HOME; 
 const pkeypath = path.join(homedir, '.ssh', 'id_rsa');
 
+const isWin = process.platform === "win32";
+const isMac = process.platform === "darwin";
+const isLinux = process.platform === "linux";
+
 settings.set('username', username);
 settings.set('homedir', homedir);
 settings.set('pkeypath', pkeypath);

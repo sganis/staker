@@ -10,13 +10,9 @@ export async function runLocal(cmd, prompt) {
         let stderr_line = '';
         let stdout_line = '';
 
-        let cmdlist = cmd.split();
-        const stream = spawn('cmd.exe', ['/c', ...cmdlist], {
-             encoding:'utf8', shell: true
-        });
+        const stream = spawn(cmd, { shell: true });
         stream.on('error', function(error) {
-            console.log('Oh noez, teh errurz: ' + error);
-
+            console.log('runLocal error: ' + error);yarn
             reject({
                 cmd: cmd,
                 stdout: '',
