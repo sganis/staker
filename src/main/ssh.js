@@ -5,6 +5,7 @@ const readFileSync = require('fs').readFileSync;
 const homedir = process.env.USERPROFILE || process.env.HOME; 
 const pkeypath = path.join(homedir, '.ssh', 'id_rsa');
 import {settings} from './settings'
+import {runLocal} from './command'
 
 class Connections {
     constructor() {
@@ -140,6 +141,7 @@ export class Ssh {
                 } else if (e.level === 'client-socket') {
                     msg = 'Connection refused: '+ e;
                 } else if (e.level === 'client-authentication') {
+                    console.log(e);
                     msg = 'Authentication failed';
                 }
                 console.log(msg);
@@ -334,29 +336,6 @@ export async function updatePassphrase(wallet_id, currentpass, newpass) {
     return r;
 }
 
-export async function createWallet(name, password, use_words, words) {
-    // console.log('Creating wallet...');
-    // let prompt = [
-    //     { 
-    //         question: 'current passphrase:',
-    //         answer: currentpass,
-    //     },
-    //     { 
-    //         question: 'new passphrase:',
-    //         answer: newpass,
-    //     },
-    //     { 
-    //         question: 'second time:',
-    //         answer: newpass,
-    //     },
-    // ]
-
-    // let cmd = `cardano-wallet wallet update passphrase ${wallet_id}`;
-    // let r = await runRemote(cmd, prompt);
-    // return r;
-}
-
-
 export async function generateKeys(user, host) {
     // todo
     console.log('Generating new ssh keys...');
@@ -405,9 +384,35 @@ export async function download(src, dst) {
     return null
 }
 
-export async function setupSsh(host, user) {
-    // todo
-    return new Promise(resolve => { setTimeout(resolve, 3000, {rc: -1,stderr:'not implemented'}) });
+export async function setupSsh() {
+    let homedir = settings.get('homedir');
+    let appPath = settings.get('appPath');
+    let seckey = homedir + '\\.ssh\\id_rsa';
+    let pubkey = homedir + '\\.ssh\\id_rsa.pub';
+
+    let r = null;
+
+    if (!fs.existsSync(seckey)) {
+        let keygen = '';
+        let cmd = '';
+        if (process.platform === 'win32') {
+            keygen = `${appPath}\\tool\\bin\\ssh-keygen.exe`;
+            cmd = `mkdir ${homedir}\\.ssh 2>nul & ${keygen} -q -N "" -f ${seckey}`
+        } else {
+            keygen = 'ssh-keygen';
+            cmd = `mkdir ${homedir}/.ssh >/dev/null; ${keygen} -q -N "" -f ${seckey}`
+        }
+        r = await runLocal(cmd);
+        if (r.rc !== 0) {
+            console.log(r); 
+            return r;
+        }            
+    } 
+    let pkeystr = readFileSync(pubkey, 'utf8');
+    r = await runRemote(`mkdir -p .ssh; chmod 700 .ssh; echo "${pkeystr.trim()}" >> .ssh/authorized_keys; chmod 644 .ssh/authorized_keys`)
+    if (r.rc !== 0) 
+        console.log(r); 
+    return r;
 }
 
 export async function createAddress(name) {
