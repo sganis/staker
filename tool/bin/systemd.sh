@@ -55,7 +55,7 @@ TimeoutStopSec=5
 KillMode=mixed
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=multi-user.target cardano-node.service
 EOF"
 
 sudo systemctl daemon-reload

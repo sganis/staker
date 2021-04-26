@@ -66,6 +66,30 @@ def get_network_information():
 #         "epoch_number": 128
 #     }
 # }
+#
+# or, at initial sync:
+# {
+#     "node_era": "byron",
+#     "node_tip": {
+#         "height": {
+#             "quantity": 12918,
+#             "unit": "block"
+#         },
+#         "time": "2019-07-28T01:49:36Z",
+#         "epoch_number": 0,
+#         "absolute_slot_number": 13948,
+#         "slot_number": 13948
+#     },
+#     "sync_progress": {
+#         "status": "syncing",
+#         "progress": {
+#             "quantity": 0.5,
+#             "unit": "percent"
+#         }
+#     }
+# }
+
+
     cmd = 'timeout 1 cardano-wallet network information'
     o,e = run(cmd)
     if o:
@@ -128,15 +152,15 @@ node_time = ''
 if wallet_status == 1: # running
     netinfo = get_network_information()
     if netinfo:
-        network_time = netinfo['network_tip']['time']
         node_time = netinfo['node_tip']['time']
-        network_time_d = datetime.strptime(network_time, '%Y-%m-%dT%H:%M:%SZ')
         node_time_d    = datetime.strptime(node_time, '%Y-%m-%dT%H:%M:%SZ')
-        time_sync = 1
-        if (network_time_d - node_time_d).total_seconds() > 60:
-            # print(network_time)
-            # print(node_time)
-            time_sync = 2
+        
+        if 'network_tip' in netinfo:
+            network_time = netinfo['network_tip']['time']
+            network_time_d = datetime.strptime(network_time, '%Y-%m-%dT%H:%M:%SZ')
+            time_sync = 1
+            if (network_time_d - node_time_d).total_seconds() > 60:
+                time_sync = 2
         if netinfo['sync_progress']['status'] == 'ready' :
             node_sync = 100
         else:
