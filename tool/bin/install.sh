@@ -20,9 +20,12 @@ fi
 
 echo "fixing permissions..."
 chmod 755 $ROOT/bin/*
+chown -R $USER $ROOT
 
 
 # so $HOME is expanded to current user home
+echo "installing systemd services..."
+
 /bin/bash -c "cat << 'EOF' > /etc/systemd/system/cardano-node.service
 [Unit]
 Description=Cardano Node
