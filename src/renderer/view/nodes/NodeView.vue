@@ -7,6 +7,34 @@
         <div>Node sync: {{ status.nodeSync }}</div>
         <div>Time sync: <span v-html="status.timeSync"></span></div>
         <br/>
+    <h2>Services</h2>
+
+    <button class="btn btn-primary btn-width" type="button"
+        v-if="node && node.status && node.status.node_status === 2"
+        @click="serviceAction({action:'start',service:'cardano-node',node: node})"
+        :disabled="getLoading">
+        Start Node
+    </button>
+    <button class="btn btn-success btn-width" type="button"
+        v-if="node && node.status && node.status.node_status === 1"
+        @click="serviceAction({action:'stop',service:'cardano-node', node: node})"
+        :disabled="getLoading">
+        Stop Node
+    </button>
+    <br/>
+    <br/>
+    <button class="btn btn-primary btn-width" type="button"
+        v-if="node && node.status && node.status.wallet_status === 2"
+        @click="serviceAction({action:'start',service:'cardano-wallet',node: node})"
+        :disabled="getLoading">
+        Start Wallet
+    </button>
+    <button class="btn btn-success btn-width" type="button"
+        v-if="node && node.status && node.status.wallet_status === 1"
+        @click="serviceAction({action:'stop',service:'cardano-wallet', node: node})"
+        :disabled="getLoading">
+        Stop Wallet
+    </button>
     <h2>System</h2>
     <div class="row">
     <div class="col-3">CPU: </div>
@@ -109,7 +137,7 @@ export default {
     methods: {
         ...mapActions('nodes',['updateNodeStatus',
             'disconnectNode','deselectAllNodes','removeNode',
-            'setupNode','hasTools'
+            'setupNode','hasTools','serviceAction'
         ]),
     
         disconnect(node) {

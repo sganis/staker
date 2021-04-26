@@ -119,7 +119,29 @@ export default {
             commit('updateNode', n);
             commit('workEnd', r);
         },
-        
+        async serviceAction({commit, dispatch}, s) {
+            commit('workStart', `Service: ${s.action} ${s.service}...`);
+            let r = await runRemote(`sudo /bin/systemctl ${s.action} ${s.service}`);
+            if (r.rc !== 0) {
+                console.log(r);
+            } else {
+                await dispatch('updateNodeStatus', s.node);
+                // if (s.action === 'stop') {
+                //     if (s.service === 'cardano-node')
+                //         s.node.status.node_status = 2;
+                //     else if (s.service === 'cardano-wallet')
+                //         s.node.status.wallet_status = 2;
+                // } else if (s.action === 'start') {
+                //     if (s.service === 'cardano-node')
+                //     s.node.status.node_status = 1;
+                // else if (s.service === 'cardano-wallet')
+                //     s.node.status.wallet_status = 1;
+                // }
+                commit('updateNode', s.node);
+                r.stdout = 'Success!';
+            }
+            commit('workEnd',r);
+        },
 
     },
 
@@ -179,7 +201,7 @@ export default {
                 setTimeout(()=> state.message = '', 1000);
             } else {
                 state.error = '';
-                status.message = '';
+                state.message = '';
             }
         },
         
