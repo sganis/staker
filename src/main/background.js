@@ -31,7 +31,7 @@ const appPath = process.env.NODE_ENV !== 'production'
 // });
 
 const isDevelopment = process.env.NODE_ENV !== 'production'
-const username = settings.get('username') || os.userInfo().username.toLocaleLowerCase();
+const user = settings.get('user') || os.userInfo().username.toLocaleLowerCase();
 const homedir = process.env.USERPROFILE || process.env.HOME; 
 const pkeypath = path.join(homedir, '.ssh', 'id_rsa');
 
@@ -39,7 +39,7 @@ const isWin = process.platform === "win32";
 const isMac = process.platform === "darwin";
 const isLinux = process.platform === "linux";
 
-settings.set('username', username);
+settings.set('user', user);
 settings.set('homedir', homedir);
 settings.set('pkeypath', pkeypath);
 settings.set('isDevelopment', isDevelopment);

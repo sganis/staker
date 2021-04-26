@@ -164,7 +164,7 @@ export class Ssh {
         })
     }
 
-    async exec(cmd, prompt) {
+    async exec(cmd, prompt, pty) {
         if (this.busy) {
             let err = 'connection busy'
             console.log(err);
@@ -188,7 +188,7 @@ export class Ssh {
         }
         return new Promise(resolve => {
             that.conn.exec(cmd, 
-                //{pty: true}, 
+                {pty: pty === undefined ? false : pty}, 
                 (err, stream) => {
                 let stdout = '';
                 let stderr = '';
@@ -219,9 +219,11 @@ export class Ssh {
                     //console.log('stdout_line data: '+stdout_line);                        
                                          
                     if (prompt && stdout_line.indexOf(':')) {
-                        console.log('stdout_line data: '+stdout_line);                        
+                        console.log('stdout_line data: '+stdout_line);  
+                        console.log(JSON.stringify(prompt));                      
                         prompt.forEach(p => {
                             if (stdout_line.includes(p.question)) {
+                                console.log('sending answer');  
                                 stream.write(p.answer + '\n');
                                 stdout_line = '';
                                 console.log(p.answer);
@@ -272,21 +274,6 @@ export class Ssh {
                         rc = -1
                     resolve({stderr: err, stdout: '', rc : rc });    
                 });
-                // that.conn.sftp((err, sftp) => {
-                //     if (err) {
-                //         console.log('error sftp: '+ err);
-                //         resolve({stderr: err, stdout: '',rc : -100 }); 
-                //     } else {
-                //         let readStream = fs.createReadStream(src);
-                //         let writeStream = sftp.createWriteStream(dst);        
-                //         writeStream.on('close', () => {
-                //             console.log('sftp close');
-                //             resolve({stderr: '', stdout: '', rc : 0 });    
-                //         });        
-                //         // initiate transfer of file
-                //         readStream.pipe( writeStream );
-                //     }
-                // });
             })
         }
     }
@@ -300,10 +287,10 @@ export class Ssh {
                 let r = await this.upload(srcfile, dstfile);
                 if (r.rc !==0) {
                     console.log(r);
-                    resolve({ rc: -1, stderr: r.stderr })
-                }
+                    reject({ rc: -1, stderr: r.stderr })
+                }                
               });
-              resolve({ rc: 0 })
+              resolve({ stdout: 'all files uploaded.', rc: 0 })
         });        
     }
 
@@ -363,7 +350,7 @@ export async function generateKeys(user, host) {
 
 }
 
-export async function runRemote(cmd, prompt) {
+export async function runRemote(cmd, prompt, pty) {
     //console.log('running command:', cmd);
     let ssh = await connections.getCurrentConnection();
     if (!ssh) {
@@ -371,7 +358,7 @@ export async function runRemote(cmd, prompt) {
         console.log(cmd + ' falied: '+ stderr);
         return {stderr: stderr, stdout: '', rc : -1};
     }
-    return ssh.exec(cmd, prompt);
+    return ssh.exec(cmd, prompt, pty);
 }
 
 export async function connectHost(host, user, password) {
