@@ -65,7 +65,6 @@
         <!-- <pre>{{wallet.transactions.filter(x=>x.status=='pending')}}</pre> -->
         
         <table class="table">
-            
             <thead>
                 <tr>
                 <th scope="col">Time</th>
