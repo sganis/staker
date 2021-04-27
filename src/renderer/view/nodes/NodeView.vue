@@ -2,6 +2,21 @@
 <div>
     <h2>Node status</h2>
     
+    <table class="table">
+        <tbody>
+        <tr><td>Node role: </td><td class="col-11">{{ status.nodeRole }}</td></tr>
+        <tr><td>Node service: </td><td class="col-11">{{ status.nodeService }}</td></tr>
+        <tr><td class="text-nowrap">Wallet service: </td><td class="col-11">{{ status.walletService }}</td></tr>
+        <tr><td>Node sync: </td><td class="col-11">{{ status.nodeSync }}</td></tr>
+        <tr><td>Time sync: </td><td :class="{
+                'text-danger': status.timeSync.substring(0,3) ==='Out',
+                'text-success': status.timeSync.substring(0,2) === 'Ok'
+            }">{{ status.timeSync }}</td></tr>
+        </tbody>
+    </table>
+
+    <br/>
+    <h2>Load</h2>
     <div class="row">
         <div class="col-3">CPU: </div>
         <div class="col-3">Memory:</div>
@@ -31,13 +46,6 @@
         </div>
     </div>
     <br/>
-    <div>Node role: {{ status.nodeRole }}</div>
-    <div>Node service: {{ status.nodeService }}</div>
-    <div>Wallet service: {{ status.walletService }} </div>
-    <div>Node sync: {{ status.nodeSync }}</div>
-    <div>Time sync: <span v-html="status.timeSync"></span></div>
-
-    <br/>
     
     <br/>
     <h2>Actions</h2>
@@ -59,7 +67,7 @@
          &nbsp;
         <span v-if="node && !node.has_tools">Tools not installed.<br/></span>
         <button v-if="node && node.connected" :node="node" 
-          @click="installNode(node)"
+          @click="_installNode(node)"
           :disabled="getLoading"
           class="btn btn-success btn-width" >Install Tools</button>
           &nbsp;
@@ -75,6 +83,20 @@
           &nbsp;
       </span>
     </div>
+
+    <div class="row" >
+        <form @submit.prevent="_installNode()" v-if="need_sudo" class="row g-3">
+            <div class="col-auto">
+            <input id="sudopass" v-model="sudo" placeholder="sudo password" 
+                type="password"  class="form-control" required :disabled="getLoading" />  
+            </div>
+            <div class="col-auto top10">
+            <input value="Ok" type="submit" class="btn btn-primary btn-width"
+                :disabled="getLoading"/>  
+            </div>        
+        </form>
+    </div>
+
 
     <br/>
     <h2>Topology</h2>
@@ -123,11 +145,12 @@ export default {
     props: ['node'],
     data () {
         return {
+            sudo: '',
+            need_sudo: false,
        }
     },
     computed: {
         ...mapGetters('nodes',['getNodeStatus','getLoading']),
-        
         status() {
             return !this.node || !this.node.status || !this.node.status.node_status ? {
                 nodeRole: 'n/a',
@@ -148,7 +171,7 @@ export default {
                              : 'Not installed',
                 nodeSync: this.node.status.node_sync ? this.node.status.node_sync +'%' : 'n/a',  
                 timeSync: this.node.status.time_sync === 1 ? 'Ok'
-                            : this.node.status.time_sync === 2 ? `Out of sync:<br/>Network: ${this.node.status.network_time}<br/>Node: ${this.node.status.node_time}`
+                            : this.node.status.time_sync === 2 ? `Out of sync: Network: ${this.node.status.network_time} Node: ${this.node.status.node_time}`
                             : 'n/a',
                 disk: Math.round(this.node.status.disk[0]/this.node.status.disk[1] * 100),
                 memory: Math.round(this.node.status.memory[0]/this.node.status.memory[1] * 100),
@@ -170,6 +193,15 @@ export default {
         remove(node) {
             this.deselectAllNodes();
             this.removeNode(node);
+        },
+        async _installNode() {
+            if (!this.sudo)
+                this.need_sudo = true;
+            else {
+                let r = await this.installNode({node: this.node, sudo: this.sudo});
+                if (r.rc === 0)
+                    this.need_sudo = false;
+            }
         }
     },
 }
