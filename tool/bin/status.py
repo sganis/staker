@@ -96,6 +96,19 @@ def get_network_information():
         return json.loads(o.strip())
     return {}
 
+def get_logs(top=5):
+    o,e = run(f'tail -{top} {DIR}/../logs/cardano-node.log')
+    j = '[%s]' % ','.join(reversed(o.split('\n')))
+    # print(j)
+    js = {}
+    if not e: 
+        try:
+            js = json.loads(j)
+        except:
+            pass
+    return js 
+
+
 def get_services_information():
     node = {}
     wallet = {}
@@ -112,7 +125,7 @@ def get_services_information():
 
     if node['status'] > 0:    
     
-        o,e = run(r"ps aux |grep '/cardano-'|grep -v grep")
+        o,e = run(r"ps aux |grep ' cardano-'|grep -v grep")
         for line in o.split('\n'):
             if 'cardano-node' in line:
                 f = line.split()
@@ -181,6 +194,7 @@ status = {
     'time_sync': time_sync,
     'network_time': network_time,
     'node_time': node_time,
+    'logs': get_logs(),
 
 }
  
