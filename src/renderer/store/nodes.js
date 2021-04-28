@@ -91,7 +91,7 @@ export default {
             // update state
             commit('updateNode', n); 
         },
-        async installNode({commit}, n) {
+        async installNode({commit}, {node, sudo}) {
             commit('workStart', 'Installing cardano-node...');   
             let r = null;
             let src = null;
@@ -101,8 +101,8 @@ export default {
             r = await runRemote('mkdir -p cardano/bin cardano/config');
             if (r.rc !== 0) {
                 commit('workEnd', r.stderr);
-                commit('updateNode', n);
-                return; 
+                commit('updateNode', node);
+                return r; 
             }
 
             let appPath = getSettings('appPath');
@@ -117,8 +117,8 @@ export default {
             console.log(r);
             if (r.rc !== 0) {
                 commit('workEnd', r.stderr);
-                commit('updateNode', n);
-                return; 
+                commit('updateNode', node);
+                return r; 
             }
             src = path.join(appPath,'tool','config');
             dst = 'cardano/config'; 
@@ -128,26 +128,28 @@ export default {
             console.log(r);
             if (r.rc !== 0) {
                 commit('workEnd', r.stderr);
-                commit('updateNode', n);
-                return; 
+                commit('updateNode', node);
+                return r; 
             }            
             let prompt = [
                 {
                     question: 'password',
-                    answer: 'san',
+                    answer: sudo,
                 }
             ];
             
-            r = await runRemote('sudo bash cardano/bin/install.sh', prompt, true);
+            r = await runRemote('sudo bash cardano/bin/install.sh',
+                    prompt, true);
             console.log(r);
             if (r.rc !== 0) {
                 commit('workEnd', r.stderr);
-                commit('updateNode', n);
-                return; 
+                commit('updateNode', node);
+                return r; 
             }
             r.stdout = 'cardano-node installed.'
             commit('workEnd', r);
-            commit('updateNode', n);
+            commit('updateNode', node);
+            return r;
         },
         async serviceAction({commit, dispatch}, s) {
             commit('workStart', `Service: ${s.action} ${s.service}...`);

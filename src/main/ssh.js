@@ -219,16 +219,21 @@ export class Ssh {
                     //console.log('stdout_line data: '+stdout_line);                        
                                          
                     if (prompt && stdout_line.indexOf(':')) {
+                        if (stdout_line.includes('try again')) {
+                            stderr = "Password incorrect";
+                            stream.write('\u0003'); // control-c
+                        } else {
                         console.log('stdout_line data: '+stdout_line);  
-                        console.log(JSON.stringify(prompt));                      
-                        prompt.forEach(p => {
-                            if (stdout_line.includes(p.question)) {
-                                console.log('sending answer');  
-                                stream.write(p.answer + '\n');
-                                stdout_line = '';
-                                console.log(p.answer);
-                            }
-                        });
+                            console.log(JSON.stringify(prompt));                      
+                            prompt.forEach(p => {
+                                if (stdout_line.includes(p.question)) {
+                                    console.log('sending answer');  
+                                    stream.write(p.answer + '\n');
+                                    stdout_line = '';
+                                    console.log(p.answer);
+                                }
+                            });
+                        }
                         // console.log('stderr data2: '+data);                                                                 
                     }           
                 })
@@ -237,17 +242,20 @@ export class Ssh {
                     stderr_line += data;                      
                     //console.log('stderr_line data: '+stderr_line);                        
                     if (prompt && stderr_line.indexOf(':')) {
-                        console.log('stderr_line data: '+stderr_line);                        
-                        prompt.forEach(p => {
-                            if (stderr_line.includes(p.question)) {
-                                stream.write(p.answer + '\n');
-                                stderr_line = '';
-                                console.log([p.answer]);
-                            }
-                        });
-                        // console.log('stderr data2: '+data);                                                                 
+                        if (stdout_line.includes('try again')) {
+                            stderr = "Password incorrect";
+                            stream.write('\u0003'); // control-c
+                        } else {
+                            console.log('stderr_line data: '+stderr_line);                        
+                            prompt.forEach(p => {
+                                if (stderr_line.includes(p.question)) {
+                                    stream.write(p.answer + '\n');
+                                    stderr_line = '';
+                                    console.log([p.answer]);
+                                }
+                            });
+                        }
                     }
-
                 });
             });                
         })

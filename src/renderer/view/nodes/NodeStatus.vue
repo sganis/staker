@@ -61,7 +61,7 @@ export default {
         pollData() {
             this.polling = setInterval(() => {
                 this.updateNodeStatus(this.node);      
-            }, 5000);
+            }, 2000);
         },
     },
     beforeUnmount () {
