@@ -163,17 +163,40 @@ export default {
             }
             commit('workEnd',r);
         },
-        async changeRole({commit, dispatch}, n) {
+        async changeRole({commit}, n) {
             commit('workStart', 'Changing role...');
             let r = await runRemote(`cardano/bin/change_role.sh ${n.status.node_role}`);
             if (r.rc !== 0) {
                 console.log(r);
             } else {
-                await dispatch('updateNodeStatus', n);
+                commit('updateNode', n);
                 r.stdout = 'Success! New role will be available after node service restart.';
             }
             console.log(r);
             commit('workEnd',r);
+        },
+        async newKey({commit, dispatch}, {node, type}) {
+            commit('workStart', `Generateing new ${type} keys...`);
+            
+            let r = await runRemote(`python3 cardano/bin/cardano.py generate-node-keys --type=${type}`);
+            if (r.rc !== 0) {
+                console.log(r);
+            } else {
+                await dispatch('loadNodeKeys', node);
+                r.stdout = 'Success!';
+            }
+            commit('workEnd',r);
+        },
+        async loadNodeKeys({commit}, n) {
+            //commit('workStart', 'Changing role...');
+            let r = await runRemote('python3 cardano/bin/cardano.py get-node-keys');
+            if (r.rc !== 0) {
+                console.log(r);
+            } else {
+                n.keys = JSON.parse(r.stdout);
+                commit('updateNode', n);
+                //r.stdout = 'Success! New role will be available after node service restart.';
+            }            
         }
     },
 

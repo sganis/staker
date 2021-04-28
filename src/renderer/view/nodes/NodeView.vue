@@ -107,35 +107,65 @@
     <br/>
     <h2>Keys</h2>
     <p v-if="status.nodeRole==='RELAY'">RELAY node does not use keys</p>
-    <p v-if="status.nodeRole!=='RELAY'">TODO</p>
-    
+    <table class="table" v-if="status.nodeRole!=='RELAY'">
+        <thead>
+            <tr>
+            <th scope="col">Key</th>
+            <th scope="col">Created</th>
+            </tr>
+        </thead>
+        <tbody >
+            <tr v-for="(k,index) in node.keys || []" :key="index" class="fs-7">
+            <td>{{k.name}}</td>
+            <td>{{k.mtime}}</td>
+            </tr>
+        </tbody>
+    </table>
+    <br/>
+    <div class="row">
+      <span>
+        <span v-if="node && !node.has_tools">Tools not installed.<br/></span>
+        <button v-if="node" @click="newKey({node: node, type: 'node'})" :disabled="getLoading"
+          class="btn btn-primary" >New NODE</button>
+          &nbsp;
+        <button v-if="node" @click="newKey({node: node, type: 'vrf'})" :disabled="getLoading"
+          class="btn btn-primary" >New VRF</button>
+          &nbsp;
+        <button v-if="node" @click="newKey({node: node, type: 'kes'})" :disabled="getLoading"
+          class="btn btn-primary" >New KES</button>
+          &nbsp;
+        <button v-if="node" @click="newKey({node: node, type: 'cert'})" :disabled="getLoading"
+          class="btn btn-primary" >New CERT</button>
+          &nbsp;
+      </span>
+    </div>
+
     <br/>
     <h2>Settings</h2>
     <p>TODO</p>
     
     <br/>
     <h2>Logs</h2>
-        <!-- <pre>{{node.status.logs && node.status.logs[0]}}</pre> -->
-        
-        <table class="table">
-            <thead>
-                <tr>
-                <th scope="col">Time</th>
-                <th scope="col">Level</th>
-                <th scope="col">Kind</th>
-                <th scope="col">Data</th>
-                </tr>
-            </thead>
-            <tbody >
-                <tr v-for="(t,index) in node.status.logs || []" :key="index"
-                 class="fs-7">
-                <td>{{t.at}}</td>
-                <td>{{t.sev}}</td>
-                <td class="text-break kind-width">{{t.data && t.data.kind}}</td>
-                <td class="text-break">{{t.data}}</td>
-                </tr>
-            </tbody>
-        </table>
+    <!-- <pre>{{node.status.logs && node.status.logs[0]}}</pre> -->
+    <table class="table">
+        <thead>
+            <tr>
+            <th scope="col">Time</th>
+            <th scope="col">Level</th>
+            <th scope="col">Kind</th>
+            <th scope="col">Data</th>
+            </tr>
+        </thead>
+        <tbody >
+            <tr v-for="(t,index) in node.status.logs || []" :key="index"
+                class="fs-7">
+            <td>{{t.at}}</td>
+            <td>{{t.sev}}</td>
+            <td class="text-break kind-width">{{t.data && t.data.kind}}</td>
+            <td class="text-break">{{t.data}}</td>
+            </tr>
+        </tbody>
+    </table>
 </div>
 </template>
 
@@ -182,10 +212,14 @@ export default {
             }
         },
     },
+    mounted() {
+        this.loadNodeKeys(this.node);
+    },
     methods: {
         ...mapActions('nodes',['updateNodeStatus',
             'disconnectNode','deselectAllNodes','removeNode',
             'installNode','hasTools','serviceAction','changeRole',
+            'loadNodeKeys','newKey',
         ]),
     
         disconnect(node) {
@@ -204,7 +238,7 @@ export default {
                 if (r.rc === 0)
                     this.need_sudo = false;
             }
-        }
+        },
     },
 }
 </script>
