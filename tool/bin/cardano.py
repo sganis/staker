@@ -15,7 +15,7 @@ DIR = os.path.dirname(os.path.abspath(sys.argv[0]))
 ROOT=f'{home}/cardano'
 CONF=f'{ROOT}/config'
 KEYS = f'{ROOT}/keys'
-KEYFILES = ['kes.skey','kes.vkey','vrf.skey','vrf.vkey','node.skey','node.vkey','node.counter','node.cert']
+KEYFILES = ['node.skey','node.vkey','node.counter','kes.skey','kes.vkey','vrf.skey','vrf.vkey','node.cert']
 NETWORK='--testnet-magic 1097911063'
 # os.environ["CARDANO_NODE_SOCKET_PATH"] = path_to_socket
 
@@ -263,12 +263,18 @@ def _backup_keys():
 	return True
 
 def get_node_keys():
-	keys = {}
-	for f in os.listdir(f'{KEYS}'):
-		if f not in KEYFILES: continue
+	keys = []
+	files = os.listdir(f'{KEYS}')
+	for i,f in enumerate(KEYFILES):
+		if f not in files: continue
 		s = os.stat(f'{KEYS}/{f}')
-		keys[f] = datetime.utcfromtimestamp(s.st_mtime).strftime('%Y-%m-%d %H:%M:%S')
+		key = {}
+		key['name'] = f
+		key['mtime'] = datetime.fromtimestamp(s.st_mtime).strftime('%Y-%m-%d %H:%M:%S')
+		key['order'] = i
+		keys.append(key)
 	print(json.dumps(keys))
+	return True
 
 def generate_node_keys(type):
 	if type == 'node':
