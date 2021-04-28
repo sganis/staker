@@ -152,8 +152,8 @@ services = get_services_information()
 node_service = services['node_service']
 wallet_service = services['wallet_service']
 
-node_role = ('PRODUCER' if 'operational-certificate' in node_service['cmd'] 
-              else 'RELAY' if node_service['cmd']
+node_role = ('producer' if 'operational-certificate' in node_service['cmd'] 
+              else 'relay' if node_service['cmd']
               else 'n/a')
 time_sync = 0
 node_sync = 0

@@ -9,9 +9,20 @@ KEYS=$ROOT/keys
 PRODUCER_KEYS=""
 
 # load environment variables
-. $CONF/env.sh
+. $CONF/role.sh
+. $CONF/network.sh
 
-if [[ "$CARDANO_NODE_ROLE" == "PRODUCER" ]]; then
+ROLE=$CARDANO_NODE_ROLE
+NETWORK=$CARDANO_NODE_NETWORK
+TOPOLOGY=$CONF/$NETWORK-topology-$ROLE.json
+CONFIG=$CONF/$NETWORK-config.json
+
+if [[ "$CARDANO_NODE_ROLE" == "producer" ]]; then
+	if [ ! -e $KEYS/node.cert ]; then
+		>&2 echo "Node keys not available"
+		exit -1 
+	fi
+
 	PRODUCER_KEYS="--shelley-kes-key $KEYS/kes.skey --shelley-vrf-key $KEYS/vrf.skey --shelley-operational-certificate $KEYS/node.cert"
 	echo $PRODUCER_KEYS
 fi
@@ -21,8 +32,8 @@ $DIR/cardano-node run \
 	--port 3001 \
 	--database-path $ROOT/db \
 	--socket-path $ROOT/node.socket \
-	--topology $CONF/testnet-topology.json \
- 	--config $CONF/testnet-config.json $PRODUCER_KEYS
+	--topology $TOPOLOGY \
+ 	--config $CONFIG $PRODUCER_KEYS
 
 
 
