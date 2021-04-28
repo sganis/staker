@@ -3,6 +3,8 @@
 
 DIR=$(dirname $(readlink -f $0))
 ROOT=$HOME/cardano
+CONF=$ROOT/config
+
 . $CONF/network.sh
 
 if [[ "$CARDANO_NODE_NETWORK" == "testnet" ]];then
