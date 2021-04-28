@@ -17,7 +17,19 @@ Stake pool manager app
 TODO
 ----
 
-- Configure as producer/relay
-- Generate pool keys
-- Register stake address
-- Register/update/deregister pool
+- Nodes connect/list/remove         Done
+- Wallets create/delete             Done
+- Node/wallet status                Done
+- Wallet send/receive               Done
+- Wallet list transactions          Done
+- Generate payment/stake keys from words  Done
+- Sudo operations                   Done
+- Install/start/stop services       Done
+- Setup ssh keys                    Done
+- Show logs                         Done
+- Configure as producer/relay       
+- Confiture topology                
+- Generate/update pool keys         
+- Register stake address            
+- Register/update/deregister pool   
+- Change network testnet/mainnet    

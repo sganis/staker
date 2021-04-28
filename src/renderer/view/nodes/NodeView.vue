@@ -4,67 +4,69 @@
     
     <table class="table">
         <tbody>
-        <tr><td>Node role: </td><td class="col-11">{{ status.nodeRole }}</td></tr>
-        <tr><td>Node service: </td><td class="col-11">{{ status.nodeService }}</td></tr>
-        <tr><td class="text-nowrap">Wallet service: </td><td class="col-11">{{ status.walletService }}</td></tr>
-        <tr><td>Node sync: </td><td class="col-11">{{ status.nodeSync }}</td></tr>
-        <tr><td>Time sync: </td><td :class="{
+        <tr>
+            <td>Node role: </td>
+            <td class="col-6">{{ status.nodeRole }}</td>
+            <td class="col-4 text-nowrap">
+                <button class="btn btn-primary btn-sm btn-width" @click="changeRole(node)">
+                    Change Role</button>
+            </td>
+        </tr>
+        <tr><td>Node service: </td>
+            <td class="col-11">{{ status.nodeService }}</td>
+            <td class="col-4 text-nowrap">
+            <button class="btn btn-primary btn-sm btn-width" type="button"
+                v-if="node && node.status && node.status.node_status === 2"
+                @click="serviceAction({action:'start',service:'cardano-node',node: node})"
+                :disabled="getLoading">
+                Start Node
+            </button>
+            <button class="btn btn-success btn-sm btn-width" type="button"
+                v-if="node && node.status && node.status.node_status === 1"
+                @click="serviceAction({action:'stop',service:'cardano-node', node: node})"
+                :disabled="getLoading">
+                Stop Node
+            </button>
+            </td></tr>
+        <tr><td class="text-nowrap">Wallet service: </td>
+            <td colspan="2">{{ status.walletService }}</td></tr>
+        <tr><td>Node sync: </td>
+            <td colspan="2">{{ status.nodeSync }}</td></tr>
+        <tr><td>Time sync: </td>
+            <td colspan="2" :class="{
                 'text-danger': status.timeSync.substring(0,3) ==='Out',
                 'text-success': status.timeSync.substring(0,2) === 'Ok'
             }">{{ status.timeSync }}</td></tr>
-        </tbody>
-    </table>
-
-    <br/>
-    <h2>Load</h2>
-    <div class="row">
-        <div class="col-3">CPU: </div>
-        <div class="col-3">Memory:</div>
-        <div class="col-3">Disk: </div>
-        </div>
-        <div class="row">    
-        <div class="col-3">
-            <div class="progress">
+        <tr><td>CPU Load: </td>
+            <td>
+            <div class="progress btn-width">
             <div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100"
             :class="{'bg-success' : status.cpu <= 90, 'bg-danger' : status.cpu > 90}"
             :style="{width: status.cpu + '%'}">{{status.cpu}}%</div>
-            </div>
-        </div>
-        <div class="col-3">
-            <div class="progress">
-            <div class="progress-bar" role="progressbar" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"
-            :class="{'bg-success' : status.memory <= 90, 'bg-danger' : status.memory > 90}"
-            :style="{width: status.memory + '%'}">{{status.memory}}%</div>
-            </div>
-        </div>
-        <div class="col-3">
-            <div class="progress">
-            <div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100"
-            :class="{'bg-success' : status.disk <= 75, 'bg-warning' :  status.disk > 75 && status.disk <= 100, 'bg-danger' : status.disk > 100}"
-            :style="{width: status.disk + '%'}">{{status.disk}}%</div>
-            </div>
-        </div>
-    </div>
-    <br/>
-    
+            </div></td>
+            <td></td></tr>
+        <tr><td>Memory: </td>
+            <td><div class="progress btn-width">
+                <div class="progress-bar" role="progressbar" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"
+                :class="{'bg-success' : status.memory <= 90, 'bg-danger' : status.memory > 90}"
+                :style="{width: status.memory + '%'}">{{status.memory}}%</div>
+                </div></td>
+             <td></td></tr>
+        <tr><td>Disk: </td>
+            <td><div class="progress btn-width">
+                <div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100"
+                :class="{'bg-success' : status.disk <= 75, 'bg-warning' :  status.disk > 75 && status.disk <= 100, 'bg-danger' : status.disk > 100}"
+                :style="{width: status.disk + '%'}">{{status.disk}}%</div>
+                </div></td>
+            <td></td></tr>
+        </tbody>
+    </table>
+
     <br/>
     <h2>Actions</h2>
     
     <div class="row">
       <span>
-        <button class="btn btn-primary btn-width" type="button"
-            v-if="node && node.status && node.status.node_status === 2"
-            @click="serviceAction({action:'start',service:'cardano-node',node: node})"
-            :disabled="getLoading">
-            Start Node
-        </button>
-        <button class="btn btn-success btn-width" type="button"
-            v-if="node && node.status && node.status.node_status === 1"
-            @click="serviceAction({action:'stop',service:'cardano-node', node: node})"
-            :disabled="getLoading">
-            Stop Node
-        </button>
-         &nbsp;
         <span v-if="node && !node.has_tools">Tools not installed.<br/></span>
         <button v-if="node && node.connected" :node="node" 
           @click="_installNode(node)"
@@ -162,7 +164,7 @@ export default {
                 memory: 0,
                 cpu: 0,
             } : {
-                nodeRole: this.node.status.node_role,
+                nodeRole: this.node.status.node_role.toUpperCase(),
                 nodeService: this.node.status.node_status === 1 ? 'Running' 
                              : this.node.status.node_status === 2 ? 'Stopped'
                              : 'Not installed',
@@ -183,7 +185,7 @@ export default {
     methods: {
         ...mapActions('nodes',['updateNodeStatus',
             'disconnectNode','deselectAllNodes','removeNode',
-            'installNode','hasTools','serviceAction'
+            'installNode','hasTools','serviceAction','changeRole',
         ]),
     
         disconnect(node) {

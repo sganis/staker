@@ -163,7 +163,18 @@ export default {
             }
             commit('workEnd',r);
         },
-
+        async changeRole({commit, dispatch}, n) {
+            commit('workStart', 'Changing role...');
+            let r = await runRemote(`cardano/bin/change_role.sh ${n.status.node_role}`);
+            if (r.rc !== 0) {
+                console.log(r);
+            } else {
+                await dispatch('updateNodeStatus', n);
+                r.stdout = 'Success! New role will be available after node service restart.';
+            }
+            console.log(r);
+            commit('workEnd',r);
+        }
     },
 
     mutations: {
@@ -200,7 +211,6 @@ export default {
                 state.nodes.splice(i,1)
             }
         },       
-        
         setLoading(state, b) { state.loading = b; },
         setError(state, e) {state.error = e; setTimeout(()=> state.error = '', 3000)},
         setMessage(state, m) {state.message = m},
