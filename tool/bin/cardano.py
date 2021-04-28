@@ -6,6 +6,8 @@ import os
 import subprocess
 import json
 import argparse
+from shutil import copyfile
+from datetime import datetime
 
 home = os.environ['HOME']
 #path_to_socket = f"{home}/ada/relay/db/node.socket"
@@ -13,7 +15,7 @@ DIR = os.path.dirname(os.path.abspath(sys.argv[0]))
 ROOT=f'{home}/cardano'
 CONF=f'{ROOT}/config'
 KEYS = f'{ROOT}/keys'
-
+KEYFILES = ['kes.skey','kes.vkey','vrf.skey','vrf.vkey','node.skey','node.vkey','node.counter','node.cert']
 NETWORK='--testnet-magic 1097911063'
 # os.environ["CARDANO_NODE_SOCKET_PATH"] = path_to_socket
 
@@ -87,6 +89,10 @@ def _get_args():
 	s.add_argument("--list", action='store_true', help="list all addresses")
 	s = subparsers.add_parser("balance", help='query balance of address')
 	s.add_argument("--address", required=True, help="address to query balance")
+	s = subparsers.add_parser("get-node-keys", help='get node keys')
+	s = subparsers.add_parser("generate-node-keys", help='generate node keys')
+	s.add_argument("--type", required=True, help="generate node, vrf, kes, or cert keys")
+
 	
 	# Parse
 	a = parser.parse_args()
@@ -96,10 +102,9 @@ def _get_args():
 	
 	return a
 
-
 def address(name):
 	if os.path.exists(f'{KEYDIR}/{name}_paymt.addr'):
-		sys.stderr.write('already exists, not generating.\n')
+		print('already exists, not generating.', file=sys.stderr)
 		return False
 	# print(f'generating payment address...')
 	# make payment keys
@@ -242,29 +247,90 @@ def register_stake_address(stake_addr_file, stake_skey_file, stake_vkey_file, pa
 
 	print(_get_tx_hash(payment_addr))
 
-def generate_pool_keys():
-	cmd = 'cardano-cli node key-gen '
-	cmd += f'--cold-verification-key-file {KEYS}/node.vkey --cold-signing-key-file {KEYS}/node.skey '
-	cmd += f'--operational-certificate-issue-counter-file {KEYS}/node.counter'
-	run(cmd)
-	cmd = 'cardano-cli node key-gen-VRF '
-	cmd += f'--verification-key-file {KEYS}/vrf.vkey --signing-key-file {KEYS}/vrf.skey'
-	run(cmd)
-	cmd = 'cardano-cli node key-gen-KES '
-	cmd += f'--verification-key-file {KEYS}/kes.vkey --signing-key-file {KEYS}/kes.skey'
-	run(cmd)
+def _backup_keys():
+	now = datetime.now().strftime('%Y%m%d%H%M%S')
+	o,e = run(f'mkdir -p {KEYS}/backup/{now}')
+	if e:
+		print(e, file=sys.stderr)
+		return False
+	for f in KEYFILES:
+		if os.path.exists(f'{KEYS}/{f}'): 
+			try:
+				copyfile(f'{KEYS}/{f}', f'{KEYS}/backup/{now}/{f}')
+			except Exception as ex:
+				print(ex, file=sys.stderr)
+				return False
+	return True
 
-	js = json.loads(open(f'{CONF}/testnet-shelley-genesis.json').read())
-	slots_per_kes = js['slotsPerKESPeriod']
-	slot_no = _get_tip_slot_number()
-	kes_period = int(slot_no / slots_per_kes)
+def get_node_keys():
+	keys = {}
+	for f in os.listdir(f'{KEYS}'):
+		if f not in KEYFILES: continue
+		s = os.stat(f'{KEYS}/{f}')
+		keys[f] = datetime.utcfromtimestamp(s.st_mtime).strftime('%Y-%m-%d %H:%M:%S')
+	print(json.dumps(keys))
 
-	cmd = 'cardano-cli node issue-op-cert '
-	cmd += f'--kes-verification-key-file {KEYS}/kes.vkey '
-	cmd += f'--cold-signing-key-file {KEYS}/node.skey '
-	cmd += f'--operational-certificate-issue-counter {KEYS}/node.counter '
-	cmd += f'--kes-period {kes_period} --out-file {KEYS}/node.cert'
-	run(cmd)
+def generate_node_keys(type):
+	if type == 'node':
+		_backup_keys()		
+		cmd = f'{DIR}/cardano-cli node key-gen '
+		cmd += f'--cold-verification-key-file {KEYS}/node.vkey --cold-signing-key-file {KEYS}/node.skey '
+		cmd += f'--operational-certificate-issue-counter-file {KEYS}/node.counter'
+		o,e = run(cmd)
+		if e: 
+			print(e, file=sys.stderr)
+			return False
+		return True
+
+	if type == 'vrf':
+		_backup_keys()		
+		cmd = f'{DIR}/cardano-cli node key-gen-VRF '
+		cmd += f'--verification-key-file {KEYS}/vrf.vkey --signing-key-file {KEYS}/vrf.skey'
+		o,e = run(cmd)
+		if e: 
+			print(e, file=sys.stderr)
+			return False
+		return True
+
+	if type == 'kes':
+		_backup_keys()
+		cmd = f'{DIR}/cardano-cli node key-gen-KES '
+		cmd += f'--verification-key-file {KEYS}/kes.vkey --signing-key-file {KEYS}/kes.skey'
+		o,e = run(cmd)
+		if e: 
+			print(e, file=sys.stderr)
+			return False
+		return True
+
+	if type == 'cert':
+		error = []
+		if not os.path.exists(f'{KEYS}/node.skey'):
+			error.append('node.skey is required')
+		if not os.path.exists(f'{KEYS}/kes.vkey'):
+			error.append('kes.vkey is required')
+		if not os.path.exists(f'{KEYS}/node.counter'):
+			error.append('node.counter is required')			
+			
+		if len(error) > 0:
+			print('\n'.join(error), file=sys.stderr)
+			return False
+
+		_backup_keys()
+		js = json.loads(open(f'{CONF}/testnet-shelley-genesis.json').read())
+		slots_per_kes = js['slotsPerKESPeriod']
+		slot_no = _get_tip_slot_number()
+		kes_period = int(slot_no / slots_per_kes)
+		cmd = f'{DIR}/cardano-cli node issue-op-cert '
+		cmd += f'--kes-verification-key-file {KEYS}/kes.vkey '
+		cmd += f'--cold-signing-key-file {KEYS}/node.skey '
+		cmd += f'--operational-certificate-issue-counter {KEYS}/node.counter '
+		cmd += f'--kes-period {kes_period} --out-file {KEYS}/node.cert'
+		o,e = run(cmd)
+		if e: 
+			print(e, file=sys.stderr)
+			return False
+		return True
+	return False
 
 def register_pool():
 
@@ -346,7 +412,7 @@ def register_pool():
 def is_pool_registered():
 	nodekey = f'{KEYS}/node.vkey'
 	if not os.path.exists(nodekey):
-		sys.stderr.write(f'{nodekey} not found\n')
+		print(f'{nodekey} not found', file=sys.stderr)
 		return False
 
 	o,e = run(f'cardano-cli stake-pool id --cold-verification-key-file {KEYS}/node.vkey --output-format hex')
@@ -363,47 +429,30 @@ def is_pool_registered():
 
 if __name__ == '__main__':
 
-	print(is_pool_registered())
-	sys.exit()
-	# o,e = run('cardano-wallet address list 377b5fb2b90a5f937b1a72b309787fb1e26e28ba')
-	# addresses = json.loads(o)
-	# a_count = len(addresses)
-	# total = 0
-
-	# for i,a in enumerate(addresses):
-	# 	a_id = a['id']
-	# 	a_state = a['state']
-	# 	o,e = run(f'cardano-cli query utxo --address {a_id} --testnet-magic 1097911063 --mary-era')
-	# 	balance = 0
-	# 	for line in o.split('\n'):
-	# 		if line.startswith('TxHash') or line.startswith('----'):
-	# 			continue
-	# 		f = line.split()
-	# 		if len(f)>2:
-	# 			balance += int(f[2])
-	# 	total += balance
-	# 	if balance > 0:
-	# 		print(i)
-	# 		print(a_id)
-	# 		print(f'state: {a_state}, balance: {balance}')
-
-	# print(f'wallet balance: {total}')
-	# print(f'addresses: {a_count}')
-	
-
-
 	p = _get_args()
 
 	ok = False
 	if p.command == 'tx':
 		ok = send(p.from_addr, p.to_addr, p.ada, p.from_skey)	
+
 	elif p.command == 'address':
 		if p.name:
 			ok = address(p.name)
 		elif p.list:
 			ok = get_addresses()
+
 	elif p.command == 'balance':
 		ok = balance(p.address)
+
+	elif p.command == 'get-node-keys':
+		ok = get_node_keys()
+	elif p.command == 'generate-node-keys':
+		if not p.type in ['kes','vrf','node','cert']:
+			print('invalid key generation request')
+		else:
+			ok = generate_node_keys(p.type)
+
+
 
 	sys.exit(0 if ok else 1)
 

@@ -20,7 +20,7 @@ CONFIG=$CONF/$NETWORK-config.json
 if [[ "$CARDANO_NODE_ROLE" == "producer" ]]; then
 	if [ ! -e $KEYS/node.cert ]; then
 		>&2 echo "Node keys not available"
-		exit -1 
+		exit 1 
 	fi
 
 	PRODUCER_KEYS="--shelley-kes-key $KEYS/kes.skey --shelley-vrf-key $KEYS/vrf.skey --shelley-operational-certificate $KEYS/node.cert"
