@@ -2,9 +2,11 @@
 <div class="box">
 <div class="alert alert-danger alert-dismissible fade show  my-alert" >
   <div class="d-flex align-items-center">
-   <span class="glyphicon glyphicon-exclamation-sign"  
-   role="status" aria-hidden="true"></span>
+    <span>
+    <BIconExclamationCircleFill class="icon-danger" />
+    &nbsp;&nbsp;
     {{error}}
+    </span>
     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
  </div>
 </div>

@@ -2,7 +2,7 @@
 <div class="box">
 <div class="alert alert-warning my-alert" >
   <div class="d-flex align-items-center">
-   <div class="spinner-border" role="status" aria-hidden="true"></div>
+   <div class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></div>
     &nbsp;&nbsp;
     <span>{{message}}</span>
   </div>

@@ -178,7 +178,7 @@ export default {
         async newKey({commit, dispatch}, {node, type}) {
             commit('workStart', `Generateing new ${type} keys...`);
             
-            let r = await runRemote(`python3 cardano/bin/cardano.py generate-node-keys --type=${type}`);
+            let r = await runRemote(`python3 cardano/bin/cardano.py generate-node-keys --type=${type.join(',')}`);
             if (r.rc !== 0) {
                 console.log(r);
             } else {

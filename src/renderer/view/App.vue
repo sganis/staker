@@ -93,7 +93,60 @@ h2 {
   border-radius: 0;
   width: 100%;
 }
+.icon-success {
+  color: #198754;
+  width: 16px;
+  height: 16px;
+}
+.icon-info {
+  color: #0dcaf0;
+  width: 16px;
+  height: 16px;
+}
+.icon-warning {
+  color: #ffc107;
+  width: 16px;
+  height: 16px;
+}
+.icon-danger {
+  color: #dc3545;
+  width: 16px;
+  height: 16px;
+}
 
+/* bootstrap 5 colors
+------------------
+$blue:    #0d6efd;
+$indigo:  #6610f2;
+$purple:  #6f42c1;
+$pink:    #d63384;
+$red:     #dc3545;
+$orange:  #fd7e14;
+$yellow:  #ffc107;
+$green:   #198754;
+$teal:    #20c997;
+$cyan:    #0dcaf0;
 
+$primary:       $blue;
+$secondary:     $gray-600;
+$success:       $green;
+$info:          $cyan;
+$warning:       $yellow;
+$danger:        $red;
+$light:         $gray-100;
+$dark:          $gray-900;
+
+$white:    #fff;
+$gray-100: #f8f9fa;
+$gray-200: #e9ecef;
+$gray-300: #dee2e6;
+$gray-400: #ced4da;
+$gray-500: #adb5bd;
+$gray-600: #6c757d;
+$gray-700: #495057;
+$gray-800: #343a40;
+$gray-900: #212529;
+$black:    #000; */
 
 </style>
+

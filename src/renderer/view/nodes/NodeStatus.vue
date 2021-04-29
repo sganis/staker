@@ -14,13 +14,9 @@
 
 <script>
 import {mapGetters, mapActions} from 'vuex';
-import {
-    BIconLightbulbFill,BIconStopwatchFill, BIconGearFill, BIconWalletFill
-} from 'bootstrap-icons-vue'
 
 export default {
     props: ['node'],
-    components : {BIconLightbulbFill,BIconStopwatchFill, BIconGearFill, BIconWalletFill},
     data () {
         return {
             polling: null,

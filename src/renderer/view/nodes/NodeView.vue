@@ -105,40 +105,60 @@
     <p>TODO</p>
     
     <br/>
+    <div  v-if="status.nodeRole!=='RELAY'">
     <h2>Keys</h2>
-    <p v-if="status.nodeRole==='RELAY'">RELAY node does not use keys</p>
-    <table class="table" v-if="status.nodeRole!=='RELAY'">
-        <thead>
-            <tr>
-            <th scope="col">Key</th>
-            <th scope="col">Created</th>
-            </tr>
-        </thead>
+    <table class="table">
         <tbody >
-            <tr v-for="(k,index) in node.keys || []" :key="index" class="fs-7">
-            <td>{{k.name}}</td>
-            <td>{{k.mtime}}</td>
+            <tr v-for="(k,index) in node.keys || []" :key="index" 
+                class="fs-7" @click="k.visible = !k.visible"
+                @mouseover="k.hover = true"
+                @mouseleave="k.hover = false"
+                :class="{ active: k.hover }">
+                <td colspan="2">
+                    <div class="d-flex justify-content-between" >
+                    <div class="text-nowrap">
+                        <BIconCheckCircleFill class="icon-success" v-if="k.mtime !== 'N/A'" />
+                        <BIconExclamationCircleFill class="icon-danger" v-if="k.mtime === 'N/A'" />  
+                        &nbsp; 
+                        {{k.name}}</div>
+                    <div class="text-nowrap">{{k.mtime}}</div>
+                    </div>
+                    <div class="row text-break" v-if="k.visible">
+                        <pre class="text-break">{{k.content}}</pre>
+                    </div>
+                </td>
             </tr>
         </tbody>
     </table>
     <br/>
     <div class="row">
+        <form>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" type="checkbox" 
+            id="cold" value="cold" v-model="keygen_list">
+            <label class="form-check-label" for="cold">cold</label></div>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" type="checkbox" 
+            id="vrf" value="vrf" v-model="keygen_list">
+            <label class="form-check-label" for="vrf">vrf</label></div>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" type="checkbox" 
+            id="kes" value="kes" v-model="keygen_list">
+            <label class="form-check-label" for="kes">kes</label></div>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" type="checkbox" 
+            id="cert" value="cert" v-model="keygen_list">
+            <label class="form-check-label" for="cert">cert</label></div>
+        </form>
+    </div>
+    <pre>{{keygen_list}}</pre>
+    <div class="row">
       <span>
-        <span v-if="node && !node.has_tools">Tools not installed.<br/></span>
-        <button v-if="node" @click="newKey({node: node, type: 'node'})" :disabled="getLoading"
-          class="btn btn-primary" >New NODE</button>
-          &nbsp;
-        <button v-if="node" @click="newKey({node: node, type: 'vrf'})" :disabled="getLoading"
-          class="btn btn-primary" >New VRF</button>
-          &nbsp;
-        <button v-if="node" @click="newKey({node: node, type: 'kes'})" :disabled="getLoading"
-          class="btn btn-primary" >New KES</button>
-          &nbsp;
-        <button v-if="node" @click="newKey({node: node, type: 'cert'})" :disabled="getLoading"
-          class="btn btn-primary" >New CERT</button>
-          &nbsp;
+        <button v-if="node" @click="newKey({node: node, type: keygen_list})" :disabled="getLoading"
+          class="btn btn-primary" >Generate Keys</button>
       </span>
     </div>
+    </div> <!-- end keys -->
 
     <br/>
     <h2>Settings</h2>
@@ -179,17 +199,18 @@ export default {
         return {
             sudo: '',
             need_sudo: false,
+            keygen_list: [],
        }
     },
     computed: {
         ...mapGetters('nodes',['getNodeStatus','getLoading']),
         status() {
             return !this.node || !this.node.status || !this.node.status.node_status ? {
-                nodeRole: 'n/a',
-                nodeService: 'n/a',
-                walletService: 'n/a',
-                nodeSync: 'n/a',
-                timeSync: 'n/a',
+                nodeRole: 'N/A',
+                nodeService: 'N/A',
+                walletService: 'N/A',
+                nodeSync: 'N/A',
+                timeSync: 'N/A',
                 disk: 0,
                 memory: 0,
                 cpu: 0,
@@ -201,10 +222,10 @@ export default {
                 walletService: this.node.status.wallet_status === 1 ? 'Running'
                              : this.node.status.wallet_status === 2 ? 'Stopped'
                              : 'Not installed',
-                nodeSync: this.node.status.node_sync ? this.node.status.node_sync +'%' : 'n/a',  
+                nodeSync: this.node.status.node_sync ? this.node.status.node_sync +'%' : 'N/A',  
                 timeSync: this.node.status.time_sync === 1 ? 'Ok'
                             : this.node.status.time_sync === 2 ? `Out of sync: Network: ${this.node.status.network_time} Node: ${this.node.status.node_time}`
-                            : 'n/a',
+                            : 'N/A',
                 disk: Math.round(this.node.status.disk[0]/this.node.status.disk[1] * 100),
                 memory: Math.round(this.node.status.memory[0]/this.node.status.memory[1] * 100),
                 cpu: Math.round(this.node.status.cpu * 100),
@@ -249,5 +270,11 @@ export default {
 }
 .fs-7 {
     font-size: 14px;
+}
+.active {
+    background: rgb(240, 240, 240);
+}
+pre {
+    white-space: pre-wrap; 
 }
 </style>
