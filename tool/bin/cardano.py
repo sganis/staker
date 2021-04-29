@@ -15,7 +15,7 @@ DIR = os.path.dirname(os.path.abspath(sys.argv[0]))
 ROOT=f'{home}/cardano'
 CONF=f'{ROOT}/config'
 KEYS = f'{ROOT}/keys'
-KEYFILES = ['node.skey','node.vkey','node.counter','kes.skey','kes.vkey','vrf.skey','vrf.vkey','node.cert']
+KEYFILES = ['cold.skey','cold.vkey','cold.counter','vrf.skey','vrf.vkey','kes.skey','kes.vkey','node.cert']
 NETWORK='--testnet-magic 1097911063'
 # os.environ["CARDANO_NODE_SOCKET_PATH"] = path_to_socket
 
@@ -266,77 +266,74 @@ def get_node_keys():
 	keys = []
 	files = os.listdir(f'{KEYS}')
 	for i,f in enumerate(KEYFILES):
-		if f not in files: continue
-		s = os.stat(f'{KEYS}/{f}')
 		key = {}
 		key['name'] = f
-		key['mtime'] = datetime.fromtimestamp(s.st_mtime).strftime('%Y-%m-%d %H:%M:%S')
 		key['order'] = i
+		key['mtime'] = 'N/A'
+		key['content'] = ''
+		if f in files: 
+			s = os.stat(f'{KEYS}/{f}')
+			key['mtime'] = datetime.fromtimestamp(s.st_mtime).strftime('%Y-%m-%d %H:%M:%S')
+			with open(f'{KEYS}/{f}') as r:
+				key['content'] = r.read() 
 		keys.append(key)
 	print(json.dumps(keys))
 	return True
 
-def generate_node_keys(type):
-	if type == 'node':
-		_backup_keys()		
+def generate_node_keys(types):
+	_backup_keys()		
+	if 'cold' in types:
 		cmd = f'{DIR}/cardano-cli node key-gen '
-		cmd += f'--cold-verification-key-file {KEYS}/node.vkey --cold-signing-key-file {KEYS}/node.skey '
-		cmd += f'--operational-certificate-issue-counter-file {KEYS}/node.counter'
+		cmd += f'--cold-verification-key-file {KEYS}/cold.vkey --cold-signing-key-file {KEYS}/cold.skey '
+		cmd += f'--operational-certificate-issue-counter-file {KEYS}/cold.counter'
 		o,e = run(cmd)
 		if e: 
 			print(e, file=sys.stderr)
 			return False
-		return True
 
-	if type == 'vrf':
-		_backup_keys()		
+	if 'vrf' in types:
 		cmd = f'{DIR}/cardano-cli node key-gen-VRF '
 		cmd += f'--verification-key-file {KEYS}/vrf.vkey --signing-key-file {KEYS}/vrf.skey'
 		o,e = run(cmd)
 		if e: 
 			print(e, file=sys.stderr)
 			return False
-		return True
 
-	if type == 'kes':
-		_backup_keys()
+	if 'kes' in types:
 		cmd = f'{DIR}/cardano-cli node key-gen-KES '
 		cmd += f'--verification-key-file {KEYS}/kes.vkey --signing-key-file {KEYS}/kes.skey'
 		o,e = run(cmd)
 		if e: 
 			print(e, file=sys.stderr)
 			return False
-		return True
 
-	if type == 'cert':
+	if 'cert' in types:
 		error = []
-		if not os.path.exists(f'{KEYS}/node.skey'):
-			error.append('node.skey is required')
+		if not os.path.exists(f'{KEYS}/cold.skey'):
+			error.append('cold.skey is required')
 		if not os.path.exists(f'{KEYS}/kes.vkey'):
 			error.append('kes.vkey is required')
-		if not os.path.exists(f'{KEYS}/node.counter'):
-			error.append('node.counter is required')			
+		if not os.path.exists(f'{KEYS}/cold.counter'):
+			error.append('cold.counter is required')			
 			
 		if len(error) > 0:
 			print('\n'.join(error), file=sys.stderr)
 			return False
 
-		_backup_keys()
 		js = json.loads(open(f'{CONF}/testnet-shelley-genesis.json').read())
 		slots_per_kes = js['slotsPerKESPeriod']
 		slot_no = _get_tip_slot_number()
 		kes_period = int(slot_no / slots_per_kes)
 		cmd = f'{DIR}/cardano-cli node issue-op-cert '
 		cmd += f'--kes-verification-key-file {KEYS}/kes.vkey '
-		cmd += f'--cold-signing-key-file {KEYS}/node.skey '
-		cmd += f'--operational-certificate-issue-counter {KEYS}/node.counter '
+		cmd += f'--cold-signing-key-file {KEYS}/cold.skey '
+		cmd += f'--operational-certificate-issue-counter {KEYS}/cold.counter '
 		cmd += f'--kes-period {kes_period} --out-file {KEYS}/node.cert'
 		o,e = run(cmd)
 		if e: 
 			print(e, file=sys.stderr)
 			return False
-		return True
-	return False
+	return True
 
 def register_pool():
 
@@ -353,7 +350,7 @@ def register_pool():
 	relay_dns = "adapool.chaintrust.com"
 
 	cmd = 'cardano-cli stake-pool registration-certificate '
-	cmd += '--cold-verification-key-file node.vkey '
+	cmd += '--cold-verification-key-file cold.vkey '
 	cmd += '--vrf-verification-key-file vrf.vkey '
 	cmd += f'--pool-pledge {pledge} '
 	cmd += f'--pool-cost {cost} '
@@ -369,7 +366,7 @@ def register_pool():
 
 	cmd = '''cardano-cli stake-address delegation-certificate 
 		--stake-verification-key-file stake.vkey 
-		--cold-verification-key-file node.vkey 
+		--cold-verification-key-file cold.vkey 
 		--out-file delegation.cert'''
 	run(cmd)
 
@@ -406,7 +403,7 @@ def register_pool():
 	cmd = 'cardano-cli transaction sign --tx-body-file tx.raw '
 	cmd += '--signing-key-file payment.skey '
 	cmd += '--signing-key-file stake.skey '
-	cmd += '--signing-key-file node.skey '
+	cmd += '--signing-key-file cold.skey '
 	cmd += f'--out-file tx.signed {NETWORK}'
 	o,e = run(cmd)
 
@@ -416,12 +413,12 @@ def register_pool():
 		print(f'error: {e}')
 
 def is_pool_registered():
-	nodekey = f'{KEYS}/node.vkey'
+	nodekey = f'{KEYS}/cold.vkey'
 	if not os.path.exists(nodekey):
 		print(f'{nodekey} not found', file=sys.stderr)
 		return False
 
-	o,e = run(f'cardano-cli stake-pool id --cold-verification-key-file {KEYS}/node.vkey --output-format hex')
+	o,e = run(f'cardano-cli stake-pool id --cold-verification-key-file {KEYS}/cold.vkey --output-format hex')
 	nodeid = o.strip()
 	print(f'node id: {nodeid}')
 
@@ -453,10 +450,14 @@ if __name__ == '__main__':
 	elif p.command == 'get-node-keys':
 		ok = get_node_keys()
 	elif p.command == 'generate-node-keys':
-		if not p.type in ['kes','vrf','node','cert']:
-			print('invalid key generation request')
+		types = p.type.split(',')
+		for t in types:
+			if not t in ['kes','vrf','cold','cert']:
+				print('invalid key generation request')
 		else:
-			ok = generate_node_keys(p.type)
+			ok = generate_node_keys(types)
+
+
 
 
 
