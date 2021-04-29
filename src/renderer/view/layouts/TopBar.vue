@@ -20,6 +20,10 @@
     <router-link to="/wallets" class="nav-link"
     :class="{disabled : !node || !node.connected}">Wallets</router-link>
   </li> 
+  <li class="nav-item">
+    <router-link to="/pools" class="nav-link"
+    :class="{disabled : !node || !node.connected}">Pools</router-link>
+  </li> 
 </ul>
 </nav>
 </div>

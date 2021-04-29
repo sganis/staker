@@ -146,6 +146,13 @@ ipcMain.on(IPC.GET_NODES, (e) => {
   e.returnValue = settings.get('nodes');
 });
 
+ipcMain.on(IPC.GET_POOLS, (e) => { 
+  // TODO, not implemented
+  e.returnValue = [{name: "Defualt Pool"}];
+  //console.log('GET_POOLS: '+ settings.get('pools'));
+  //e.returnValue = settings.get('pools');
+});
+
 // async/await reply to invoke
 ipcMain.handle(IPC.RUN_LOCAL, async (_, ...args) => { return await runLocal(...args);});
 ipcMain.handle(IPC.RUN_REMOTE, async (_, ...args) => { return await runRemote(...args);});

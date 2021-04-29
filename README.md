@@ -28,10 +28,11 @@ TODO
 - Setup ssh keys                    Done
 - Show logs                         Done
 - Configure as producer/relay       Done      
-- Generate/update pool keys         Done
+- Generate pool keys                Done
 - Configure topology                
 - Register stake address            
-- Register/update/deregister pool   
+- Register/update pool   
 - Change network testnet/mainnet    
 - Change config.json
 - Backup cold keys and words
+- Global loading/error/success      

@@ -186,6 +186,7 @@ export default {
                 r.stdout = 'Success!';
             }
             commit('workEnd',r);
+            return r;
         },
         async loadNodeKeys({commit}, n) {
             //commit('workStart', 'Changing role...');

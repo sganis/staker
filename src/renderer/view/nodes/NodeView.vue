@@ -130,32 +130,34 @@
             </tr>
         </tbody>
     </table>
+    <h5>Generate new keys:</h5>
     <br/>
-    <div class="row">
+    <div class="row"  :disabled="getLoading">
         <form>
         <div class="form-check form-check-inline">
-            <input class="form-check-input" type="checkbox" 
+            <input class="form-check-input" type="checkbox"  :disabled="getLoading"
             id="cold" value="cold" v-model="keygen_list">
-            <label class="form-check-label" for="cold">cold</label></div>
+            <label class="form-check-label" for="cold">Cold keys</label></div>
         <div class="form-check form-check-inline">
-            <input class="form-check-input" type="checkbox" 
+            <input class="form-check-input" type="checkbox"  :disabled="getLoading"
             id="vrf" value="vrf" v-model="keygen_list">
-            <label class="form-check-label" for="vrf">vrf</label></div>
+            <label class="form-check-label" for="vrf">VFR keys</label></div>
         <div class="form-check form-check-inline">
-            <input class="form-check-input" type="checkbox" 
+            <input class="form-check-input" type="checkbox"  :disabled="getLoading"
             id="kes" value="kes" v-model="keygen_list">
-            <label class="form-check-label" for="kes">kes</label></div>
+            <label class="form-check-label" for="kes">KES keys</label></div>
         <div class="form-check form-check-inline">
-            <input class="form-check-input" type="checkbox" 
-            id="cert" value="cert" v-model="keygen_list">
-            <label class="form-check-label" for="cert">cert</label></div>
+            <input class="form-check-input" type="checkbox"  :disabled="getLoading"
+            id="cert" value="cert" v-model="keygen_list" >
+            <label class="form-check-label" for="cert">Operational certificate</label></div>
         </form>
     </div>
-    <pre>{{keygen_list}}</pre>
-    <div class="row">
+    <br/>
+    <div class="row" >
       <span>
-        <button v-if="node" @click="newKey({node: node, type: keygen_list})" :disabled="getLoading"
-          class="btn btn-primary" >Generate Keys</button>
+        <button v-if="node" @click="_newKey({node: node, type: keygen_list})"
+         :disabled="getLoading || keygen_list.length===0"
+          class="btn btn-primary" >Generate</button>
       </span>
     </div>
     </div> <!-- end keys -->
@@ -260,6 +262,12 @@ export default {
                     this.need_sudo = false;
             }
         },
+        async _newKey(args) {
+            let r = await this.newKey(args);
+            if (r.rc === 0) {
+                this.keygen_list=[];
+            }
+        }
     },
 }
 </script>
