@@ -152,7 +152,7 @@ services = get_services_information()
 node_service = services['node_service']
 wallet_service = services['wallet_service']
 
-node_role = ('producer' if 'operational-certificate' in node_service['cmd'] 
+node_role = ('core' if 'operational-certificate' in node_service['cmd'] 
               else 'relay' if node_service['cmd']
               else 'n/a')
 time_sync = 0
@@ -161,6 +161,7 @@ node_status = node_service['status']
 wallet_status = wallet_service['status']
 network_time = ''
 node_time = ''
+time_diff = 0
 
 if wallet_status == 1: # running
     netinfo = get_network_information()
@@ -172,7 +173,8 @@ if wallet_status == 1: # running
             network_time = netinfo['network_tip']['time']
             network_time_d = datetime.strptime(network_time, '%Y-%m-%dT%H:%M:%SZ')
             time_sync = 1
-            if (network_time_d - node_time_d).total_seconds() > 60:
+            time_diff = (network_time_d - node_time_d).total_seconds()
+            if time_diff > 60:
                 time_sync = 2
         if netinfo['sync_progress']['status'] == 'ready' :
             node_sync = 100
@@ -194,6 +196,7 @@ status = {
     'time_sync': time_sync,
     'network_time': network_time,
     'node_time': node_time,
+    'time_diff': time_diff,
     'logs': get_logs(),
 
 }

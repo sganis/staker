@@ -357,6 +357,12 @@ def _get_metadata_hash():
 		print(e, file=sys.stderr)
 		return ''
 
+def _get_metadata_url():
+	o,e = run(f'cat {CONF}/pool-metatada.url')
+	if e:
+		print(e, file=sys.stderr)
+	return o
+
 def register_pool():
 
 	payment_addr = open('payment.addr').read()
@@ -366,7 +372,7 @@ def register_pool():
 	pledge = 500 * 1_000_000
 	cost = 340 * 1_000_000
 	margin = 0.03
-	metadata_url = 'https://git.io/JmApG'
+	metadata_url = _get_metadata_url()
 	relay_dns = "adapool.chaintrust.com"
 
 	cmd = 'cardano-cli stake-pool registration-certificate '
@@ -472,8 +478,9 @@ if __name__ == '__main__':
 	elif p.command == 'balance':
 		ok = balance(p.address)
 
-	elif p.command == 'get-node-keys':
+	elif p.command == 'node-keys':
 		ok = get_node_keys()
+
 	elif p.command == 'generate-node-keys':
 		types = p.type.split(',')
 		for t in types:
