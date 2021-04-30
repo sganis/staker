@@ -78,18 +78,26 @@ def _get_args():
 	# parser.add_argument('--tx', action='store_true', help='make a transaction')
 	subparsers = parser.add_subparsers(dest='command')
 	subparsers.required = True
+
 	s = subparsers.add_parser("tx", help='make a transaction')
 	s.add_argument("--from_addr", required=True, help="from address")
 	s.add_argument("--from_skey", required=True, help="from signing key")
 	s.add_argument("--to_addr", required=True, help="to address")
 	s.add_argument("--ada", required=True, help="ammount of ADA to send")
+
 	s = subparsers.add_parser("address", help='generate payment and stake addresses')
 	s.add_argument("--name", help="address name")
 	s.add_argument("--list", action='store_true', help="list all addresses")
+
 	s = subparsers.add_parser("balance", help='query balance of address')
 	s.add_argument("--address", required=True, help="address to query balance")
-	s = subparsers.add_parser("get-node-keys", help='get node keys')
+
+	s = subparsers.add_parser("node-keys", help='get node keys')
 	s = subparsers.add_parser("generate-node-keys", help='generate node keys')
+	s.add_argument("--type", required=True, help="generate cold, vrf, kes, and cert keys")
+
+	s = subparsers.add_parser("pool-keys", help='get pool keys')
+	s = subparsers.add_parser("generate-pool-keys", help='generate pool keys')
 	s.add_argument("--type", required=True, help="generate node, vrf, kes, or cert keys")
 
 	
@@ -278,7 +286,7 @@ def get_node_keys():
 			delta = d2 - d1
 			key['mtime'] = d1.strftime('%Y-%m-%d %H:%M:%S')
 			key['days'] = delta.days
-			
+
 			with open(f'{KEYS}/{f}') as r:
 				key['content'] = r.read() 
 		keys.append(key)
@@ -340,14 +348,21 @@ def generate_node_keys(types):
 			return False
 	return True
 
+def _get_metadata_hash():
+	cmd = f'{DIR}/cardano-cli stake-pool metadata-hash --pool-metadata-file {CONF}/pool-metadata.json'
+	o,e = run(cmd)
+	if o:
+		return o
+	else:
+		print(e, file=sys.stderr)
+		return ''
+
 def register_pool():
 
 	payment_addr = open('payment.addr').read()
 	payment_skey = open('payment.skey').read()
 
-	cmd ='cardano-cli stake-pool metadata-hash --pool-metadata-file cardano/poolMetadata.json'
-	o,e = run(cmd)
-	metadata_hash = o.strip()
+	metadata_hash = _get_metadata_hash()
 	pledge = 500 * 1_000_000
 	cost = 340 * 1_000_000
 	margin = 0.03
@@ -417,20 +432,25 @@ def register_pool():
 	if e:
 		print(f'error: {e}')
 
+def _get_pool_id():
+	o,e = run(f'cardano-cli stake-pool id --cold-verification-key-file {KEYS}/cold.vkey --output-format hex')
+	if o:
+		return o
+	else:
+		print(e, file=sys.stderr)
+		return ''
+
 def is_pool_registered():
 	nodekey = f'{KEYS}/cold.vkey'
 	if not os.path.exists(nodekey):
 		print(f'{nodekey} not found', file=sys.stderr)
 		return False
 
-	o,e = run(f'cardano-cli stake-pool id --cold-verification-key-file {KEYS}/cold.vkey --output-format hex')
-	nodeid = o.strip()
-	print(f'node id: {nodeid}')
-
-	if nodeid:
+	poolid = _get_pool_id()
+	if poolid:
 		o,e = run(f'cardano-cli query ledger-state {NETWORK} --mary-era') # | grep publicKey | grep {nodeid}')
 		for line in o.split('\n'):
-			if 'publicKey' in line and nodeid in line:
+			if 'publicKey' in line and poolid in line:
 				return True
 	return False
 
