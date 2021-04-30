@@ -10,7 +10,6 @@ from shutil import copyfile
 from datetime import datetime
 
 home = os.environ['HOME']
-#path_to_socket = f"{home}/ada/relay/db/node.socket"
 DIR = os.path.dirname(os.path.abspath(sys.argv[0]))
 ROOT=f'{home}/cardano'
 CONF=f'{ROOT}/config'
@@ -273,7 +272,13 @@ def get_node_keys():
 		key['content'] = ''
 		if f in files: 
 			s = os.stat(f'{KEYS}/{f}')
-			key['mtime'] = datetime.fromtimestamp(s.st_mtime).strftime('%Y-%m-%d %H:%M:%S')
+			# key['mtime'] = datetime.fromtimestamp(s.st_mtime).strftime('%Y-%m-%d %H:%M:%S')
+			d1 = datetime.fromtimestamp(s.st_mtime)
+			d2 = datetime.now()
+			delta = d2 - d1
+			key['mtime'] = d1.strftime('%Y-%m-%d %H:%M:%S')
+			key['days'] = delta.days
+			
 			with open(f'{KEYS}/{f}') as r:
 				key['content'] = r.read() 
 		keys.append(key)
