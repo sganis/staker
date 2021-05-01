@@ -5,9 +5,6 @@ export default {
     namespaced: true,
     state() {
         return {
-            loading : false,
-            error: '',
-            message: '',
             wallets: [],
             addressed: [],
         }
@@ -16,29 +13,25 @@ export default {
         getWallets: (state) => state.wallets.filter(n => n.name !=='') || [],
         getWallet: (state) => (name) => state.wallets.find(n => n.name === name),
         getWalletSelected: (state) => state.wallets.find(n => n.selected),  
-        getLoading:(state)=> state.loading,
-        getError:(state)=> state.error,
-        getMessage:(state)=> state.message,
-
     },
     actions: {
         update({commit}, w) { commit('update', w); },
         deselectAll({commit}) { commit('deselectAll'); },
         async delete({commit}, w) { 
-            commit('workStart', 'Deleting wallet...');            
-            let cmd = `cardano-wallet wallet delete ${w.id}`;
+            commit('workStart', 'Deleting wallet...', {root: true});            
+            let cmd = `cardano/bin/cardano-wallet wallet delete ${w.id}`;
             let r = await runRemote(cmd);
             if (r.rc === 0) {
                 r.stderr = '';
                 r.stdout = 'Wallet deleted.'
             }
             commit('delete', w); 
-            commit('workEnd', r);   
+            commit('workEnd', r, {root: true});   
             console.log(r);         
         },
         async rename({commit}, w) { 
-            commit('workStart', 'Renaming wallet...');            
-            let cmd = `cardano-wallet wallet update name ${w.id} "${w.newname}"`;
+            commit('workStart', 'Renaming wallet...', {root: true});            
+            let cmd = `cardano/bin/cardano-wallet wallet update name ${w.id} "${w.newname}"`;
             let r = await runRemote(cmd);
             console.log(r);
             if (r.rc === 0) {
@@ -47,13 +40,13 @@ export default {
                 r.stdout = 'Wallet name updated.'
             }
             commit('update', w); 
-            commit('workEnd', r);   
+            commit('workEnd', r, {root: true});   
             console.log(r);         
         },
         async updatePass({commit}, w) { 
             console.log('updating pass:',w)
-            commit('workStart', 'Updating passphrase in wallet...');            
-            let cmd = `cardano-wallet wallet update passphrase ${w.id}`;
+            commit('workStart', 'Updating passphrase in wallet...', {root: true});            
+            let cmd = `cardano/bin/cardano-wallet wallet update passphrase ${w.id}`;
             console.log(cmd);
             let prompt = [
                 { question: 'your current passphrase:',
@@ -69,13 +62,13 @@ export default {
                 r.stderr = '';
                 r.stdout = 'Wallet passphrase updated.'
             }
-            commit('workEnd', r);   
+            commit('workEnd', r, {root: true});   
             console.log(r);         
         },
         async transaction({commit}, w) { 
             console.log('making transaction:',w)
-            commit('workStart', 'Making transaction...');            
-            let cmd = `cardano-wallet transaction create ${w.id} `;
+            commit('workStart', 'Making transaction...', {root: true});            
+            let cmd = `cardano/bin/cardano-wallet transaction create ${w.id} `;
             cmd += `--payment ${w.amount * 1000000}@${w.toaddr}`;
             console.log(cmd);
             let prompt = [
@@ -88,11 +81,11 @@ export default {
                 r.stderr = '';
                 r.stdout = 'Transaction sent.'
             }
-            commit('workEnd', r);   
+            commit('workEnd', r, {root: true});   
             console.log(r);         
         },
         async loadAll({commit}) {
-            let cmd = 'cardano-wallet wallet list';
+            let cmd = 'cardano/bin/cardano-wallet wallet list';
             let r = await runRemote(cmd);
             if (r.rc ===0 ) {
                 JSON.parse(r.stdout.trim()).forEach(async (w) => {
@@ -101,15 +94,15 @@ export default {
             }            
         },
         async load({commit, dispatch}, w) {
-            let cmd = `cardano-wallet wallet get ${w.id}`;
+            let cmd = `cardano/bin/cardano-wallet wallet get ${w.id}`;
             let r = await runRemote(cmd);
             // console.log(r);
             if (r.rc === 0) {
                 w = JSON.parse(r.stdout.trim())
-                cmd = `cardano-wallet address list ${w.id}`;
+                cmd = `cardano/bin/cardano-wallet address list ${w.id}`;
                 r = await runRemote(cmd);
                 w.addresses = JSON.parse(r.stdout.trim());
-                cmd = `cardano-wallet transaction list ${w.id}`;
+                cmd = `cardano/bin/cardano-wallet transaction list ${w.id}`;
                 r = await runRemote(cmd);
                 w.transactions = JSON.parse(r.stdout.trim());
                 commit('update', w); 
@@ -128,17 +121,17 @@ export default {
             }            
         },
         async create({commit,dispatch}, w) {
-            commit('workStart', 'Creating wallet...');
+            commit('workStart', 'Creating wallet...', {root: true});
             let r = {};
             let cmd = '';
             let prompt = [];
             let words = w.words;            
             if (!w.use_words) {
-                cmd = 'cardano-wallet recovery-phrase generate --size 24';
+                cmd = 'cardano/bin/cardano-wallet recovery-phrase generate --size 24';
                 r = await runRemote(cmd);
                 words = r.stdout.trim();
             }
-            cmd = `cardano-wallet wallet create from-recovery-phrase "${w.name}"`;
+            cmd = `cardano/bin/cardano-wallet wallet create from-recovery-phrase "${w.name}"`;
             prompt = [
                 { question: '15–24 word recovery phrase:',
                 answer: words,    },
@@ -169,7 +162,7 @@ export default {
                 commit('update', w);
                 //dispatch('load', w);   
             }
-            commit('workEnd', r);
+            commit('workEnd', r, {root: true});
             return new Promise(res=>{res(r)});
         },                   
     },

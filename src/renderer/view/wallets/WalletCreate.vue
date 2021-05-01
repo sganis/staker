@@ -61,7 +61,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters('wallets',['getLoading'])
+    ...mapGetters(['getLoading'])
   },
   methods: {
     ...mapActions('wallets', ['update','create']),

@@ -44,7 +44,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters('nodes',['getLoading','getError','getMessage'])
+    ...mapGetters(['getLoading','getError','getMessage'])
   },
   watch: {
     node(newNode) {

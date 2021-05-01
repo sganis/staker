@@ -26,7 +26,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters('nodes',['getLoading','getError','getMessage']),
+    ...mapGetters(['getLoading','getError','getMessage']),
   },
   mounted() {
     this.$router.push('/nodes');

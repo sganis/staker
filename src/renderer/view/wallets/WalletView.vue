@@ -153,7 +153,7 @@ export default {
         }
     },
     computed: {
-        ...mapGetters('wallets',['getLoading']),        
+        ...mapGetters(['getLoading']),        
         balance() {
             return this.wallet.balance 
                 ? this.wallet.balance.total.quantity/1000000

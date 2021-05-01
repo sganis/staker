@@ -10,18 +10,12 @@ export default {
     state() {
         return {
             nodes: [],
-            loading : false,
-            error: '',
-            message: '',
         }
     },
     getters: {
         getNodes: (state) => state.nodes.filter(n => n.host !=='') || [],
         getNode: (state) => (host) => state.nodes.find(n => n.host === host),
         getNodeSelected: (state) => state.nodes.find(n => n.selected),
-        getLoading:(state)=> state.loading,
-        getError:(state)=> state.error,
-        getMessage:(state)=> state.message,
     },
     actions: {
         updateNode({commit}, n) { commit('updateNode', n); },
@@ -39,7 +33,7 @@ export default {
             }
         },
         async connectNode({commit, dispatch, getters}, n) {
-            commit('workStart', `Connecting to ${n.host}...`);
+            commit('workStart', `Connecting to ${n.host}...`, {root: true});
             let r = await connectHost(n.host, n.user, n.password);
             console.log(r);
             if (r.rc === 0) {
@@ -72,7 +66,7 @@ export default {
             } else {
                 //r.stdout = '';
             }
-            commit('workEnd', r);              
+            commit('workEnd', r, {root: true});              
             //console.log('loading:', getters.getLoading);
             return new Promise(res => {res(r)});
             
@@ -92,7 +86,7 @@ export default {
             commit('updateNode', n); 
         },
         async installNode({commit}, {node, sudo}) {
-            commit('workStart', 'Installing cardano-node...');   
+            commit('workStart', 'Installing cardano-node...', {root: true});   
             let r = null;
             let src = null;
             let dst = null;
@@ -100,7 +94,7 @@ export default {
             // upload files
             r = await runRemote('mkdir -p cardano/bin cardano/config');
             if (r.rc !== 0) {
-                commit('workEnd', r.stderr);
+                commit('workEnd', r.stderr, {root: true});
                 commit('updateNode', node);
                 return r; 
             }
@@ -116,7 +110,7 @@ export default {
             r = await upload(src, dst);
             console.log(r);
             if (r.rc !== 0) {
-                commit('workEnd', r.stderr);
+                commit('workEnd', r.stderr, {root: true});
                 commit('updateNode', node);
                 return r; 
             }
@@ -127,7 +121,7 @@ export default {
             r = await upload(src, dst);
             console.log(r);
             if (r.rc !== 0) {
-                commit('workEnd', r.stderr);
+                commit('workEnd', r.stderr, {root: true});
                 commit('updateNode', node);
                 return r; 
             }            
@@ -142,17 +136,17 @@ export default {
                     prompt, true);
             console.log(r);
             if (r.rc !== 0) {
-                commit('workEnd', r.stderr);
+                commit('workEnd', r.stderr, {root: true});
                 commit('updateNode', node);
                 return r; 
             }
             r.stdout = 'cardano-node installed.'
-            commit('workEnd', r);
+            commit('workEnd', r, {root: true});
             commit('updateNode', node);
             return r;
         },
         async serviceAction({commit, dispatch}, s) {
-            commit('workStart', `Service: ${s.action} ${s.service}...`);
+            commit('workStart', `Service: ${s.action} ${s.service}...`, {root: true});
             let r = await runRemote(`sudo /bin/systemctl ${s.action} ${s.service}`);
             if (r.rc !== 0) {
                 console.log(r);
@@ -161,10 +155,10 @@ export default {
                 commit('updateNode', s.node);
                 r.stdout = 'Success!';
             }
-            commit('workEnd',r);
+            commit('workEnd',r, {root: true});
         },
         async changeRole({commit}, n) {
-            commit('workStart', 'Changing role...');
+            commit('workStart', 'Changing role...', {root: true});
             let r = await runRemote(`cardano/bin/change_role.sh ${n.status.node_role}`);
             if (r.rc !== 0) {
                 console.log(r);
@@ -173,10 +167,10 @@ export default {
                 r.stdout = 'Success! New role will be available after node service restart.';
             }
             console.log(r);
-            commit('workEnd',r);
+            commit('workEnd',r, {root: true});
         },
         async newKey({commit, dispatch}, {node, type}) {
-            commit('workStart', `Generateing new ${type} keys...`);
+            commit('workStart', `Generateing new ${type} keys...`, {root: true});
             
             let r = await runRemote(`python3 cardano/bin/cardano.py generate-node-keys --type=${type.join(',')}`);
             if (r.rc !== 0) {
@@ -185,12 +179,12 @@ export default {
                 await dispatch('loadNodeKeys', node);
                 r.stdout = 'Success!';
             }
-            commit('workEnd',r);
+            commit('workEnd',r, {root: true});
             return r;
         },
         async loadNodeKeys({commit}, n) {
             //commit('workStart', 'Changing role...');
-            let r = await runRemote('python3 cardano/bin/cardano.py get-node-keys');
+            let r = await runRemote('python3 cardano/bin/cardano.py node-keys');
             if (r.rc !== 0) {
                 console.log(r);
             } else {
@@ -234,31 +228,6 @@ export default {
                 state.nodes[i].connected = false;
                 state.nodes.splice(i,1)
             }
-        },       
-        setLoading(state, b) { state.loading = b; },
-        setError(state, e) {state.error = e; setTimeout(()=> state.error = '', 3000)},
-        setMessage(state, m) {state.message = m},
-        workStart(state, msg) {
-            state.loading = true;
-            state.error = '';
-            state.message = msg;
-        },
-        workEnd(state, r={}) {
-            state.loading = false;
-            if (r.stderr) {
-                state.message = '';
-                state.error = r.stderr; 
-                setTimeout(()=> state.error = '', 5000);
-            }
-            else if (r.stdout) {
-                state.error = '';
-                state.message = r.stdout; 
-                setTimeout(()=> state.message = '', 5000);
-            } else {
-                state.error = '';
-                state.message = '';
-            }
-        },
-        
+        },              
     },
 }

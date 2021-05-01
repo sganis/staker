@@ -13,7 +13,6 @@
 
 import NodeConnect from "./NodeConnect"
 import NodeView from "./NodeView"
-//import {mapGetters, mapActions} from 'vuex'
 
 export default {
   components: {NodeConnect, NodeView},

@@ -27,12 +27,13 @@ TODO
 - Install/start/stop services       Done
 - Setup ssh keys                    Done
 - Show logs                         Done
-- Configure as producer/relay       Done      
+- Configure as core/relay           Done      
 - Generate pool keys                Done
-- Configure topology                
+- Global loading/error/success      Done 
 - Register stake address            
 - Register/update pool   
 - Change network testnet/mainnet    
+- Configure topology.json                
 - Change config.json
 - Backup cold keys and words
-- Global loading/error/success      
+- Relay/Core ssh tunnel
