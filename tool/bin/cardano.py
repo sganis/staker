@@ -100,6 +100,9 @@ def _get_args():
 	s = subparsers.add_parser("generate-pool-keys", help='generate pool keys')
 	s.add_argument("--type", required=True, help="generate node, vrf, kes, or cert keys")
 
+	s = subparsers.add_parser("pool-params", help='get pool params')
+	s.add_argument("--pool-id", required=True, help="get params of pool id")
+
 	
 	# Parse
 	a = parser.parse_args()
@@ -460,6 +463,14 @@ def is_pool_registered():
 				return True
 	return False
 
+def get_pool_params(pool_id):
+	o,e = run(f'{DIR}/cardano-cli query pool-params --stake-pool-id {pool_id} {NETWORK}')
+	if e:
+		print(e, file=sys.stderr)
+		return False
+	print(o)
+	return True
+
 
 if __name__ == '__main__':
 
@@ -489,6 +500,8 @@ if __name__ == '__main__':
 		else:
 			ok = generate_node_keys(types)
 
+	elif p.command == 'pool-params':
+		ok = get_pool_params(p.pool_id)
 
 
 
