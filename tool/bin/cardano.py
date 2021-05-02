@@ -101,7 +101,10 @@ def _get_args():
 	s.add_argument("--type", required=True, help="generate node, vrf, kes, or cert keys")
 
 	s = subparsers.add_parser("pool-params", help='get pool params')
-	s.add_argument("--pool-id", required=True, help="get params of pool id")
+	s.add_argument("--pool-id", required=True, help="pool id")
+
+	s = subparsers.add_parser("stake-snapshot", help='get stake snapshot')
+	s.add_argument("--pool-id", required=True, help="pool id")
 
 	
 	# Parse
@@ -366,21 +369,20 @@ def _get_metadata_url():
 		print(e, file=sys.stderr)
 	return o
 
-def register_pool():
+def register_pool(pledge, margin, cost, cold_vkey, vrf_vkey):
 
 	payment_addr = open('payment.addr').read()
 	payment_skey = open('payment.skey').read()
 
 	metadata_hash = _get_metadata_hash()
-	pledge = 500 * 1_000_000
-	cost = 340 * 1_000_000
-	margin = 0.03
+	pledge = pledge * 1_000_000
+	cost = cost * 1_000_000
 	metadata_url = _get_metadata_url()
 	relay_dns = "adapool.chaintrust.com"
 
 	cmd = 'cardano-cli stake-pool registration-certificate '
-	cmd += '--cold-verification-key-file cold.vkey '
-	cmd += '--vrf-verification-key-file vrf.vkey '
+	cmd += f'--cold-verification-key-file {KEYS}/cold.vkey '
+	cmd += f'--vrf-verification-key-file {KEYS}/vrf.vkey '
 	cmd += f'--pool-pledge {pledge} '
 	cmd += f'--pool-cost {cost} '
 	cmd += f'--pool-margin {margin} '
@@ -471,6 +473,14 @@ def get_pool_params(pool_id):
 	print(o)
 	return True
 
+def get_stake_snapshot(pool_id):
+	o,e = run(f'{DIR}/cardano-cli query stake-snapshot --stake-pool-id {pool_id} {NETWORK}')
+	if e:
+		print(e, file=sys.stderr)
+		return False
+	print(o)
+	return True
+
 
 if __name__ == '__main__':
 
@@ -502,6 +512,9 @@ if __name__ == '__main__':
 
 	elif p.command == 'pool-params':
 		ok = get_pool_params(p.pool_id)
+
+	elif p.command == 'stake-snapshot':
+		ok = get_stake_snapshot(p.pool_id)
 
 
 
