@@ -24,13 +24,21 @@ export default {
             await disconnectHost(n.host);
             commit('disconnectNode', n); 
         },
-        removeNode({commit}, n) { commit('removeNode', n); },
-        async hasTools({commit}, n) { 
-            if (n) {
-                let r = await runRemote('ls cardano/bin/status.py');
-                n.has_tools = r.rc === 0;
-                commit('updateNode', n); 
-            }
+        removeNode({commit}, node) { commit('removeNode', node); },
+        async getVersion({commit}, node) { 
+            let r = await runRemote('cardano/bin/cardano-cli --version');
+            node.version = 'Checking...';
+            let cli = 'N/A'
+            let wallet = 'N/A';
+            if (r.rc === 0)
+                cli = r.stdout;
+            r = await runRemote('cardano/bin/cardano-wallet version');
+            //console.log(r);
+            if (r.rc === 0)
+                wallet = r.stdout;
+            node.version = `cardano-cli: ${cli}\ncardano-wallet: ${wallet}`;
+            commit('updateNode', node); 
+            
         },
         async connectNode({commit, dispatch, getters}, n) {
             commit('workStart', `Connecting to ${n.host}...`, {root: true});

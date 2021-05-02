@@ -2,16 +2,17 @@
     <div>
         <!-- <pre>{{wallet}}</pre> -->
         <h2>Summary </h2>
-        <div v-if="wallet">
-            <div>Name: {{wallet.name}}</div>
-            <div>ID: {{wallet.id}}</div>
-            <div>Sync: {{syncPercent}}%</div>
-            <div>Epoch: {{wallet.tip && wallet.tip.epoch_number}}</div>
-            <!-- <div>Balance: {{wallet.balance.total.quantity}}</div> -->
-            <div>Delegation: {{wallet.delegation && wallet.delegation.active.status}}</div>
-            <!-- <pre>{{wallet.transactions}}</pre> -->
-            <br/>
-        </div>
+        <table v-if="wallet" class="table">
+            <tbody>
+            <tr><td>Name:</td><td>{{wallet.name}}</td></tr>
+            <tr><td>Wallet ID:</td><td class="text-break">{{wallet.id}}</td></tr>
+            <tr><td>Sync status:</td><td>{{syncPercent}}%</td></tr>
+            <tr><td>Epoch:</td><td>{{wallet.tip && wallet.tip.epoch_number}}</td></tr>
+            <tr><td>Delegation:</td><td>{{wallet.delegation && wallet.delegation.active.status}}</td></tr>
+            <tr><td class="text-nowrap">Stake address:</td>
+                <td><pre class="text-break">{{wallet.stake_address}}</pre></td></tr>
+            </tbody>
+        </table>
 
         <h2>Balance</h2>
         <div class="d-flex align-items-baseline">

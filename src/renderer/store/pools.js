@@ -50,8 +50,10 @@ export default {
             }
             r = await runRemote(`python3 cardano/bin/cardano.py pool-params --pool-id ${pool.id}`);
             if (r.rc === 0) {
-                if (r.stdout)
-                    pool.params = JSON.parse(r.stdout);
+                if (r.stdout) {
+                    let js = JSON.parse(r.stdout);
+                    pool.params = js['poolParams'];
+                }
             } else {
                 console.log('error getting pool params: '+ r.stderr);                    
             }

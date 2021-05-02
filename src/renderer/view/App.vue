@@ -93,6 +93,9 @@ h2 {
   border-radius: 0;
   width: 100%;
 }
+pre {
+  white-space: pre-wrap;
+}
 .icon-success {
   color: #198754;
   width: 16px;

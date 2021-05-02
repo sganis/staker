@@ -137,6 +137,11 @@
           </td>
           <td></td>
         </tr>
+        <tr>
+          <td>Tools:</td>
+          <td><pre>{{node.version || "Not installed"}}</pre></td>
+          <td></td>
+        </tr>
       </tbody>
     </table>
 
@@ -406,9 +411,11 @@ export default {
   },
   mounted() {
     this.loadNodeKeys(this.node);
+    this.getVersion(this.node);
   },
   methods: {
     ...mapActions("nodes", [
+      "getVersion",
       "updateNodeStatus",
       "disconnectNode",
       "deselectAllNodes",

@@ -13,16 +13,24 @@
             <td>{{ pool.metadata_hash }}</td></tr>
         <tr><td>Metadata Url</td>
             <td>{{ pool.metadata_url }}</td></tr>
+        <tr><td>Rewards account</td>
+            <td>{{ pool.rewards_account }}</td></tr>
+        <tr><td>Owners</td>
+            <td>{{ pool.owners }}</td></tr>
         </tbody>
     </table>
     <button @click="_newKey()" :disabled="getLoading" 
         class="btn btn-primary btn-width"  >Edit</button>
     
+
     <br/>
     <br/>
     <h2>Registration</h2>
     <table class="table">
         <tbody>
+        <tr><td>Status</td>
+            <td>{{pool.params && "Registered" || "Not registered"}}</td></tr>
+        <div v-if="pool.params">
         <tr><td>Pledge</td>
             <td>{{pool.params && pool.params.poolParams.pledge/1000000}}</td></tr>
         <tr><td>Margin</td>
@@ -42,6 +50,7 @@
             <td>{{pool.params && pool.params.poolParams.metadata.hash}}</td></tr>
         <tr><td>Metadata url</td>
             <td>{{pool.params && pool.params.poolParams.metadata.url}}</td></tr>
+        </div>
         </tbody>
     </table>
     <!-- <pre class="text-break">{{pool.params}}</pre> -->

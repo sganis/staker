@@ -108,6 +108,25 @@ export default {
                 commit('update', w); 
                 dispatch('getAdaUsd', w);
             }
+            // get stake address
+            let stake_addr = '';
+            r = await runRemote(`[ -f cardano/wallets/${w.id}/stake.addr ] && cat cardano/wallets/${w.id}/stake.addr`)
+            
+            if (r.stdout) {
+                stake_addr = r.stdout;
+                r = await runRemote(`python3 cardano/bin/cardano.py stake-address-info --address ${stake_addr}`);
+                //console.log(r);
+                if (r.rc === 0) {
+                    let js = JSON.parse(r.stdout);
+                    if (js.length > 0) {
+                        w.stake_address = js[0];
+                    } else {
+                        w.stake_address = "Not registered";
+                    }
+                } 
+            } else {
+                w.stake_address = 'N/A';
+            }
         },
         async getAdaUsd({commit}, w) {
             try {
