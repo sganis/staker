@@ -51,8 +51,7 @@ export default {
             r = await runRemote(`python3 cardano/bin/cardano.py pool-params --pool-id ${pool.id}`);
             if (r.rc === 0) {
                 if (r.stdout) {
-                    let js = JSON.parse(r.stdout);
-                    pool.params = js['poolParams'];
+                    pool.params = JSON.parse(r.stdout);
                 }
             } else {
                 console.log('error getting pool params: '+ r.stderr);                    
@@ -68,6 +67,17 @@ export default {
             commit('updatePool', pool); 
 
         },
+        async register({commit}, pool) { 
+            commit('workStart', 'Registering pool...', {root: true});            
+            let r = await runRemote(`python3 cardano/bin/cardano.py register-pool --pledge ${pool.pledge} --margin ${pool.margin} --cost ${pool.cost} --wallet-id ${pool.wallet_id}`);
+            if (r.rc === 0) {
+                console.log(r);   
+            } else {
+                console.log('error getting pool metadata: '+ r.stderr);                    
+            }
+            commit('workEnd', r, {root: true});
+            return new Promise(res=>{res(r)});
+        }
     },
 
     mutations: {

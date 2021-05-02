@@ -30,7 +30,7 @@
         <tbody>
         <tr><td>Status</td>
             <td>{{pool.params && "Registered" || "Not registered"}}</td></tr>
-        <div v-if="pool.params">
+        <template v-if="pool.params">
         <tr><td>Pledge</td>
             <td>{{pool.params && pool.params.poolParams.pledge/1000000}}</td></tr>
         <tr><td>Margin</td>
@@ -43,17 +43,17 @@
             <td>{{pool.params && pool.params.poolParams.rewardAccount}}</td></tr>
         <tr><td>Owners</td>
             <td>{{pool.params && pool.params.poolParams.owners}}</td></tr>
-        <tr v-if="pool.params && pool.params.poolParams.retiring">
-            <td>Reriting</td>
-            <td>{{pool.params && pool.params.poolParams.retiring}}</td></tr>
         <tr><td>Metadata hash</td>
             <td>{{pool.params && pool.params.poolParams.metadata.hash}}</td></tr>
         <tr><td>Metadata url</td>
             <td>{{pool.params && pool.params.poolParams.metadata.url}}</td></tr>
-        </div>
+        </template>
         </tbody>
     </table>
-    <!-- <pre class="text-break">{{pool.params}}</pre> -->
+
+    <b>Raw Pool Params</b>   
+    <pre class="text-break">{{pool.params}}</pre>
+    
     <button @click="registering=true" :disabled="getLoading" 
         v-if="!registering"
         class="btn btn-primary btn-width"  >Register</button>
@@ -85,7 +85,7 @@
         </div>        
         </form>
         <br/>
-        <button @click="register()" :disabled="getLoading" 
+        <button @click="_register()" :disabled="getLoading" 
             class="btn btn-primary btn-width"  >Submit</button>
             &nbsp;
         <button @click="registering=false" :disabled="getLoading" 
@@ -107,7 +107,10 @@ export default {
         return {
             registering: false,
             fpool : {
-                pledge: 0,
+                pledge: 1000,
+                margin: 0.05,
+                cost: 350,
+                wallet_id: '377b5fb2b90a5f937b1a72b309787fb1e26e28ba',
             }
         }
     },
@@ -119,12 +122,12 @@ export default {
         this.loadPool(this.pool);
     },
     methods: {
-        ...mapActions('pools',['loadPool','registerPool']),
-        async _register(pool) {
-            let r = await this.register(pool);
-            if (r.rc === 0) {
-                //this.keygen_list=[];
-            }
+        ...mapActions('pools',['loadPool','register']),
+        async _register() {
+            let r = await this.register(this.fpool);
+            // if (r.rc === 0) {
+                
+            // }
         }
     },
 }

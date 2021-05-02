@@ -115,7 +115,7 @@ export default {
             if (r.stdout) {
                 stake_addr = r.stdout;
                 r = await runRemote(`python3 cardano/bin/cardano.py stake-address-info --address ${stake_addr}`);
-                //console.log(r);
+                console.log(r);
                 if (r.rc === 0) {
                     let js = JSON.parse(r.stdout);
                     if (js.length > 0) {
@@ -171,7 +171,7 @@ export default {
                 console.log('new id: '+ w.id);
                 r.stderr = '';
                 // extract pool keys
-                r = await runRemote(`mkdir -p cardano/keys/${w.id}; cd cardano/keys/${w.id}; echo ${words} > words.prv; ../../bin/extract_keys.sh words.prv`);
+                r = await runRemote(`mkdir -p cardano/wallets/${w.id}; cd cardano/wallets/${w.id}; echo ${words} > words.prv; ../../bin/extract_keys.sh words.prv`);
                 if (r.rc != 0) {
                     console.log(r);
                 }
@@ -201,27 +201,7 @@ export default {
             } else {
                 state.wallets.push(wallet);
             }
-        },
-        setLoading(state, b) { state.loading = b; },
-        setError(state, e) {state.error = e; setTimeout(()=> state.error = '', 3000)},
-        setMessage(state, m) {state.message = m},
-        workStart(state, msg) {
-            state.loading = true;
-            state.error = '';
-            state.message = msg;
-        },
-        workEnd(state, r={}) {
-            state.loading = false;
-            if (r && r.rc !==0 && r.stderr) {
-                state.error = r.stderr; 
-                //setTimeout(()=> state.error = '', 3000);
-            }
-            else if (r && r.stdout) {
-                state.message = r.stdout; 
-                setTimeout(()=> state.message = '', 5000);
-            }
-        },
-        
+        },       
     },
 }
 
