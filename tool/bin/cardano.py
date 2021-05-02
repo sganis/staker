@@ -106,6 +106,9 @@ def _get_args():
 	s = subparsers.add_parser("stake-snapshot", help='get stake snapshot')
 	s.add_argument("--pool-id", required=True, help="pool id")
 
+	s = subparsers.add_parser("stake-address-info", help='get stake address info')
+	s.add_argument("--address", required=True, help="stake address")
+
 	
 	# Parse
 	a = parser.parse_args()
@@ -449,7 +452,7 @@ def _get_pool_id():
 		return o
 	else:
 		print(e, file=sys.stderr)
-		return ''
+		return ''	
 
 def is_pool_registered():
 	nodekey = f'{KEYS}/cold.vkey'
@@ -459,13 +462,13 @@ def is_pool_registered():
 
 	poolid = _get_pool_id()
 	if poolid:
-		o,e = run(f'cardano-cli query ledger-state {NETWORK} --mary-era') # | grep publicKey | grep {nodeid}')
+		o,e = run(f'{DIR}/cardano-cli query ledger-state {NETWORK} --mary-era') # | grep publicKey | grep {nodeid}')
 		for line in o.split('\n'):
 			if 'publicKey' in line and poolid in line:
 				return True
 	return False
 
-def get_pool_params(pool_id):
+def query_pool_params(pool_id):
 	o,e = run(f'{DIR}/cardano-cli query pool-params --stake-pool-id {pool_id} {NETWORK}')
 	if e:
 		print(e, file=sys.stderr)
@@ -473,8 +476,16 @@ def get_pool_params(pool_id):
 	print(o)
 	return True
 
-def get_stake_snapshot(pool_id):
+def query_stake_snapshot(pool_id):
 	o,e = run(f'{DIR}/cardano-cli query stake-snapshot --stake-pool-id {pool_id} {NETWORK}')
+	if e:
+		print(e, file=sys.stderr)
+		return False
+	print(o)
+	return True
+
+def query_stake_address_info(address):
+	o,e = run(f'{DIR}/cardano-cli query stake-address-info --address {address} {NETWORK}')
 	if e:
 		print(e, file=sys.stderr)
 		return False
@@ -511,10 +522,13 @@ if __name__ == '__main__':
 			ok = generate_node_keys(types)
 
 	elif p.command == 'pool-params':
-		ok = get_pool_params(p.pool_id)
+		ok = query_pool_params(p.pool_id)
 
 	elif p.command == 'stake-snapshot':
-		ok = get_stake_snapshot(p.pool_id)
+		ok = query_stake_snapshot(p.pool_id)
+
+	elif p.command == 'stake-address-info':
+		ok = query_stake_address_info(p.address)
 
 
 
