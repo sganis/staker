@@ -43,7 +43,7 @@ const store = createStore({
             else if (r.stdout) {
                 state.error = '';
                 state.message = r.stdout; 
-                setTimeout(()=> state.message = '', 5000);
+                setTimeout(()=> state.message = '', 2000);
             } else {
                 state.error = '';
                 state.message = '';

@@ -55,6 +55,13 @@ export default {
             } else {
                 console.log('error getting pool params: '+ r.stderr);                    
             }
+            r = await runRemote(`python3 cardano/bin/cardano.py stake-snapshot --pool-id ${pool.id}`);
+            if (r.rc === 0) {
+                if (r.stdout)
+                    pool.stake_snapshot = JSON.parse(r.stdout);
+            } else {
+                console.log('error getting stake snapshot: '+ r.stderr);                    
+            }
 
             commit('updatePool', pool); 
 
