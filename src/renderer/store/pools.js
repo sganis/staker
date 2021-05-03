@@ -63,7 +63,7 @@ export default {
             } else {
                 console.log('error getting stake snapshot: '+ r.stderr);                    
             }
-
+            console.log(pool);
             commit('updatePool', pool); 
 
         },
@@ -82,7 +82,7 @@ export default {
 
     mutations: {
         updatePool(state, pool) {
-            const p = state.pools.find(x => x.name === pool.name);
+            const p = state.pools.find(x => x.id === pool.id);
             let current_pool = null;
             if (p) {
                 Object.assign(p, pool);
@@ -92,7 +92,7 @@ export default {
                 current_pool = pool;
             }
             if (current_pool.selected) {
-                setSettings('current_pool', current_pool.name);
+                setSettings('current_pool', current_pool.id);
             }
         },
 

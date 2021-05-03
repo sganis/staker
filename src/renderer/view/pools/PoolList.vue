@@ -41,8 +41,8 @@ export default {
 
     showPool(pool) {
       this.deselectAllPools();     
-      this.updatePool({name: pool.name, selected: true});
-      this.$router.push(`/pools/${pool.name}`);
+      this.updatePool({id: pool.id, selected: true});
+      this.$router.push(`/pools/${pool.id}`);
     },
     addPool() {
       this.deselectAllPools();     
