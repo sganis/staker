@@ -210,7 +210,9 @@
 
     <br />
     <h2>Topology</h2>
-    <p>TODO</p>
+    
+    <pre>{{node.topology}}</pre>
+
 
     <br />
     <br />
@@ -301,11 +303,12 @@ export default {
     },
   },
   mounted() {
-    this.getVersion(this.node);
+    this.loadNode(this.node);
+
   },
   methods: {
     ...mapActions("nodes", [
-      "getVersion",
+      "loadNode",
       "updateNodeStatus",
       "disconnectNode",
       "deselectAllNodes",
@@ -332,6 +335,7 @@ export default {
       }
     },    
   },
+  
 };
 </script>
 
