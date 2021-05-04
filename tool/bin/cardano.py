@@ -22,9 +22,10 @@ NETWORK='--testnet-magic 1097911063'
 def run(cmd):
 	cmd = cmd.replace('\n','')
 	# print(f'CMD: {cmd}')
-	p = subprocess.run(cmd.replace('\n','').split(), capture_output=True)
-	stdout = p.stdout.decode().strip()
-	stderr = p.stderr.decode().strip()
+	p = subprocess.run(cmd.replace('\n',' ').split(), encoding='utf8', 
+			stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	stdout = p.stdout.strip()
+	stderr = p.stderr.strip()
 	return stdout, stderr
 
 def _get_protocol():
