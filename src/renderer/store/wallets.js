@@ -115,7 +115,7 @@ export default {
             if (r.stdout) {
                 stake_addr = r.stdout;
                 r = await runRemote(`python3 cardano/bin/cardano.py stake-address-info --address ${stake_addr}`);
-                console.log(r);
+                //console.log(r);
                 if (r.rc === 0) {
                     let js = JSON.parse(r.stdout);
                     if (js.length > 0) {

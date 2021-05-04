@@ -177,30 +177,7 @@ export default {
             console.log(r);
             commit('workEnd',r, {root: true});
         },
-        async newKey({commit, dispatch}, {node, type}) {
-            commit('workStart', `Generateing new ${type} keys...`, {root: true});
-            
-            let r = await runRemote(`python3 cardano/bin/cardano.py generate-node-keys --type=${type.join(',')}`);
-            if (r.rc !== 0) {
-                console.log(r);
-            } else {
-                await dispatch('loadNodeKeys', node);
-                r.stdout = 'Success!';
-            }
-            commit('workEnd',r, {root: true});
-            return r;
-        },
-        async loadNodeKeys({commit}, n) {
-            //commit('workStart', 'Changing role...');
-            let r = await runRemote('python3 cardano/bin/cardano.py node-keys');
-            if (r.rc !== 0) {
-                console.log(r);
-            } else {
-                n.keys = JSON.parse(r.stdout);
-                commit('updateNode', n);
-                //r.stdout = 'Success! New role will be available after node service restart.';
-            }            
-        }
+                
     },
 
     mutations: {

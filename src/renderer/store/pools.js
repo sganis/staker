@@ -19,7 +19,17 @@ export default {
     actions: {
         updatePool({commit}, pool) { commit('updatePool', pool); },
         deselectAllPools({commit}) { commit('deselectAllPools'); },
-        async loadPool({commit}, pool) { 
+        async loadKeys({commit}, pool) {
+            let r = await runRemote('python3 cardano/bin/cardano.py pool-keys');
+            if (r.rc === 0) {
+                pool.keys = JSON.parse(r.stdout);                
+                commit('updatePool', pool); 
+            } else {
+                console.log('error getting pool keys: '+ r.stderr);                    
+            }            
+        },
+        async loadPool({commit, dispatch}, pool) { 
+            // pool id
             let r = await runRemote('cardano-cli stake-pool id --cold-verification-key-file cardano/keys/cold.vkey --output-format "hex"');
             if (r.rc === 0) {
                 if (r.stdout)
@@ -27,6 +37,10 @@ export default {
             } else {
                 console.log('error getting pool metadata: '+ r.stderr);                    
             }
+            // load keys
+            await dispatch('loadKeys', pool);
+
+            // metadata
             r = await runRemote('[ -f cardano/config/pool-metadata.json ] && cat cardano/config/pool-metadata.json');
             if (r.rc === 0) {
                 if (r.stdout)
@@ -48,6 +62,7 @@ export default {
             } else {
                 console.log('error getting pool metadata url: '+ r.stderr);                    
             }
+            // on-chain data
             r = await runRemote(`python3 cardano/bin/cardano.py pool-params --pool-id ${pool.id}`);
             if (r.rc === 0) {
                 if (r.stdout) {
@@ -56,16 +71,30 @@ export default {
             } else {
                 console.log('error getting pool params: '+ r.stderr);                    
             }
-            r = await runRemote(`python3 cardano/bin/cardano.py stake-snapshot --pool-id ${pool.id}`);
-            if (r.rc === 0) {
-                if (r.stdout)
-                    pool.stake_snapshot = JSON.parse(r.stdout);
-            } else {
-                console.log('error getting stake snapshot: '+ r.stderr);                    
-            }
-            console.log(pool);
+            // stake snapshot, not used
+            // r = await runRemote(`python3 cardano/bin/cardano.py stake-snapshot --pool-id ${pool.id}`);
+            // if (r.rc === 0) {
+            //     if (r.stdout)
+            //         pool.stake_snapshot = JSON.parse(r.stdout);
+            // } else {
+            //     console.log('error getting stake snapshot: '+ r.stderr);                    
+            // }
+            //console.log(pool);
             commit('updatePool', pool); 
 
+        },
+        async newKey({commit, dispatch}, {pool, type}) {
+            commit('workStart', `Generateing new ${type} keys...`, {root: true});
+            
+            let r = await runRemote(`python3 cardano/bin/cardano.py generate-pool-keys --type=${type.join(',')}`);
+            if (r.rc !== 0) {
+                console.log(r);
+            } else {
+                await dispatch('loadKeys', pool);
+                r.stdout = 'Success!';
+            }
+            commit('workEnd',r, {root: true});
+            return r;
         },
         async register({commit}, pool) { 
             commit('workStart', 'Registering pool...', {root: true});            
