@@ -210,116 +210,11 @@
 
     <br />
     <h2>Topology</h2>
-    <textarea v-model="topology_str" rows="8" cols="40">
-    </textarea>
+    
     <pre>{{node.topology}}</pre>
 
 
     <br />
-    <div v-if="status.nodeRole !== 'RELAY'">
-      <h2>Keys</h2>
-      <table class="table">
-        <tbody>
-          <tr
-            v-for="(k, index) in node.keys || []"
-            :key="index"
-            class="fs-7"
-            @click="k.visible = !k.visible"
-            @mouseover="k.hover = true"
-            @mouseleave="k.hover = false"
-            :class="{ active: k.hover }"
-          >
-            <td colspan="2">
-              <div class="d-flex justify-content-between">
-                <div class="text-nowrap">
-                  <BIconCheckCircleFill
-                    class="icon-success"
-                    v-if="k.mtime !== 'N/A'"
-                  />
-                  <BIconExclamationCircleFill
-                    class="icon-danger"
-                    v-if="k.mtime === 'N/A'"
-                  />
-                  &nbsp;
-                  {{ k.name }}
-                </div>
-                <div class="text-nowrap">{{ k.days }}</div>
-              </div>
-              <div class="row text-break" v-if="k.visible">
-                <pre class="text-break">{{ k.content }}</pre>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-      <h5>Generate new keys:</h5>
-      <br />
-      <div class="row" :disabled="getLoading">
-        <form>
-          <div class="form-check form-check-inline">
-            <input
-              class="form-check-input"
-              type="checkbox"
-              :disabled="getLoading"
-              id="cold"
-              value="cold"
-              v-model="keygen_list"
-            />
-            <label class="form-check-label" for="cold">Cold keys</label>
-          </div>
-          <div class="form-check form-check-inline">
-            <input
-              class="form-check-input"
-              type="checkbox"
-              :disabled="getLoading"
-              id="vrf"
-              value="vrf"
-              v-model="keygen_list"
-            />
-            <label class="form-check-label" for="vrf">VFR keys</label>
-          </div>
-          <div class="form-check form-check-inline">
-            <input
-              class="form-check-input"
-              type="checkbox"
-              :disabled="getLoading"
-              id="kes"
-              value="kes"
-              v-model="keygen_list"
-            />
-            <label class="form-check-label" for="kes">KES keys</label>
-          </div>
-          <div class="form-check form-check-inline">
-            <input
-              class="form-check-input"
-              type="checkbox"
-              :disabled="getLoading"
-              id="cert"
-              value="cert"
-              v-model="keygen_list"
-            />
-            <label class="form-check-label" for="cert"
-              >Operational certificate</label
-            >
-          </div>
-        </form>
-      </div>
-      <br />
-      <div class="row">
-        <span>
-          <button
-            v-if="node"
-            @click="_newKey({ node: node, type: keygen_list })"
-            :disabled="getLoading || keygen_list.length === 0"
-            class="btn btn-primary"
-          >
-            Generate
-          </button>
-        </span>
-      </div>
-    </div>
-    <!-- end keys -->
-
     <br />
     <h2>Logs</h2>
     <!-- <pre>{{node.status.logs && node.status.logs[0]}}</pre> -->
@@ -357,8 +252,6 @@ export default {
     return {
       sudo: "",
       need_sudo: false,
-      keygen_list: [],
-      topology_str: '',
     };
   },
   computed: {
@@ -410,7 +303,6 @@ export default {
     },
   },
   mounted() {
-    this.loadNodeKeys(this.node);
     this.loadNode(this.node);
 
   },
@@ -425,8 +317,6 @@ export default {
       "hasTools",
       "serviceAction",
       "changeRole",
-      "loadNodeKeys",
-      "newKey",
     ]),
 
     disconnect(node) {
@@ -443,23 +333,9 @@ export default {
         let r = await this.installNode({ node: this.node, sudo: this.sudo });
         if (r.rc === 0) this.need_sudo = false;
       }
-    },
-    async _newKey(args) {
-      let r = await this.newKey(args);
-      if (r.rc === 0) {
-        this.keygen_list = [];
-      }
-    },
-
+    },    
   },
-  watch: {
-    node: {
-      deep: true,
-      handler(newNode) {
-        return JSON.stringify(JSON.parse(newNode.topology), null, 2);
-      }
-    }
-  }
+  
 };
 </script>
 
