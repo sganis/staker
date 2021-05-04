@@ -10,11 +10,11 @@ fi
 role=$1
 new_role=""
 
-if [[ "$role"  == "relay" ]]; then
+if [ "$role" = "relay" ]; then
 	echo export CARDANO_NODE_ROLE=core > $CONF/role.sh
 	echo changed to $new_role
 
-elif [[ "$role"  == "producer" ]]; then
+elif [ "$role"  = "producer" ]; then
 	echo export CARDANO_NODE_ROLE=relay > $CONF/role.sh
 	echo changed to $new_role
 else

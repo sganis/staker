@@ -79,7 +79,7 @@ def _get_pool_deposit():
 	js = json.loads(open(f'{CONF}/protocol.json').read())
 	return int(js['stakePoolDeposit'])
 
-def _get_args():
+def _get_params():
 	parser = argparse.ArgumentParser()
 	# parser.add_argument('--tx', action='store_true', help='make a transaction')
 	subparsers = parser.add_subparsers(dest='command')
@@ -121,6 +121,7 @@ def _get_args():
 	s.add_argument("--cost", required=True, help="cost in ADA")
 	s.add_argument("--wallet-id", required=True, help="wallet id of payment and stake")
 
+	s = subparsers.add_parser("version", help='get version')
 	
 	# Parse
 	a = parser.parse_args()
@@ -553,10 +554,42 @@ def query_stake_address_info(address):
 	print(o)
 	return True
 
+def query_version():
+	version = {}
+	version['cardano-cli'] = 'N/A'	
+	version['cardano-node'] = 'N/A'	
+	version['cardano-wallet'] = 'N/A'	
+	o,e = run(f'{DIR}/cardano-cli --version')
+	if e:
+		print(e, file=sys.stderr)
+	try:
+		version['cardano-cli'] = o.split()[1]
+	except:
+		pass
+
+	o,e = run(f'{DIR}/cardano-node --version')
+	if e:
+		print(e, file=sys.stderr)
+	try: 
+		version['cardano-node'] = o.split()[1]
+	except:
+		pass
+
+	o,e = run(f'{DIR}/cardano-wallet version')
+	if e:
+		print(e, file=sys.stderr)
+	try:
+		version['cardano-wallet'] = o.split()[0]
+	except:
+		pass
+		
+	print(json.dumps(version))
+	return True
+
 
 if __name__ == '__main__':
 
-	p = _get_args()
+	p = _get_params()
 
 	ok = False
 	if p.command == 'tx':
@@ -593,6 +626,9 @@ if __name__ == '__main__':
 
 	elif p.command == 'register-pool':
 		ok = register_pool(p.pledge, p.margin, p.cost, p.wallet_id)
+
+	elif p.command == 'version':
+		ok = query_version()
 
 
 
