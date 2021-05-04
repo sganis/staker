@@ -98,13 +98,9 @@ def _get_params():
 	s = subparsers.add_parser("balance", help='query balance of address')
 	s.add_argument("--address", required=True, help="address to query balance")
 
-	s = subparsers.add_parser("node-keys", help='get node keys')
-	s = subparsers.add_parser("generate-node-keys", help='generate node keys')
-	s.add_argument("--type", required=True, help="generate cold, vrf, kes, and cert keys")
-
 	s = subparsers.add_parser("pool-keys", help='get pool keys')
 	s = subparsers.add_parser("generate-pool-keys", help='generate pool keys')
-	s.add_argument("--type", required=True, help="generate node, vrf, kes, or cert keys")
+	s.add_argument("--type", required=True, help="generate cold, vrf, kes, and cert keys")
 
 	s = subparsers.add_parser("pool-params", help='get pool params')
 	s.add_argument("--pool-id", required=True, help="pool id")
@@ -291,7 +287,7 @@ def _backup_keys():
 				return False
 	return True
 
-def get_node_keys():
+def get_pool_keys():
 	keys = []
 	files = os.listdir(f'{KEYS}')
 	for i,f in enumerate(KEYFILES):
@@ -315,7 +311,7 @@ def get_node_keys():
 	print(json.dumps(keys))
 	return True
 
-def generate_node_keys(types):
+def generate_pool_keys(types):
 	_backup_keys()		
 	if 'cold' in types:
 		cmd = f'{DIR}/cardano-cli node key-gen '
@@ -604,16 +600,16 @@ if __name__ == '__main__':
 	elif p.command == 'balance':
 		ok = balance(p.address)
 
-	elif p.command == 'node-keys':
-		ok = get_node_keys()
+	elif p.command == 'pool-keys':
+		ok = get_pool_keys()
 
-	elif p.command == 'generate-node-keys':
+	elif p.command == 'generate-pool-keys':
 		types = p.type.split(',')
 		for t in types:
 			if not t in ['kes','vrf','cold','cert']:
 				print('invalid key generation request')
 		else:
-			ok = generate_node_keys(types)
+			ok = generate_pool_keys(types)
 
 	elif p.command == 'pool-params':
 		ok = query_pool_params(p.pool_id)

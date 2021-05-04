@@ -79,6 +79,7 @@ export default {
 
 h2 {
    /* width: 100%;  */
+   color:rgb(109, 109, 109);
    border-bottom: 1px solid gainsboro; 
    padding-top: 20px;
    /* line-height: 0.1em; */
