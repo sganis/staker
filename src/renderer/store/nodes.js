@@ -25,18 +25,17 @@ export default {
             commit('disconnectNode', n); 
         },
         removeNode({commit}, node) { commit('removeNode', node); },
-        async getVersion({commit}, node) { 
-            let r = await runRemote('cardano/bin/cardano-cli --version');
+        async loadNode({commit}, node) {
+            // topology
+            let r = await runRemote('cd cardano/config && . role.sh && . network.sh && cat ${CARDANO_NODE_NETWORK}-topology-${CARDANO_NODE_ROLE}.json');
+            if (r.rc === 0)
+                node.topology = JSON.parse(r.stdout);
+            else
+                console.log(r)
+            r = await runRemote('python3 cardano/bin/cardano.py version');
             node.version = 'Checking...';
-            let cli = 'N/A'
-            let wallet = 'N/A';
             if (r.rc === 0)
-                cli = r.stdout;
-            r = await runRemote('cardano/bin/cardano-wallet version');
-            //console.log(r);
-            if (r.rc === 0)
-                wallet = r.stdout;
-            node.version = `cardano-cli: ${cli}\ncardano-wallet: ${wallet}`;
+                node.version = JSON.parse(r.stdout);
             commit('updateNode', node); 
             
         },

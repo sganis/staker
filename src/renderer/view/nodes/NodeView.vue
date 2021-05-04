@@ -210,7 +210,10 @@
 
     <br />
     <h2>Topology</h2>
-    <p>TODO</p>
+    <textarea v-model="topology_str" rows="8" cols="40">
+    </textarea>
+    <pre>{{node.topology}}</pre>
+
 
     <br />
     <div v-if="status.nodeRole !== 'RELAY'">
@@ -318,10 +321,6 @@
     <!-- end keys -->
 
     <br />
-    <h2>Settings</h2>
-    <p>TODO</p>
-
-    <br />
     <h2>Logs</h2>
     <!-- <pre>{{node.status.logs && node.status.logs[0]}}</pre> -->
     <table class="table">
@@ -359,6 +358,7 @@ export default {
       sudo: "",
       need_sudo: false,
       keygen_list: [],
+      topology_str: '',
     };
   },
   computed: {
@@ -411,11 +411,12 @@ export default {
   },
   mounted() {
     this.loadNodeKeys(this.node);
-    this.getVersion(this.node);
+    this.loadNode(this.node);
+
   },
   methods: {
     ...mapActions("nodes", [
-      "getVersion",
+      "loadNode",
       "updateNodeStatus",
       "disconnectNode",
       "deselectAllNodes",
@@ -449,7 +450,16 @@ export default {
         this.keygen_list = [];
       }
     },
+
   },
+  watch: {
+    node: {
+      deep: true,
+      handler(newNode) {
+        return JSON.stringify(JSON.parse(newNode.topology), null, 2);
+      }
+    }
+  }
 };
 </script>
 
