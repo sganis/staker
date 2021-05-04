@@ -87,7 +87,7 @@ systemctl daemon-reload
 systemctl enable cardano-wallet.service
 
 # add no sudo passoword to restart services
-grep -qF '/bin/systemctl' /etc/sudoers 
+grep -qF 'NOPASSWD: /bin/systemctl' /etc/sudoers 
 if [ $? -ne 0 ];then
 	chmod 640 /etc/sudoers
 	echo "$USER ALL = NOPASSWD: /bin/systemctl" >> /etc/sudoers
@@ -95,9 +95,9 @@ if [ $? -ne 0 ];then
 fi
 
 # add cardano/bin folder to PATH
-grep -qF '/cardano/bin' $HOME/.bashrc
-if [ $? -ne 0 ];then
-	echo "export PATH=$HOME/cardano/bin:$PATH" >> $HOME/.bashrc
-fi
+# grep -qF '/cardano/bin' $HOME/.bashrc
+# if [ $? -ne 0 ];then
+# 	echo "export PATH=$HOME/cardano/bin:$PATH" >> $HOME/.bashrc
+# fi
 
 
