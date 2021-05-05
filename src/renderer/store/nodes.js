@@ -26,18 +26,23 @@ export default {
         },
         removeNode({commit}, node) { commit('removeNode', node); },
         async loadNode({commit}, node) {
+            // os release
+            let r = await runRemote('cat /etc/os-release |head -2');
+            node.os_release = 'Checking...';
+            if (r.rc === 0)
+                node.os_release = r.stdout;
             // topology
-            let r = await runRemote('cd cardano/config && . role.sh && . network.sh && cat ${CARDANO_NODE_NETWORK}-topology-${CARDANO_NODE_ROLE}.json');
+            r = await runRemote('cd cardano/config && . role.sh && . network.sh && cat ${CARDANO_NODE_NETWORK}-topology-${CARDANO_NODE_ROLE}.json');
             if (r.rc === 0)
                 node.topology = JSON.parse(r.stdout);
             else
                 console.log(r)
+            // tools versions
             r = await runRemote('python3 cardano/bin/cardano.py version');
             node.version = 'Checking...';
             if (r.rc === 0)
                 node.version = JSON.parse(r.stdout);
-            commit('updateNode', node); 
-            
+            commit('updateNode', node);             
         },
         async connectNode({commit, dispatch, getters}, n) {
             commit('workStart', `Connecting to ${n.host}...`, {root: true});

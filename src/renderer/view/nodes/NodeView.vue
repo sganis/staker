@@ -73,6 +73,10 @@
           </td>
         </tr>
         <tr>
+          <td>OS Release:</td>
+          <td colspan="2">{{node.os_release}}</td>
+        </tr>
+        <tr>
           <td>CPU Load:</td>
           <td>
             <div class="progress btn-width">

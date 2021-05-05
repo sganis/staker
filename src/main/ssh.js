@@ -429,8 +429,8 @@ export async function setupSsh() {
             return r;
         }            
     } 
-    let pkeystr = readFileSync(pubkey, 'utf8');
-    r = await runRemote(`mkdir -p .ssh; chmod 700 .ssh; echo "${pkeystr.trim()}" >> .ssh/authorized_keys; chmod 644 .ssh/authorized_keys`)
+    let pkey = readFileSync(pubkey, 'utf8').trim();
+    r = await runRemote(`mkdir -p .ssh; chmod 700 .ssh; touch .ssh/authorized_keys; chmod 644 .ssh/authorized_keys; grep -qF ${pkey} .ssh/authorized_keys || echo "${pkey}" >> .ssh/authorized_keys`)
     if (r.rc !== 0) 
         console.log(r); 
     return r;
