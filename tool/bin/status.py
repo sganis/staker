@@ -90,7 +90,7 @@ def get_network_information():
 # }
 
 
-    cmd = 'timeout 1 cardano-wallet network information'
+    cmd = f'timeout 1 {DIR}/cardano-wallet network information'
     o,e = run(cmd)
     if o:
         return json.loads(o.strip())
