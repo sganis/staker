@@ -3,22 +3,15 @@
 DIR=$(dirname $(readlink -f $0))
 CONF=$DIR/../config
 
-if [[ $# -lt 1 ]]; then
-	echo "usage: ./$0 <relay|core>"
-	exit 1
-fi
-role=$1
-new_role=""
 
-if [ "$role" = "relay" ]; then
-	echo export CARDANO_NODE_ROLE=core > $CONF/role.sh
-	echo changed to $new_role
+. $CONF/role.sh
 
-elif [ "$role"  = "producer" ]; then
-	echo export CARDANO_NODE_ROLE=relay > $CONF/role.sh
-	echo changed to $new_role
+if [ "$CARDANO_NODE_ROLE" = "relay" ]; then
+	echo export CARDANO_NODE_ROLE=producer > $CONF/role.sh
 else
-	echo unknown role: $new_role
-	exit -1
+	echo export CARDANO_NODE_ROLE=relay > $CONF/role.sh
 fi
+
+. $CONF/role.sh
+echo changed to $CARDANO_NODE_ROLE
 

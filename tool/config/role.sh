@@ -1,1 +1,1 @@
-export CARDANO_NODE_ROLE=relay
+export CARDANO_NODE_ROLE=producer
