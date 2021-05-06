@@ -181,6 +181,19 @@ export default {
             console.log(r);
             commit('workEnd',r, {root: true});
         },
+        async updateTopology({commit}, n) {
+            commit('workStart', 'Saving topology...', {root: true});
+            let topology = JSON.stringify(n.topology, null, 2);
+            let r = await runRemote(`echo '${topology}' > cardano/config/testnet-topology-relay.json`);
+            if (r.rc !== 0) {
+                console.log(r);
+            } else {
+                commit('updateNode', n);
+                r.stdout = 'Topology updated.';
+            }
+            commit('workEnd',r, {root: true});
+            return r;
+        },
                 
     },
 
