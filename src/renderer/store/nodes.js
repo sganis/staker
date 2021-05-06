@@ -171,7 +171,7 @@ export default {
         },
         async changeRole({commit}, n) {
             commit('workStart', 'Changing role...', {root: true});
-            let r = await runRemote(`cardano/bin/change_role.sh ${n.status.node_role}`);
+            let r = await runRemote('cardano/bin/change_role.sh');
             if (r.rc !== 0) {
                 console.log(r);
             } else {
