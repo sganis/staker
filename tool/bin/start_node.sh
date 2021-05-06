@@ -6,7 +6,7 @@ DIR=$(dirname $(readlink -f $0))
 ROOT=$HOME/cardano
 CONF=$ROOT/config
 KEYS=$ROOT/keys
-CORE_KEYS=""
+KEYARG=""
 
 # load environment variables
 . $CONF/role.sh
@@ -17,14 +17,13 @@ NETWORK=$CARDANO_NODE_NETWORK
 TOPOLOGY=$CONF/$NETWORK-topology-$ROLE.json
 CONFIG=$CONF/$NETWORK-config.json
 
-if [[ "$CARDANO_NODE_ROLE" == "core" ]]; then
+if [[ "$CARDANO_NODE_ROLE" == "producer" ]]; then
 	if [ ! -e $KEYS/node.cert ]; then
 		>&2 echo "Node keys not available"
 		exit 1 
 	fi
-
-	CORE_KEYS="--shelley-kes-key $KEYS/kes.skey --shelley-vrf-key $KEYS/vrf.skey --shelley-operational-certificate $KEYS/node.cert"
-	echo $CORE_KEYS
+	KEYARG="--shelley-kes-key $KEYS/kes.skey --shelley-vrf-key $KEYS/vrf.skey --shelley-operational-certificate $KEYS/node.cert"
+	echo $KEYARG
 fi
 
 $DIR/cardano-node run \
@@ -33,7 +32,7 @@ $DIR/cardano-node run \
 	--database-path $ROOT/db \
 	--socket-path $ROOT/node.socket \
 	--topology $TOPOLOGY \
- 	--config $CONFIG $CORE_KEYS
+ 	--config $CONFIG $KEYARG
 
 
 
