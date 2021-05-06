@@ -17,7 +17,7 @@ KEYS = f'{ROOT}/keys'
 WALLETS = f'{ROOT}/wallets'
 KEYFILES = ['cold.skey','cold.vkey','cold.counter','vrf.skey','vrf.vkey','kes.skey','kes.vkey','node.cert']
 NETWORK='--testnet-magic 1097911063'
-# os.environ["CARDANO_NODE_SOCKET_PATH"] = path_to_socket
+os.environ["CARDANO_NODE_SOCKET_PATH"] = f'{ROOT}/node.socket'
 
 def run(cmd):
 	cmd = cmd.replace('\n','')
