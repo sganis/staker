@@ -1,1 +1,1 @@
-export CARDANO_NODE_ROLE=core
+export CARDANO_NODE_ROLE=producer

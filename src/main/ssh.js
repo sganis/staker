@@ -421,7 +421,7 @@ export async function setupSsh() {
             cmd = `mkdir ${homedir}\\.ssh 2>nul & ${keygen} -q -N "" -f ${seckey}`
         } else {
             keygen = 'ssh-keygen';
-            cmd = `mkdir ${homedir}/.ssh >/dev/null; ${keygen} -q -N "" -f ${seckey}`
+            cmd = `umaks 077; mkdir -p ${homedir}/.ssh; ${keygen} -q -N "" -f ${seckey}`
         }
         r = await runLocal(cmd);
         if (r.rc !== 0) {
@@ -429,8 +429,11 @@ export async function setupSsh() {
             return r;
         }            
     } 
-    let pkeystr = readFileSync(pubkey, 'utf8');
-    r = await runRemote(`mkdir -p .ssh; chmod 700 .ssh; echo "${pkeystr.trim()}" >> .ssh/authorized_keys; chmod 644 .ssh/authorized_keys`)
+    let pkey = readFileSync(pubkey, 'utf8').trim();
+    // r = await runRemote(`mkdir -p .ssh; chmod 700 .ssh; touch .ssh/authorized_keys; chmod 644 .ssh/authorized_keys; grep -qF ${pkey} .ssh/authorized_keys || echo "${pkey}" >> .ssh/authorized_keys`)
+    // this works from windows, see setupssh.bat for details
+    // type id_rsa.pub | ssh user@host "/bin/sh -c 'F=.ssh/authorized_keys; cd; umask 077; mkdir -p .ssh && { [ -z `tail -1c $F 2>/dev/null` ] || echo >> $F || exit 1; } && cat >> $F; sed -i ""s/\r//"" $F; [ -z `tail -1c $F 2>/dev/null` ] || echo >> $F'"
+    r = await runRemote(`F=.ssh/authorized_keys; cd; umask 077; mkdir -p .ssh && mkdir -p .ssh && { [ -z $(tail -1c $F 2>/dev/null) ] || echo >> $F || exit 1; } && echo "${pkey}" >> $F`)
     if (r.rc !== 0) 
         console.log(r); 
     return r;

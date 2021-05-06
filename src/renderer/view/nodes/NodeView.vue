@@ -73,6 +73,10 @@
           </td>
         </tr>
         <tr>
+          <td>OS Release:</td>
+          <td colspan="2">{{node.os_release}}</td>
+        </tr>
+        <tr>
           <td>CPU Load:</td>
           <td>
             <div class="progress btn-width">
@@ -210,10 +214,46 @@
 
     <br />
     <h2>Topology</h2>
-    
-    <pre>{{node.topology}}</pre>
-
-
+    <table class="table">
+      <thead><tr><th>Address</th><th>Port</th><th>Valency</th></tr></thead>
+      <tbody>
+        <tr v-for="(t, index) in node.topology['Producers'] || []" :key="index">
+          <td>{{t.addr}}</td>
+          <td>{{t.port}}</td>
+          <td>{{t.valency}}</td>
+        </tr>
+      </tbody>
+    </table>
+    <button v-if="node && !editing_topology"
+        @click="showEditTopology" :disabled="getLoading"
+        class="btn btn-primary btn-width">Edit Topology</button>    
+    <div v-if="editing_topology">
+    <br/>
+    <b>Topology File:</b>
+    <br/>
+    <br/>
+    <form @submit.prevent="editTopology(node)">
+      <div class="form-group">
+          <textarea
+            id="topology"
+            rows="9"
+            v-model="topology"
+            class="form-control text-monospace"
+            required
+            :disabled="getLoading"
+          ></textarea>
+      </div>
+      <div class="form-group top10">
+        <input value="Save Topology"
+            type="submit"
+            class="btn btn-primary btn-width"
+            :disabled="getLoading || !is_topology_valid"/>&nbsp;
+        <button @click="editing_topology=false" 
+            :disabled="getLoading || !is_topology_valid"
+            class="btn btn-secondary btn-width">Cancel</button>
+      </div>
+      </form>
+    </div>
     <br />
     <br />
     <h2>Logs</h2>
@@ -252,6 +292,9 @@ export default {
     return {
       sudo: "",
       need_sudo: false,
+      editing_topology: false,
+      is_topology_valid: true,
+      topology: '',
     };
   },
   computed: {
@@ -317,6 +360,7 @@ export default {
       "hasTools",
       "serviceAction",
       "changeRole",
+      "updateTopology",
     ]),
 
     disconnect(node) {
@@ -333,9 +377,33 @@ export default {
         let r = await this.installNode({ node: this.node, sudo: this.sudo });
         if (r.rc === 0) this.need_sudo = false;
       }
-    },    
+    },  
+    showEditTopology() {
+      this.topology = JSON.stringify(this.node.topology, null, 2);
+      this.editing_topology = true;
+    },
+    async editTopology(node) {
+      node.topology = JSON.parse(this.topology);
+      let r = await this.updateTopology(node);
+      if (r.rc === 0) 
+        this.editing_topology = false;       
+    }, 
   },
-  
+
+  watch: {
+    topology() {
+      console.log('topology changed');
+      if (this.editing_topology) {
+        try {
+            JSON.parse(this.topology);
+            this.is_topology_valid = true;
+        }
+        catch {
+          this.is_topology_valid = false;
+        }
+      }
+    }
+  }
 };
 </script>
 
