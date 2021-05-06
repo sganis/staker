@@ -228,30 +228,28 @@
         @click="showEditTopology" :disabled="getLoading"
         class="btn btn-primary btn-width">Edit Topology</button>    
     <div v-if="editing_topology">
-    <br/>
-    <b>Topology File:</b>
-    <br/>
-    <br/>
-    <form @submit.prevent="editTopology(node)">
-      <div class="form-group">
+    <div class="form-group top10">
+        <input value="Save"
+            type="submit"
+            class="btn btn-success btn-width"
+            :disabled="getLoading || !is_topology_valid"/>&nbsp;
+        <button @click="editing_topology=false" 
+            :disabled="getLoading || !is_topology_valid"
+            class="btn btn-light btn-width">Cancel</button>
+      </div>
+      <form @submit.prevent="editTopology(node)">
+      <div class="form-group top10">
           <textarea
             id="topology"
+            spellcheck="false"
             rows="9"
             v-model="topology"
-            class="form-control text-monospace"
+            class="form-control monospace"
             required
             :disabled="getLoading"
           ></textarea>
       </div>
-      <div class="form-group top10">
-        <input value="Save Topology"
-            type="submit"
-            class="btn btn-primary btn-width"
-            :disabled="getLoading || !is_topology_valid"/>&nbsp;
-        <button @click="editing_topology=false" 
-            :disabled="getLoading || !is_topology_valid"
-            class="btn btn-secondary btn-width">Cancel</button>
-      </div>
+      <div class="text-danger">{{topology_error}}</div>
       </form>
     </div>
     <br />
@@ -295,6 +293,7 @@ export default {
       editing_topology: false,
       is_topology_valid: true,
       topology: '',
+      topology_error: 'eeeor',
     };
   },
   computed: {
@@ -392,14 +391,25 @@ export default {
 
   watch: {
     topology() {
-      console.log('topology changed');
       if (this.editing_topology) {
         try {
             JSON.parse(this.topology);
             this.is_topology_valid = true;
+            this.topology_error = '';
         }
-        catch {
+        catch(e) {
           this.is_topology_valid = false;
+          let error = JSON.stringify(e.message)
+          //var textarea = document.getElementById("topology");
+          this.topology_error = "Invalid JSON. "
+          if (error.indexOf('position')>-1) {
+            var positionStr = error.lastIndexOf('position') + 8;
+            var pos = parseInt(error.substr(positionStr,error.lastIndexOf('"')))
+            if (pos >= 0) {
+                //textarea.setSelectionRange(pos,pos+1);
+                this.topology_error += "Check position "+pos;
+            }
+          }
         }
       }
     }

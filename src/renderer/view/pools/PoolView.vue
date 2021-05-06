@@ -269,7 +269,7 @@ export default {
         pool: {
             deep: true,
             handler(newdata) {
-                console.log('pool changed:');
+                //console.log('pool changed:');
                 this.form = JSON.parse(JSON.stringify(newdata));
                 this.metadata_json = JSON.stringify(newdata.metadata);
             }
