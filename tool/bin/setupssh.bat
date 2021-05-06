@@ -30,14 +30,20 @@ if %ERRORLEVEL% neq 0 goto transfer
 goto ok
 
 :transfer
-:: credit to openssh ssh-copy-id
+:: transfer public key using inline bash script:
+::   use bash in case user has different shell
+::   make .ssh/authorized_keys shorter with variable F 
 ::   cd HOME
 ::   umask permissions for file creation
 ::   mkdir .ssh if not there
 ::   tail adds new line if it's not there
 ::   cat saves the key 
 ::   sed removes windows line endings
-type %PKEY% | ssh %USER%@%HOST% -p %PORT% -oStrictHostKeyChecking=no -oLogLevel=ERROR "cd; umask 077; mkdir -p .ssh && { [ -z `tail -1c .ssh/authorized_keys 2>/dev/null` ] || echo >> .ssh/authorized_keys || exit 1; } && cat >> .ssh/authorized_keys || exit 1; sed -i 's/\r//' .ssh/authorized_keys"
+::   finally check or add new line
+type %PKEY% | ssh %USER%@%HOST% -p %PORT% 	^
+	 	-oStrictHostKeyChecking=no 			^
+		-oLogLevel=ERROR 					^
+		"exec /bin/sh -c 'F=.ssh/authorized_keys; cd; umask 077; mkdir -p .ssh && { [ -z `tail -1c $F 2>/dev/null` ] || echo >> $F || exit 1; } && cat >> $F; sed -i ""s/\r//"" $F; [ -z `tail -1c $F 2>/dev/null` ] || echo >> $F'"
 if %ERRORLEVEL% neq 0 goto fail
 
 :: test again
