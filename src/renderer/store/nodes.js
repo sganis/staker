@@ -1,7 +1,6 @@
-import {
-    runRemote, upload, getSettings, setSettings, 
-    setupSsh, connectHost, disconnectHost } from '../ipc'
-import {sleep} from '../../common/util'
+const { runRemote, upload, getSettings, setSettings, 
+    setupSsh: _setupSsh, connectHost, disconnectHost } = require('../ipc')
+//import {sleep} from '../../common/util'
 
 const path = require('path')
 
@@ -53,19 +52,12 @@ export default {
                 await dispatch('updateNodeStatus', n);
                 if (n.password) {
                     // setup ssh
-                    commit('setMessage', 'Setting up ssh keys...', {root: true});          
-                    r = await setupSsh(n.host, n.user, n.password);
-                    n.password = '';
-                    //await sleep(1000);
-                    if (r.rc === 0) {
-                        commit('setMessage','Ssh keys ok.', {root: true});
-                    } else {
-                        r.stderr = "Ssh keys setup failed: "+ r.stderr;  
-                        console.log(n.error);
-                        //const sleep = ms => new Promise(res => setTimeout(res, ms));
-                    }
-                    //await sleep(1000);                
-              }              
+                    r = await dispatch('setupSsh', n);
+                    n.password = '';                    
+                    n.ssh_auth = false;
+              } else {
+                  n.ssh_auth = true;
+              }             
               // persist list of nodes
               let arr = JSON.parse(JSON.stringify(getters.getNodes));
               arr.forEach(n => n.connected=false);
@@ -82,6 +74,19 @@ export default {
             //console.log('loading:', getters.getLoading);
             return new Promise(res => {res(r)});
             
+        },
+        async setupSsh({commit}, n) {
+            commit('setMessage', 'Setting up ssh keys...', {root: true});          
+            let r = await _setupSsh(n.host, n.user, n.password);
+            if (r.rc === 0) {
+                n.ssh_auth = 1;
+                commit('setMessage','Ssh keys ok.', {root: true});
+            } else {
+                r.stderr = "Ssh keys setup failed: "+ r.stderr;  
+                console.log(n.error);
+                //const sleep = ms => new Promise(res => setTimeout(res, ms));
+            }
+            return r;
         },
         async updateNodeStatus({commit}, n) { 
             // get node status from ssh
@@ -181,14 +186,15 @@ export default {
             console.log(r);
             commit('workEnd',r, {root: true});
         },
-        async updateTopology({commit}, n) {
+        async updateTopology({commit}, {node, topology}) {
             commit('workStart', 'Saving topology...', {root: true});
-            let topology = JSON.stringify(n.topology, null, 2);
-            let r = await runRemote(`echo '${topology}' > cardano/config/testnet-topology-relay.json`);
+            let topology_str = JSON.stringify(topology, null, 2);
+            let r = await runRemote(`echo '${topology_str}' > cardano/config/testnet-topology-relay.json`);
             if (r.rc !== 0) {
                 console.log(r);
             } else {
-                commit('updateNode', n);
+                node.topology = topology;
+                commit('updateNode', node);
                 r.stdout = 'Topology updated.';
             }
             commit('workEnd',r, {root: true});

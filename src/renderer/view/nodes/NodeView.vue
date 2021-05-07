@@ -4,102 +4,165 @@
 
     <table class="table">
       <tbody>
-        <tr>
-          <td>Node role:</td>
-          <td class="col-6">{{ status.nodeRole }}</td>
-          <td class="col-4 text-nowrap">
-            <button
-              class="btn btn-primary btn-sm btn-width"
-              @click="changeRole(node)"
-            >
-              Change Role
-            </button>
+        <tr><td class="title">Connection:</td>
+            <td class="icon" style="width: 30px">
+              <StatusIcon :status="node.connected ? 1 : 2"/></td>
+            <td class="fill">
+              {{ node.connected ? 'Connected' : 'Disconnected' }}</td>
+            <td><button v-if="!node.connected"
+                  class="btn btn-success btn-sm btn-width"
+                  @click="connectNode(node)">Connect</button>
+                <button v-if="node.connected"
+                  class="btn btn-light btn-sm btn-width"
+                  @click="disconnect(node)">Disconnect</button></td>
+        </tr>
+       
+        <tr><td class="title">SSH Auth:</td>
+            <td class="icon"><StatusIcon :status="node.ssh_auth ? 1 : 2"/></td>
+            <td class="fill"></td>
+            <td>
+              <!-- <button class="btn btn-primary btn-sm btn-width"
+                @click="setupSsh(node)">Setup SSH</button> -->
+            </td>
+        </tr>
+        
+        <tr><td class="title">Tools:</td>
+          <td class="icon"><StatusIcon :status="node.has_tools ? 1 : 2"/></td>
+          <td class="fill">
+            <div v-for="(v,k) in node.version"  :key="k">
+                  {{k}}: {{v}}
+            </div></td>
+          <td>
+            <button class="btn btn-sm btn-width"
+              :class="{'btn-light': node.has_tools, 'btn-success': !node.has_tools}"
+              :disabled="need_sudo || getLoading"
+              @click="_installNode">Install</button>
           </td>
         </tr>
-        <tr>
-          <td>Node service:</td>
-          <td class="col-11">{{ status.nodeService }}</td>
-          <td class="col-4 text-nowrap">
-            <button
-              class="btn btn-primary btn-sm btn-width"
-              type="button"
+        <template v-if="need_sudo">
+        <tr><td colspan="4">
+          <form @submit.prevent="_installNode" v-if="need_sudo" class="row g-3">
+          <div class="col-auto">
+            <input
+              id="sudo_pass"
+              v-model="sudo_pass"
+              placeholder="sudo password"
+              type="password"
+              class="form-control"
+              required
+              :disabled="getLoading"
+            />
+          </div>
+          <div class="col-auto top10">
+            <input
+              value="Ok"
+              type="submit"
+              class="btn btn-primary btn-width"
+              :disabled="getLoading" /> &nbsp;
+            <button @click="need_sudo=false" 
+              :disabled="getLoading"
+              class="btn btn-light btn-width">Cancel</button>
+          </div>
+        </form>
+        </td></tr>
+        </template>
+
+
+        <tr><td class="title">Node service:</td>
+          <td class="icon">
+            <StatusIcon 
+              :status="status.nodeService === 'Running' ? 1 :
+                       status.nodeService === 'Stopped' ? 2 : 0"/></td>
+          <td class="fill">{{ status.nodeService }}</td>
+          <td class="action">
+            <button class="btn btn-primary btn-sm btn-width"  type="button"
               v-if="node && node.status && node.status.node_status === 2"
-              @click="
-                serviceAction({
+              @click="serviceAction({
                   action: 'start',
                   service: 'cardano-node',
-                  node: node,
-                })
-              "
-              :disabled="getLoading"
-            >
-              Start Node
-            </button>
-            <button
-              class="btn btn-success btn-sm btn-width"
-              type="button"
+                  node: node})"
+              :disabled="getLoading">Start Node</button>
+            <button class="btn btn-success btn-sm btn-width" type="button"
               v-if="node && node.status && node.status.node_status === 1"
-              @click="
-                serviceAction({
+              :disabled="getLoading"
+              @click=" serviceAction({
                   action: 'stop',
                   service: 'cardano-node',
                   node: node,
-                })
-              "
+                })">Stop Node</button></td>
+        </tr>
+
+        <tr><td class="title">Wallet service:</td>
+          <td class="icon">
+            <StatusIcon 
+              :status="status.walletService === 'Running' ? 1 :
+                       status.walletService === 'Stopped' ? 2 : 0"/></td>
+          <td class="fill">{{ status.walletService }}</td>
+          <td class="action">
+            <button class="btn btn-primary btn-sm btn-width"  type="button"
+              v-if="node && node.status && node.status.wallet_status === 2"
+              @click="serviceAction({
+                  action: 'start',
+                  service: 'cardano-wallet',
+                  node: node})"
+              :disabled="getLoading">Start Wallet</button>
+            <button class="btn btn-success btn-sm btn-width" type="button"
+              v-if="node && node.status && node.status.wallet_status === 1"
               :disabled="getLoading"
-            >
-              Stop Node
-            </button>
-          </td>
+              @click=" serviceAction({
+                  action: 'stop',
+                  service: 'cardano-wallet',
+                  node: node,
+                })">Stop Wallet</button></td>
         </tr>
-        <tr>
-          <td class="text-nowrap">Wallet service:</td>
-          <td colspan="2">{{ status.walletService }}</td>
+
+        <tr><td class="title">Role:</td>
+          <td class="icon">
+            <StatusIcon 
+              :status="status.nodeRole !== 'N/A' ? 1 : 0"/></td>
+          <td class="fill">{{ status.nodeRole }}</td>
+          <td class="action">
+            <button class="btn btn-primary btn-sm btn-width"
+              @click="changeRole(node)">Change Role</button></td>
         </tr>
-        <tr>
-          <td>Node sync:</td>
-          <td colspan="2">{{ status.nodeSync }}</td>
+
+        <tr><td class="title">DB Sync:</td>
+          <td class="icon">
+            <StatusIcon 
+              :status="status.nodeSync === '100%' ? 1 : 0"/></td>
+          <td class="fill">{{ status.nodeSync }}</td>
+          <td class="action"></td>
         </tr>
-        <tr>
-          <td>Time sync:</td>
-          <td
-            colspan="2"
+
+        <tr><td class="title">Time Sync:</td>
+          <td class="icon">
+            <StatusIcon 
+              :status="status.timeSync.substring(0, 2) === 'Ok' ? 1 :
+                    status.timeSync.substring(0, 3) === 'Out' ? 2 : 0"/></td>
+          <td colspan="2" class="fill" 
             :class="{
-              'text-danger': status.timeSync.substring(0, 3) === 'Out',
-              'text-success': status.timeSync.substring(0, 2) === 'Ok',
-            }"
-          >
-            {{ status.timeSync }}
-          </td>
+               'text-danger': status.timeSync.substring(0, 3) === 'Out',
+                'text-success': status.timeSync.substring(0, 2) === 'Ok',
+              }">{{ status.timeSync }}</td>
         </tr>
-        <tr>
-          <td>OS Release:</td>
-          <td colspan="2">{{node.os_release}}</td>
+
+        <tr><td class="title">CPU Load:</td>
+            <td class="fill" colspan="3">
+              <div class="progress btn-width">
+                <div class="progress-bar"
+                  role="progressbar"
+                  aria-valuemin="0"
+                  aria-valuemax="100"
+                  :style="{ width: status.cpu + '%' }"
+                  :class="{
+                    'bg-success': status.cpu <= 90,
+                    'bg-danger': status.cpu > 90,
+                  }"               
+                >{{ status.cpu }}%</div></div></td>
         </tr>
-        <tr>
-          <td>CPU Load:</td>
-          <td>
-            <div class="progress btn-width">
-              <div
-                class="progress-bar"
-                role="progressbar"
-                aria-valuemin="0"
-                aria-valuemax="100"
-                :class="{
-                  'bg-success': status.cpu <= 90,
-                  'bg-danger': status.cpu > 90,
-                }"
-                :style="{ width: status.cpu + '%' }"
-              >
-                {{ status.cpu }}%
-              </div>
-            </div>
-          </td>
-          <td></td>
-        </tr>
-        <tr>
-          <td>Memory:</td>
-          <td>
+        
+        <tr><td class="title">Memory:</td>
+          <td class="fill" colspan="3">
             <div class="progress btn-width">
               <div
                 class="progress-bar"
@@ -117,11 +180,10 @@
               </div>
             </div>
           </td>
-          <td></td>
         </tr>
         <tr>
-          <td>Disk:</td>
-          <td>
+          <td class="title">Disk:</td>
+          <td class="fill" colspan="3">
             <div class="progress btn-width">
               <div
                 class="progress-bar"
@@ -139,82 +201,20 @@
               </div>
             </div>
           </td>
-          <td></td>
         </tr>
-        <tr>
-          <td>Tools:</td>
-          <td><pre>{{node.version || "Not installed"}}</pre></td>
-          <td></td>
-        </tr>
+
+        <tr><td class="title">OS Release:</td>
+            <td colspan="3">{{node.os_release}}</td></tr>
+
       </tbody>
     </table>
-
-    <br />
-    <h2>Actions</h2>
-
-    <div class="row">
-      <span>
-        <span v-if="node && !node.has_tools">Tools not installed.<br /></span>
-        <button
-          v-if="node && node.connected"
-          :node="node"
-          @click="_installNode(node)"
-          :disabled="getLoading"
-          class="btn btn-success btn-width"
-        >
-          Install Tools
-        </button>
-        &nbsp;
-        <button
-          v-if="node && node.connected"
-          :node="node"
-          @click="disconnect(node)"
-          :disabled="getLoading"
-          class="btn btn-primary btn-width"
-        >
-          Disconnect
-        </button>
-        &nbsp;
-        <button
-          v-if="node && node.connected"
-          :node="node"
-          @click="remove(node)"
-          :disabled="getLoading"
-          class="btn btn-danger btn-width"
-        >
-          Remove
-        </button>
-        &nbsp;
-      </span>
-    </div>
-
-    <div class="row">
-      <form @submit.prevent="_installNode()" v-if="need_sudo" class="row g-3">
-        <div class="col-auto">
-          <input
-            id="sudopass"
-            v-model="sudo"
-            placeholder="sudo password"
-            type="password"
-            class="form-control"
-            required
-            :disabled="getLoading"
-          />
-        </div>
-        <div class="col-auto top10">
-          <input
-            value="Ok"
-            type="submit"
-            class="btn btn-primary btn-width"
-            :disabled="getLoading"
-          />
-        </div>
-      </form>
-    </div>
-
     <br />
     <h2>Topology</h2>
-    <table class="table">
+    <div v-if="!topology.is_editing" class="d-flex justify-content-end">
+      <button  @click="_updateTopology" :disabled="getLoading"
+        class="btn btn-sm btn-primary btn-width">Change</button>    
+    </div>
+    <table v-if="!topology.is_editing" class="table" >
       <thead><tr><th>Address</th><th>Port</th><th>Valency</th></tr></thead>
       <tbody>
         <tr v-for="(t, index) in node.topology['Producers'] || []" :key="index">
@@ -224,32 +224,29 @@
         </tr>
       </tbody>
     </table>
-    <button v-if="node && !editing_topology"
-        @click="showEditTopology" :disabled="getLoading"
-        class="btn btn-primary btn-width">Edit Topology</button>    
-    <div v-if="editing_topology">
-    <div class="form-group top10">
+    <div v-if="topology.is_editing">
+      <form @submit.prevent="_updateTopology">
+        <div class="form-group d-flex justify-content-end">
         <input value="Save"
-            type="submit"
-            class="btn btn-success btn-width"
-            :disabled="getLoading || !is_topology_valid"/>&nbsp;
-        <button @click="editing_topology=false" 
-            :disabled="getLoading || !is_topology_valid"
-            class="btn btn-light btn-width">Cancel</button>
-      </div>
-      <form @submit.prevent="editTopology(node)">
-      <div class="form-group top10">
-          <textarea
-            id="topology"
-            spellcheck="false"
-            rows="9"
-            v-model="topology"
-            class="form-control monospace"
-            required
-            :disabled="getLoading"
-          ></textarea>
-      </div>
-      <div class="text-danger">{{topology_error}}</div>
+              type="submit"
+              class="btn btn-sm btn-success btn-width"
+              :disabled="getLoading || !topology.is_valid"/>&nbsp;
+          <button @click="topology.is_editing=false" 
+              :disabled="getLoading || !topology.is_valid"
+              class="btn btn-sm btn-light btn-width">Cancel</button>
+        </div>
+        <div class="form-group top10">
+            <textarea
+              id="topology"
+              spellcheck="false"
+              rows="9"
+              v-model="topology_json"
+              class="form-control monospace"
+              required
+              :disabled="getLoading"
+            ></textarea>
+        </div>
+        <div class="text-danger">{{topology.error}}</div>
       </form>
     </div>
     <br />
@@ -278,22 +275,47 @@
         </tr>
       </tbody>
     </table>
+  
+    <br />
+    <h2>Actions</h2>
+
+    <div class="row">
+      <span>
+        <button
+          v-if="node && node.connected"
+          :node="node"
+          @click="remove(node)"
+          :disabled="getLoading"
+          class="btn btn-danger btn-width"
+        >
+          Remove
+        </button>
+        &nbsp;
+      </span>
+    </div>
+
+
   </div>
 </template>
 
 <script>
 import { mapGetters, mapActions } from "vuex";
+import StatusIcon from '../common/StatusIcon'
 
 export default {
   props: ["node"],
+  components: {StatusIcon},
   data() {
     return {
-      sudo: "",
+      sudo_pass: "",
       need_sudo: false,
-      editing_topology: false,
-      is_topology_valid: true,
-      topology: '',
-      topology_error: 'eeeor',
+      topology_json: '',
+      topology: {
+        is_editing: false,
+        is_valid: true,
+        json: '',
+        error: '',
+      },      
     };
   },
   computed: {
@@ -351,6 +373,8 @@ export default {
   methods: {
     ...mapActions("nodes", [
       "loadNode",
+      "connectNode",
+      "setupSsh",
       "updateNodeStatus",
       "disconnectNode",
       "deselectAllNodes",
@@ -371,46 +395,48 @@ export default {
       this.removeNode(node);
     },
     async _installNode() {
-      if (!this.sudo) this.need_sudo = true;
+      if (!this.sudo_pass) this.need_sudo = true;
       else {
-        let r = await this.installNode({ node: this.node, sudo: this.sudo });
+        let r = await this.installNode({ node: this.node, sudo: this.sudo_pass });
         if (r.rc === 0) this.need_sudo = false;
       }
     },  
-    showEditTopology() {
-      this.topology = JSON.stringify(this.node.topology, null, 2);
-      this.editing_topology = true;
+    async _updateTopology() {
+      //console.log('updating topology');
+      if (!this.topology.is_editing) {
+        this.topology_json = JSON.stringify(this.node.topology, null, 2);
+        this.topology.is_editing = true;
+      } else {
+        let topology = JSON.parse(this.topology_json);
+        let r = await this.updateTopology({node: this.node, topology: topology});
+        if (r.rc === 0) 
+          this.topology.is_editing = false;       
+      }
     },
-    async editTopology(node) {
-      node.topology = JSON.parse(this.topology);
-      let r = await this.updateTopology(node);
-      if (r.rc === 0) 
-        this.editing_topology = false;       
-    }, 
   },
 
   watch: {
-    topology() {
-      if (this.editing_topology) {
-        try {
-            JSON.parse(this.topology);
-            this.is_topology_valid = true;
-            this.topology_error = '';
-        }
-        catch(e) {
-          this.is_topology_valid = false;
-          let error = JSON.stringify(e.message)
-          //var textarea = document.getElementById("topology");
-          this.topology_error = "Invalid JSON. "
-          if (error.indexOf('position')>-1) {
-            var positionStr = error.lastIndexOf('position') + 8;
-            var pos = parseInt(error.substr(positionStr,error.lastIndexOf('"')))
-            if (pos >= 0) {
-                //textarea.setSelectionRange(pos,pos+1);
-                this.topology_error += "Check position "+pos;
-            }
+    topology_json() {
+        if (this.topology.is_editing) {
+          try {
+              JSON.parse(this.topology_json);
+              this.topology.is_valid = true;
+              this.topology.error = '';
           }
-        }
+          catch(e) {
+            this.topology.is_valid = false;
+            let error = JSON.stringify(e.message)
+            //var textarea = document.getElementById("topology");
+            this.topology.error = "Invalid JSON. "
+            // if (error.indexOf('position')>-1) {
+            //   var posStr = error.lastIndexOf('position') + 8;
+            //   var pos = parseInt(error.substr(posStr,error.lastIndexOf('"')))
+            //   if (pos >= 0) {
+            //       //textarea.setSelectionRange(pos,pos+1);
+            //       this.topology.error += "Check position "+pos;
+            //   }
+            // }
+          }
       }
     }
   }

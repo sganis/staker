@@ -100,25 +100,25 @@
             </div>        
         </form>
 
-        <h2 v-if="wallet" >Update passphrase</h2>
+        <h2 v-if="wallet" >Change Password</h2>
         <form @submit.prevent="_updatePass">
             <div class="form-group ">
                 <input id="currentpass" v-model="currentpass" 
-                type="password" placeholder="Current passphrase" 
+                type="password" placeholder="Current password" 
                 class="form-control" required :disabled="getLoading" />  
             </div>
             <div class="form-group top10">
                 <input id="newpass1" v-model="newpass1" 
-                type="password" placeholder="New passphrase" 
+                type="password" placeholder="New password" 
                 class="form-control" required :disabled="getLoading" />  
             </div>
             <div class="form-group top10">
                 <input id="newpass1" v-model="newpass2" 
-                type="password" placeholder="New passphrase again" 
+                type="password" placeholder="New password again" 
                 class="form-control" required :disabled="getLoading" />  
             </div>
             <div class="form-group top10">
-            <input value="Update phassprase" type="submit" 
+            <input value="Change" type="submit" 
                 class="btn btn-primary btn-width" :disabled="getLoading"/>  
             </div>        
         </form>

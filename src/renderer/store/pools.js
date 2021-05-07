@@ -3,6 +3,7 @@ import {
     setupSsh, connectHost, disconnectHost } from '../ipc'
 
 const path = require('path')
+const axios = require('axios');
 
 export default {
     namespaced: true,
@@ -29,8 +30,12 @@ export default {
             }            
         },
         async loadPool({commit, dispatch}, pool) { 
+            let r = await runRemote('cat cardano/config/pool.json 2>/dev/null');
+            if (r.rc === 0)
+                pool = JSON.parse(r.stdout);
+            //console.log(pool);
             // pool id
-            let r = await runRemote('cardano/bin/cardano-cli stake-pool id --cold-verification-key-file cardano/keys/cold.vkey --output-format "hex"');
+            r = await runRemote('cardano/bin/cardano-cli stake-pool id --cold-verification-key-file cardano/keys/cold.vkey --output-format "hex"');
             if (r.rc === 0) {
                 if (r.stdout)
                     pool.id = r.stdout;
@@ -40,7 +45,7 @@ export default {
             // load keys
             await dispatch('loadKeys', pool);
 
-            // metadata
+            // metadata json
             r = await runRemote('[ -f cardano/config/pool-metadata.json ] && cat cardano/config/pool-metadata.json');
             if (r.rc === 0) {
                 if (r.stdout)
@@ -48,20 +53,9 @@ export default {
             } else {
                 console.log('error getting pool metadata: '+ r.stderr);                    
             }
-            r = await runRemote('cardano/bin/cardano-cli stake-pool metadata-hash --pool-metadata-file cardano/config/pool-metadata.json');
-            if (r.rc === 0) {
-                if (r.stdout)
-                    pool.metadata_hash = r.stdout.trim();
-            } else {
-                console.log('error getting pool metadata: '+ r.stderr);                    
-            }
-            r = await runRemote('[ -f cardano/config/pool-metadata.url ] && cat cardano/config/pool-metadata.url');
-            if (r.rc === 0) {
-                if (r.stdout)
-                    pool.metadata_url = r.stdout;
-            } else {
-                console.log('error getting pool metadata url: '+ r.stderr);                    
-            }
+            // hash
+            await dispatch('computeMetadataHash', pool);
+
             // on-chain data
             r = await runRemote(`python3 cardano/bin/cardano.py pool-params --pool-id ${pool.id}`);
             if (r.rc === 0) {
@@ -83,6 +77,25 @@ export default {
             commit('updatePool', pool); 
 
         },
+        async computeMetadataHash({commit}, pool) {
+            let r = await runRemote('cardano/bin/cardano-cli stake-pool metadata-hash --pool-metadata-file cardano/config/pool-metadata.json');
+            if (r.rc === 0) {
+                if (r.stdout)
+                    pool.metadata_hash = r.stdout.trim();
+            } else {
+                console.log('error computing pool metadata hash: '+ r.stderr);                    
+            }            
+        },
+        async checkMetadataUrl({commit}, pool) {
+            console.log('getting url: '+pool.metadata_url);
+            try {
+                let r = await axios.get('https://git.io/JmApG')
+                console.log(r.data);
+            } catch (error) {
+                console.log(error);
+            }                        
+        },
+        
         async newKey({commit, dispatch}, {pool, type}) {
             commit('workStart', `Generateing new ${type} keys...`, {root: true});
             
@@ -96,6 +109,25 @@ export default {
             commit('workEnd',r, {root: true});
             return r;
         },
+        async updateMetadata({commit, dispatch}, {pool, metadata}) {
+            commit('workStart', 'Saving metadata...', {root: true});
+            let metadata_json = JSON.stringify(metadata, null, 2);
+            let r = await runRemote(`echo '${metadata_json}' > cardano/config/pool-metadata.json`);
+            if (r.rc !== 0) {
+                console.log(r);
+            } else {
+                pool.metadata = metadata;
+                dispatch('computeMetadataHash', pool);
+                dispatch('checkMetadataUrl', pool);                
+                let pool_json = JSON.stringify(pool, null, 2);
+                r = await runRemote(`echo '${pool_json}' > cardano/config/pool.json`);
+                commit('updatePool', pool);
+                r.stdout = 'Metadata updated.';
+            }
+            commit('workEnd',r, {root: true});
+            return r;
+        },
+
         async register({commit}, pool) { 
             commit('workStart', 'Registering pool...', {root: true});            
             let r = await runRemote(`python3 cardano/bin/cardano.py register-pool --pledge ${pool.pledge} --margin ${pool.margin} --cost ${pool.cost} --wallet-id ${pool.wallet_id}`);
