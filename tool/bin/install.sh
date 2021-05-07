@@ -19,7 +19,9 @@ if [ "$DIR" != "$ROOT/bin" ]; then
 fi
 
 echo "fixing permissions..."
-chmod 755 $ROOT/bin/*
+chmod 750 $ROOT/bin/*
+chmod 660 $ROOT/config/*
+chmod 600 $ROOT/keys/*
 chown -R $USER $ROOT
 
 
