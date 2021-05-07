@@ -39,8 +39,12 @@ export default {
             // tools versions
             r = await runRemote('python3 cardano/bin/cardano.py version');
             node.version = 'Checking...';
-            if (r.rc === 0)
+            if (r.rc === 0) {
                 node.version = JSON.parse(r.stdout);
+                node.has_tools = true;
+            } else {
+                node.has_tools = false;
+            }
             commit('updateNode', node);             
         },
         async connectNode({commit, dispatch, getters}, n) {

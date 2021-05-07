@@ -1,7 +1,13 @@
 <template>
   <div>
-    <h2>Node status</h2>
-
+    <div class="d-flex justify-content-between subtitle" >
+      <div>Status</div>
+      <!-- <span>
+      <button @click="_updateTopology" :disabled="getLoading"
+        class="btn btn-sm btn-secondary btn-width">Actions</button>          
+        </span> -->
+    </div>
+    
     <table class="table">
       <tbody>
         <tr><td class="title">Connection:</td>
@@ -208,13 +214,17 @@
 
       </tbody>
     </table>
+    
     <br />
-    <h2>Topology</h2>
-    <div v-if="!topology.is_editing" class="d-flex justify-content-end">
-      <button  @click="_updateTopology" :disabled="getLoading"
-        class="btn btn-sm btn-primary btn-width">Change</button>    
+    <div class="d-flex justify-content-between subtitle" >
+      <div>Topology</div>
+      <span>
+      <button v-if="!topology.is_editing"  
+        @click="_updateTopology" :disabled="getLoading"
+        class="btn btn-sm btn-primary btn-width">Change</button>          
+        </span>
     </div>
-    <table v-if="!topology.is_editing" class="table" >
+    <table v-if="node.topology && !topology.is_editing" class="table" >
       <thead><tr><th>Address</th><th>Port</th><th>Valency</th></tr></thead>
       <tbody>
         <tr v-for="(t, index) in node.topology['Producers'] || []" :key="index">
@@ -225,7 +235,8 @@
       </tbody>
     </table>
     <div v-if="topology.is_editing">
-      <form @submit.prevent="_updateTopology">
+      <br/>
+      <form @submit.prevent="_updateTopology">    
         <div class="form-group d-flex justify-content-end">
         <input value="Save"
               type="submit"
@@ -247,12 +258,16 @@
             ></textarea>
         </div>
         <div class="text-danger">{{topology.error}}</div>
-      </form>
+    </form>
+   </div>
+   
+    
+    <br />
+    <br />
+    <div class="d-flex justify-content-between subtitle" >
+      <div>Logs</div>
     </div>
-    <br />
-    <br />
-    <h2>Logs</h2>
-    <!-- <pre>{{node.status.logs && node.status.logs[0]}}</pre> -->
+    
     <table class="table">
       <thead>
         <tr>
@@ -425,17 +440,7 @@ export default {
           }
           catch(e) {
             this.topology.is_valid = false;
-            let error = JSON.stringify(e.message)
-            //var textarea = document.getElementById("topology");
-            this.topology.error = "Invalid JSON. "
-            // if (error.indexOf('position')>-1) {
-            //   var posStr = error.lastIndexOf('position') + 8;
-            //   var pos = parseInt(error.substr(posStr,error.lastIndexOf('"')))
-            //   if (pos >= 0) {
-            //       //textarea.setSelectionRange(pos,pos+1);
-            //       this.topology.error += "Check position "+pos;
-            //   }
-            // }
+            this.topology.error = "Invalid JSON: "+ JSON.stringify(e.message);
           }
       }
     }

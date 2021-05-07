@@ -77,13 +77,16 @@ export default {
 }
 .top10 { margin-top:10px; }
 
-h2 {
+.subtitle {
    border-bottom: 1px solid gainsboro; 
    border-radius: 5px;
    background: rgb(241, 248, 241);
-   padding-top: 5px;
-   padding-bottom: 5px;
+   padding-top: 2px;
+   padding-bottom: 4px;
    padding-left: 10px;
+   padding-right: 5px;
+   font-weight: bold;
+   font-size: 130%;
 } 
 .box {
   padding: 5px;
