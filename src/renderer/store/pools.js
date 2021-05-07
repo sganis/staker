@@ -143,17 +143,19 @@ export default {
 
     mutations: {
         updatePool(state, pool) {
-            const p = state.pools.find(x => x.id === pool.id);
+            const p = state.pools.find(x => x.name === pool.name);
             let current_pool = null;
             if (p) {
                 Object.assign(p, pool);
                 current_pool = p;
             } else {
-                state.pools.push(pool);
-                current_pool = pool;
+                if (pool.name) {
+                    state.pools.push(pool);
+                    current_pool = pool;
+                }
             }
-            if (current_pool.selected) {
-                setSettings('current_pool', current_pool.id);
+            if (current_pool && current_pool.selected) {
+                setSettings('current_pool', current_pool.name);
             }
         },
 
