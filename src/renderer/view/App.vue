@@ -97,6 +97,10 @@ h2 {
 pre {
   white-space: pre-wrap;
 }
+.monospace {
+  font-family:monospace;
+          
+}
 .icon-success {
   color: #198754;
   width: 16px;

@@ -30,7 +30,7 @@ export default {
         },
         async loadPool({commit, dispatch}, pool) { 
             // pool id
-            let r = await runRemote('cardano-cli stake-pool id --cold-verification-key-file cardano/keys/cold.vkey --output-format "hex"');
+            let r = await runRemote('cardano/bin/cardano-cli stake-pool id --cold-verification-key-file cardano/keys/cold.vkey --output-format "hex"');
             if (r.rc === 0) {
                 if (r.stdout)
                     pool.id = r.stdout;
