@@ -28,6 +28,56 @@ def run(cmd):
 	stderr = p.stderr.strip()
 	return stdout, stderr
 
+def _get_params():
+	parser = argparse.ArgumentParser()
+	# parser.add_argument('--tx', action='store_true', help='make a transaction')
+	subparsers = parser.add_subparsers(dest='command')
+	subparsers.required = True
+
+	s = subparsers.add_parser("tx", help='make a transaction')
+	s.add_argument("--from_addr", required=True, help="from address")
+	s.add_argument("--from_skey", required=True, help="from signing key")
+	s.add_argument("--to_addr", required=True, help="to address")
+	s.add_argument("--ada", required=True, help="ammount of ADA to send")
+
+	s = subparsers.add_parser("address", help='generate payment and stake addresses')
+	s.add_argument("--name", help="address name")
+	s.add_argument("--list", action='store_true', help="list all addresses")
+
+	s = subparsers.add_parser("balance", help='query balance of address')
+	s.add_argument("--address", required=True, help="address to query balance")
+
+	s = subparsers.add_parser("pool-keys", help='get pool keys')
+	s = subparsers.add_parser("generate-pool-keys", help='generate pool keys')
+	s.add_argument("--type", required=True, help="generate cold, vrf, kes, and cert keys")
+
+	s = subparsers.add_parser("pool-params", help='get pool params')
+	s.add_argument("--pool-id", required=True, help="pool id")
+
+	s = subparsers.add_parser("stake-snapshot", help='get stake snapshot')
+	s.add_argument("--pool-id", required=True, help="pool id")
+
+	s = subparsers.add_parser("stake-address-info", help='get stake address info')
+	s.add_argument("--address", required=True, help="stake address")
+
+	s = subparsers.add_parser("register-pool", help='register pool')
+	s.add_argument("--pledge", required=True, help="pledge in ADA")
+	s.add_argument("--margin", required=True, help="margin percent")
+	s.add_argument("--cost", required=True, help="cost in ADA")
+	s.add_argument("--wallet-id", required=True, help="wallet id of payment and stake")
+
+	s = subparsers.add_parser("version", help='get version')
+
+	s = subparsers.add_parser("peers", help='get peers')
+	
+	# Parse
+	a = parser.parse_args()
+
+	if a.command == 'address' and not a.name and not a.list:
+		parser.error('address must request --name or --list')
+	
+	return a
+
 def _get_protocol():
 	cmd = f'{DIR}/cardano-cli query protocol-parameters --out-file {CONF}/protocol.json {NETWORK}'
 	o,e = run(cmd)
@@ -79,54 +129,6 @@ def _get_key_deposit():
 def _get_pool_deposit():
 	js = json.loads(open(f'{CONF}/protocol.json').read())
 	return int(js['stakePoolDeposit'])
-
-def _get_params():
-	parser = argparse.ArgumentParser()
-	# parser.add_argument('--tx', action='store_true', help='make a transaction')
-	subparsers = parser.add_subparsers(dest='command')
-	subparsers.required = True
-
-	s = subparsers.add_parser("tx", help='make a transaction')
-	s.add_argument("--from_addr", required=True, help="from address")
-	s.add_argument("--from_skey", required=True, help="from signing key")
-	s.add_argument("--to_addr", required=True, help="to address")
-	s.add_argument("--ada", required=True, help="ammount of ADA to send")
-
-	s = subparsers.add_parser("address", help='generate payment and stake addresses')
-	s.add_argument("--name", help="address name")
-	s.add_argument("--list", action='store_true', help="list all addresses")
-
-	s = subparsers.add_parser("balance", help='query balance of address')
-	s.add_argument("--address", required=True, help="address to query balance")
-
-	s = subparsers.add_parser("pool-keys", help='get pool keys')
-	s = subparsers.add_parser("generate-pool-keys", help='generate pool keys')
-	s.add_argument("--type", required=True, help="generate cold, vrf, kes, and cert keys")
-
-	s = subparsers.add_parser("pool-params", help='get pool params')
-	s.add_argument("--pool-id", required=True, help="pool id")
-
-	s = subparsers.add_parser("stake-snapshot", help='get stake snapshot')
-	s.add_argument("--pool-id", required=True, help="pool id")
-
-	s = subparsers.add_parser("stake-address-info", help='get stake address info')
-	s.add_argument("--address", required=True, help="stake address")
-
-	s = subparsers.add_parser("register-pool", help='register pool')
-	s.add_argument("--pledge", required=True, help="pledge in ADA")
-	s.add_argument("--margin", required=True, help="margin percent")
-	s.add_argument("--cost", required=True, help="cost in ADA")
-	s.add_argument("--wallet-id", required=True, help="wallet id of payment and stake")
-
-	s = subparsers.add_parser("version", help='get version')
-	
-	# Parse
-	a = parser.parse_args()
-
-	if a.command == 'address' and not a.name and not a.list:
-		parser.error('address must request --name or --list')
-	
-	return a
 
 def address(name):
 	if os.path.exists(f'{KEYDIR}/{name}_paymt.addr'):
@@ -583,6 +585,25 @@ def query_version():
 	print(json.dumps(version))
 	return True
 
+def query_peers():
+	peers = []
+	o,e = run(f'netstat -W')
+	# tcp 0 0 adabox:3001 192.168.100.202:37543 ESTABLISHED
+	for line in o.split('\n'):
+		if ':3001' in line:
+			f = line.split()
+			local = f[3]
+			remote = f[4]
+			status = f[5]
+			local_ip, local_port = local.split(':')
+			remote_ip, remote_port = remote.split(':')
+			direction = 'OUT'
+			if local_port == '3001':
+				direction = 'IN '
+			peers.append([status, direction, remote_ip])
+	print(json.dumps(sorted(peers, key=lambda x: x[2])))
+	return True
+
 
 if __name__ == '__main__':
 
@@ -623,6 +644,9 @@ if __name__ == '__main__':
 
 	elif p.command == 'register-pool':
 		ok = register_pool(p.pledge, p.margin, p.cost, p.wallet_id)
+
+	elif p.command == 'peers':
+		ok = query_peers()
 
 	elif p.command == 'version':
 		ok = query_version()
