@@ -99,6 +99,7 @@ export default {
             if (r.rc === 0) {
                 if (r.stdout)
                     n.status = JSON.parse(r.stdout);
+                    n.role = n.status.role
             } else {
                 console.log('error getting node status: '+ r.stderr);                    
                 n.status = r.stderr;
@@ -202,7 +203,8 @@ export default {
         async updateTopology({commit}, {node, topology}) {
             commit('workStart', 'Saving topology...', {root: true});
             let topology_str = JSON.stringify(topology, null, 2);
-            let r = await runRemote(`echo '${topology_str}' > cardano/config/testnet-topology-relay.json`);
+            console.log('changing topology: '+node.role);
+            let r = await runRemote(`echo '${topology_str}' > cardano/config/testnet-topology-${node.role}.json`);
             if (r.rc !== 0) {
                 console.log(r);
             } else {

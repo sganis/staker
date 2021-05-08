@@ -122,19 +122,18 @@
         </tr>
 
         <tr><td class="title">Peers:</td>
-          <td class="fill" colspan="3">
-            <StatusIcon v-if="!node.peers" :status="0"/>            
+          <td class="icon">
+            <StatusIcon :status="node.peers ? 1 : 2"/></td>
+          <td class="fill monospace" colspan="2">            
             <div v-for="(v,i) in node.peers || []"  :key="i">
-              <StatusIcon :status="v[0]==='ESTABLISHED' ? 1 : 2"/>&nbsp;
-              {{v[1]}} {{v[2]}}
+              {{v[0]}} {{v[1]}} {{v[2]}} {{v[3]}} {{v[4]}}
             </div>
           </td>
         </tr>
 
         <tr><td class="title">Role:</td>
           <td class="icon">
-            <StatusIcon 
-              :status="status.nodeRole !== 'N/A' ? 1 : 0"/></td>
+            <StatusIcon :status="status.nodeRole !== 'N/A' ? 1 : 0"/></td>
           <td class="fill">{{ status.nodeRole }}</td>
           <td class="action">
             <button class="btn btn-primary btn-sm btn-width"
@@ -358,7 +357,7 @@ export default {
             cpu: 0,
           }
         : {
-            nodeRole: this.node.status.node_role.toUpperCase(),
+            nodeRole: this.node.status.role.toUpperCase(),
             nodeService:
               this.node.status.node_status === 1
                 ? "Running"
