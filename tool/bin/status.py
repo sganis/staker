@@ -152,7 +152,7 @@ services = get_services_information()
 node_service = services['node_service']
 wallet_service = services['wallet_service']
 
-node_role = ('producer' if 'operational-certificate' in node_service['cmd'] 
+role = ('producer' if 'operational-certificate' in node_service['cmd'] 
               else 'relay' if node_service['cmd']
               else 'n/a')
 time_sync = 0
@@ -187,7 +187,7 @@ status = {
     'cpu': get_cpu(),
     'memory': get_memory(),
     'disk': get_disk(),
-    'node_role': node_role,      
+    'role': role,      
     'node_status': node_status,      
     'node_sync': node_sync,    
     'node_service': node_service,
