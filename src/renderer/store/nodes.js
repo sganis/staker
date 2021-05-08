@@ -103,7 +103,16 @@ export default {
                 console.log('error getting node status: '+ r.stderr);                    
                 n.status = r.stderr;
             }
-            // update state
+            commit('updateNode', n); 
+            // peers
+            r = await runRemote('python3 cardano/bin/cardano.py peers');
+            if (r.rc === 0) {
+                if (r.stdout)
+                    n.peers = JSON.parse(r.stdout);
+            } else {
+                console.log('error getting node peers: '+ r.stderr);                    
+                //n.status = r.stderr;
+            }
             commit('updateNode', n); 
         },
         async installNode({commit}, {node, sudo}) {

@@ -73,7 +73,6 @@
         </td></tr>
         </template>
 
-
         <tr><td class="title">Node service:</td>
           <td class="icon">
             <StatusIcon 
@@ -120,6 +119,16 @@
                   service: 'cardano-wallet',
                   node: node,
                 })">Stop Wallet</button></td>
+        </tr>
+
+        <tr><td class="title">Peers:</td>
+          <td class="fill" colspan="3">
+            <StatusIcon v-if="!node.peers" :status="0"/>            
+            <div v-for="(v,i) in node.peers || []"  :key="i">
+              <StatusIcon :status="v[0]==='ESTABLISHED' ? 1 : 2"/>&nbsp;
+              {{v[1]}} {{v[2]}}
+            </div>
+          </td>
         </tr>
 
         <tr><td class="title">Role:</td>
