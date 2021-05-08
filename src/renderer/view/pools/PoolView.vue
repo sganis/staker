@@ -13,29 +13,71 @@
     <h2>Relay Nodes</h2>
     <table class="table">
         <thead>
-            <tr><th>DNS</th><th>IP</th><th>Port</th></tr>
+            <tr><th>Address</th><th>Port</th></tr>
         </thead>
         <tbody>
         <tr><td></td>
-            <td></td>
             <td></td></tr>
         </tbody>
     </table>    
 
     <h2>Metadata</h2>
-    <table class="table">
+    <div v-if="!metadata.is_editing" class="d-flex justify-content-end">
+      <button  @click="_updateMetadata" :disabled="getLoading"
+        class="btn btn-sm btn-primary btn-width">Change</button>    
+    </div>
+    <table v-if="!metadata.is_editing" class="table">
         <tbody>
-        <tr><td>Json</td>
-            <td><pre>{{pool.metadata}}</pre></td></tr>
-        <tr><td class="text-nowrap">Hash</td>
-            <td>{{ form.metadata_hash }}</td></tr>
-        <tr><td>Url</td>
-            <td><input v-model="form.metadata_url"  class="form-control"/></td></tr>
+        <tr><td class="title">Json</td>
+            <td>
+              <table class="table">
+                <tr v-for="(v,k) in pool.metadata" :key="k">
+                  <td>{{k}}:</td><td>{{v}}</td></tr>
+              </table>
+            </td></tr>
+        <tr><td  class="title">Hash</td>
+            <td>{{ pool.metadata_hash }}</td></tr>
+        <tr><td class="title">Url</td>
+            <td>{{pool.metadata_url}}</td></tr>
         </tbody>
     </table>    
-
-      <h2>Keys</h2>
-      <table class="table">
+    <div v-if="metadata.is_editing">
+      <form @submit.prevent="_updateMetadata">
+        <div class="form-group d-flex justify-content-end">
+        <input value="Save"
+              type="submit"
+              class="btn btn-sm btn-success btn-width"
+              :disabled="getLoading || !metadata.is_valid"/>&nbsp;
+          <button @click="metadata.is_editing=false" 
+              :disabled="getLoading || !metadata.is_valid"
+              class="btn btn-sm btn-light btn-width">Cancel</button>
+        </div>
+        <div class="form-group top10">
+            <textarea
+              id="metadata_json"
+              spellcheck="false"
+              rows="6"
+              v-model="metadata_json"
+              class="form-control monospace"
+              required
+              :disabled="getLoading"
+            ></textarea>
+        </div>
+        <div class="form-group top10">
+            <input id="metadata_url"
+              v-model="metadata.url"
+              class="form-control"
+              placeholder="Url"
+              required
+              :disabled="getLoading"/>
+        </div>
+        <div class="text-danger">{{metadata.error}}</div>
+      </form>
+    </div>
+    
+    <br/>
+    <h2>Keys</h2>
+    <table class="table">
           <thead><tr><th class="col-8">File</th><th class="col-1 text-nowrap">Created (days ago)</th></tr></thead>
         <tbody>
           <tr
@@ -45,22 +87,14 @@
             @click="k.visible = !k.visible"
             @mouseover="k.hover = true"
             @mouseleave="k.hover = false"
-            :class="{ active: k.hover }"
-          >
+            :class="{ active: k.hover }">
             <td colspan="2">
               <div class="d-flex justify-content-between">
-                <div class="text-nowrap">
-                  <BIconCheckCircleFill
-                    class="icon-success"
-                    v-if="k.mtime !== 'N/A'"
-                  />
-                  <BIconExclamationCircleFill
-                    class="icon-danger"
-                    v-if="k.mtime === 'N/A'"
-                  />
+                <div  class="text-nowrap">
+                <StatusIcon :status="k.mtime !== 'N/A' ? 1 : 2" />
                   &nbsp;
                   {{ k.name }}
-                </div>
+                  </div>
                 <div class="text-nowrap">{{ k.days }}</div>
               </div>
               <div class="row text-break" v-if="k.visible">
@@ -69,10 +103,10 @@
             </td>
           </tr>
         </tbody>
-      </table>
-      <h5>Generate new keys:</h5>
-      <br />
-      <div class="row" :disabled="getLoading">
+    </table>
+    <h5>Generate new keys:</h5>
+    <br />
+    <div class="row" :disabled="getLoading">
         <form>
           <div class="form-check form-check-inline">
             <input
@@ -121,9 +155,9 @@
             >
           </div>
         </form>
-      </div>
-      <br />
-      <div class="row">
+    </div>
+    <br />
+    <div class="row">
         <span>
           <button
             @click="_newKey({ pool: pool, type: keygen_list })"
@@ -133,7 +167,7 @@
             Generate
           </button>
         </span>
-      </div>
+    </div>
 
     <br/>    
     <br/>
@@ -233,14 +267,23 @@
 <script>
 
 import {mapGetters, mapActions} from 'vuex';
+import StatusIcon from '../common/StatusIcon'
 
 export default {
     props: ['pool'],
+    components: {StatusIcon},
     data () {
         return {
-            keygen_list: [],
-            registering: false,
-            form : JSON.parse(JSON.stringify(this.pool)),
+          keygen_list: [],
+          registering: false,
+          metadata_json: '',
+          metadata: {
+            is_editing: false,
+            is_valid: true,
+            json: '',
+            url: '',
+            error: '',
+          }
         }
     },
     computed: {
@@ -251,7 +294,7 @@ export default {
         this.loadPool(this.pool);
     },
     methods: {
-        ...mapActions('pools',['loadPool','register','newKey']),
+        ...mapActions('pools',['loadPool','register','newKey','updateMetadata']),
         async _register() {
             let r = await this.register(this.form);
             // if (r.rc === 0) {
@@ -264,16 +307,34 @@ export default {
                 this.keygen_list = [];
             }
         },
+        async _updateMetadata() {
+          //console.log('updating metadata');
+          if (!this.metadata.is_editing) {
+            this.metadata_json = JSON.stringify(this.pool.metadata, null, 2);
+            this.metadata.url = this.pool.metadata_url;
+            this.metadata.is_editing = true;
+          } else {
+            let metadata = JSON.parse(this.metadata_json);
+            let r = await this.updateMetadata({pool: this.pool, metadata: metadata});
+            if (r.rc === 0) 
+              this.metadata.is_editing = false;       
+          }
+        },
     },
     watch : {
-        pool: {
-            deep: true,
-            handler(newdata) {
-                //console.log('pool changed:');
-                this.form = JSON.parse(JSON.stringify(newdata));
-                this.metadata_json = JSON.stringify(newdata.metadata);
-            }
+        metadata_json() {
+          if (this.metadata.is_editing) {
+          try {
+              JSON.parse(this.metadata_json);
+              this.metadata.is_valid = true;
+              this.metadata.error = '';
+          }
+          catch(e) {
+            this.metadata.is_valid = false;            
+            this.metadata.error = "Invalid JSON: "+JSON.stringify(e.message);            
+          }
         }
+      }
     }
 }
 </script>

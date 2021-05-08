@@ -73,17 +73,20 @@ export default {
   overflow-y: auto  
 }
 .btn-width {
-  width: 160px;
+  width: 120px;
 }
 .top10 { margin-top:10px; }
 
-h2 {
-   /* width: 100%;  */
-   color:rgb(109, 109, 109);
+.subtitle {
    border-bottom: 1px solid gainsboro; 
-   padding-top: 20px;
-   /* line-height: 0.1em; */
-   /* margin: 30px 30px 30px 0px;  */
+   border-radius: 5px;
+   background: rgb(241, 248, 241);
+   padding-top: 2px;
+   padding-bottom: 4px;
+   padding-left: 10px;
+   padding-right: 5px;
+   font-weight: bold;
+   font-size: 130%;
 } 
 .box {
   padding: 5px;
@@ -98,8 +101,17 @@ pre {
   white-space: pre-wrap;
 }
 .monospace {
-  font-family:monospace;
-          
+  font-family:monospace;         
+}
+td.title {
+  font-weight: bold;
+  white-space: nowrap;
+}
+td.icon {
+  width: 40px;
+}
+td.fill {
+  width: 100%;
 }
 .icon-success {
   color: #198754;

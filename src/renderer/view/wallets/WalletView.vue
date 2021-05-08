@@ -1,7 +1,17 @@
 <template>
     <div>
-        <!-- <pre>{{wallet}}</pre> -->
-        <h2>Summary </h2>
+        <div class="d-flex justify-content-between subtitle" >
+            <div>Balance</div>
+            <span>{{ wallet && balance.toFixed(6) }} ADA</span>
+        </div>
+        <div class="d-flex justify-content-end" >
+           <span>{{ wallet && wallet.usd && numberWithCommas((wallet.usd * balance).toFixed(0)) }} USD</span>
+        </div>
+
+        <br/>
+        <div class="d-flex justify-content-between subtitle" >
+          <div>Summary</div>
+        </div>
         <table v-if="wallet" class="table">
             <tbody>
             <tr><td>Name:</td><td>{{wallet.name}}</td></tr>
@@ -13,58 +23,66 @@
                 <td><pre class="text-break">{{wallet.stake_address}}</pre></td></tr>
             </tbody>
         </table>
-
-        <h2>Balance</h2>
-        <div class="d-flex align-items-baseline">
-        <span class="h2 ms-auto">{{ wallet && balance.toFixed(6) }}</span>
-        &nbsp;
-        <span>ADA</span>
+       
+        <br/>
+        <div class="d-flex justify-content-between subtitle" >
+            <div>Transactions</div>
+            <span>
+                <button @click="_deposit" 
+                    :disabled="getLoading || is_depositing"
+                    class="btn btn-sm btn-primary btn-width">Deposit</button>          
+                &nbsp;
+                <button @click="_withdraw" 
+                    :disabled="getLoading || is_withdrawing"
+                    class="btn btn-sm btn-primary btn-width">Withdraw</button>
+            </span>
         </div>
-        <div class="d-flex align-items-baseline">
-        <span>&nbsp;</span>
-        <span class="h3 ms-auto">{{ wallet && wallet.usd && numberWithCommas((wallet.usd * balance).toFixed(0)) }}</span>
-        &nbsp;
-        <span>{{ (wallet && wallet.usd && ' USD') || '&nbsp;' }}</span>
-        </div>
-        <h2>Recieve</h2>
-         <div class="form-group">
-             <textarea type="text" id="fromaddr" 
-                class="form-control" :value="wallet.addresses && wallet.addresses[0].id"/>
+        <div v-if="is_depositing">
             <br/>
-        </div>
-        <input class="btn btn-primary btn-width"
-            @click="copy" value="Copy" />
-            &nbsp;&nbsp;<span>{{copyMessage}}</span>
-        <br/>
-        <br/>        
-        <h2>Send</h2>
-        <div>
-        <form @submit.prevent="_transaction">
             <div class="form-group">
-                <textarea id="toaddr" v-model="toaddr" 
-                    placeholder="Destination address..." 
-                    class="form-control" required />
+                <textarea type="text" id="fromaddr" 
+                    class="form-control" :value="wallet.addresses && wallet.addresses[0].id"/>
             </div>
-            <div class="form-group top10">
-                <input id="amount" v-model="amount" 
-                type="text" placeholder="Amount" 
-                class="form-control" required :disabled="getLoading" />  
+            <div class="d-flex justify-content-end top10" >
+                <span>{{copyMessage}}</span>&nbsp;
+                <button @click="is_depositing=false; copyMessage=''" 
+                        :disabled="getLoading"
+                        class="btn btn-light btn-sm btn-width">Cancel</button>&nbsp;
+                <input class="btn btn-primary btn-sm btn-width"
+                    @click="copy" value="Copy" />
+                    
             </div>
-            <div class="form-group top10">
-                <input id="txpass" v-model="txpass" 
-                type="password" placeholder="Passphrase" 
-                class="form-control" required :disabled="getLoading" />  
-            </div>
-            <div class="form-group top10">
-                <input value="Send" type="submit" class="btn btn-primary btn-width"
-                    :disabled="getLoading"/>  
-            </div>
-        </form>
+        </div>
+        <div v-if="is_withdrawing">
+            <br/>
+            <form @submit.prevent="_transaction">
+                <div class="form-group">
+                    <textarea id="toaddr" v-model="toaddr" 
+                        placeholder="Destination address..." 
+                        class="form-control" required />
+                </div>
+                <div class="form-group top10">
+                    <input id="amount" v-model="amount" 
+                        type="text" placeholder="Amount" 
+                        class="form-control" required :disabled="getLoading" />  
+                </div>
+                <div class="form-group top10">
+                    <input id="txpass" v-model="txpass" 
+                    type="password" placeholder="Passphrase" 
+                    class="form-control" required :disabled="getLoading" />  
+                </div>
+                <div class="d-flex justify-content-end top10 form-group" >
+                    <button @click="is_withdrawing=false" 
+                        :disabled="getLoading"
+                        class="btn btn-light btn-sm btn-width">Cancel</button>&nbsp;
+                    <input value="Send" type="submit" 
+                        class="btn btn-primary btn-sm btn-width"
+                        :disabled="getLoading"/>  
+                </div>
+            </form>
         </div>
         <br/>
-        <h2>Transactions</h2>
         <!-- <pre>{{wallet.transactions.filter(x=>x.status=='pending')}}</pre> -->
-        
         <table class="table">
             <thead>
                 <tr>
@@ -100,25 +118,25 @@
             </div>        
         </form>
 
-        <h2 v-if="wallet" >Update passphrase</h2>
+        <h2 v-if="wallet" >Change Password</h2>
         <form @submit.prevent="_updatePass">
             <div class="form-group ">
                 <input id="currentpass" v-model="currentpass" 
-                type="password" placeholder="Current passphrase" 
+                type="password" placeholder="Current password" 
                 class="form-control" required :disabled="getLoading" />  
             </div>
             <div class="form-group top10">
                 <input id="newpass1" v-model="newpass1" 
-                type="password" placeholder="New passphrase" 
+                type="password" placeholder="New password" 
                 class="form-control" required :disabled="getLoading" />  
             </div>
             <div class="form-group top10">
                 <input id="newpass1" v-model="newpass2" 
-                type="password" placeholder="New passphrase again" 
+                type="password" placeholder="New password again" 
                 class="form-control" required :disabled="getLoading" />  
             </div>
             <div class="form-group top10">
-            <input value="Update phassprase" type="submit" 
+            <input value="Change" type="submit" 
                 class="btn btn-primary btn-width" :disabled="getLoading"/>  
             </div>        
         </form>
@@ -151,6 +169,8 @@ export default {
             toaddr: 'addr_test1qzg5kt9snzjnyvl84tudz8nq7z8ekky9sdshg3eepkzklu5ygffk9q03s8sv5grpcna9rxzdryhknwjjt2qgzhcl0c9sf8888z',
             txpass: '', // 'Password123',
             amount: 1,
+            is_depositing: false,
+            is_withdrawing: false,
         }
     },
     computed: {
@@ -186,6 +206,22 @@ export default {
         },
         numberWithCommas(a) {
             return numberWithCommas(a);
+        },
+        _deposit() {
+            this.is_withdrawing = false;
+            if (!this.is_depositing) {
+                this.is_depositing = true;
+            } else {
+                this.is_depositing = false;
+            }
+        },
+        _withdraw() {
+            this.is_depositing = false;
+            if (!this.is_withdrawing) {                
+                this.is_withdrawing = true;
+            } else {
+                this.is_withdrawing = false;
+            }
         },
         _transaction() {
             let w = {
