@@ -8,6 +8,7 @@ import json
 import argparse
 from shutil import copyfile
 from datetime import datetime
+import requests
 
 home = os.environ['HOME']
 DIR = os.path.dirname(os.path.abspath(sys.argv[0]))
@@ -70,6 +71,8 @@ def _get_params():
 
 	s = subparsers.add_parser("peers", help='get peers')
 	
+	s = subparsers.add_parser("metrics", help='get metrics')
+
 	# Parse
 	a = parser.parse_args()
 
@@ -587,22 +590,126 @@ def query_version():
 
 def query_peers():
 	peers = []
-	o,e = run(f'netstat -W')
-	# tcp 0 0 adabox:3001 192.168.100.202:37543 ESTABLISHED
+
+	# # this gives the dns name
+	# o,e = run(f'netstat -W')
+	# # tcp 0 0 adabox:3001 192.168.100.202:37543 ESTABLISHED
+	# for line in o.split('\n'):
+	# 	if ':3001' in line and 'ESTABLISHED' in line:
+	# 		f = line.split()
+	# 		local = f[3]
+	# 		remote = f[4]
+	# 		local_ip, local_port = local.split(':')
+	# 		remote_ip, remote_port = remote.split(':')
+	# 		direction = 'OUT'
+	# 		if local_port == '3001':
+	# 			direction = 'IN '
+	# 		peers.append([direction, remote_ip])
+
+	# this gives the IP address, used to get geo location
+	o,e = run('ss -tnp state established')
+	# 0 0 192.168.100.203:34525 3.9.80.183:3001 users:(("cardano-node",pid=24804,fd=29))  
+	ipaddr = []
+	geo = {}
+	if os.path.exists(f'{CONF}/geo.json'):
+		with open(f'{CONF}/geo.json') as r:
+			geo = json.load(r)
+
 	for line in o.split('\n'):
-		if ':3001' in line:
+		if 'cardano-node' in line:
 			f = line.split()
-			local = f[3]
-			remote = f[4]
-			status = f[5]
+			local = f[2]
+			remote = f[3]
 			local_ip, local_port = local.split(':')
-			remote_ip, remote_port = remote.split(':')
+			remote_ip, remote_port = remote.split(':')			
+			city = ''
+			country = ''
+			isp = ''
+			if remote_ip in geo:
+				city = geo[remote_ip]['city']
+				country = geo[remote_ip]['country']
+				isp = geo[remote_ip]['isp']
+			elif remote_ip.startswith('192.'):
+				city = 'Local'
+			else:
+				print(f'added ip to query, ip {remote_ip} not in geo')
+				ipaddr.append(remote_ip)	
+				
 			direction = 'OUT'
 			if local_port == '3001':
 				direction = 'IN '
-			peers.append([status, direction, remote_ip])
-	print(json.dumps(sorted(peers, key=lambda x: x[2])))
+			peers.append([direction, remote_ip, isp, city, country])
+
+	# get the IP geo location
+	if ipaddr:
+		data = '["' + '","'.join(ipaddr) + '"]'
+		response = requests.post('http://ip-api.com/batch?fields=city,countryCode,isp,query,status', data=data)
+		for j in response.json():
+			if j['status'] == 'success':
+				ip = j['query']
+				geo[ip] = {}
+				geo[ip]['city'] = j['city']
+				geo[ip]['country'] = j['countryCode']
+				geo[ip]['isp'] = j['isp']
+		with open(f'{CONF}/geo.json', 'wt') as w:
+			json.dump(geo, w)
+
+	print(json.dumps(sorted(peers, key=lambda x: (x[0],x[1]))))
 	return True
+
+
+def query_metrics():
+    # .cardano.node.metrics.blockNum.int.val //0,
+    # .cardano.node.metrics.epoch.int.val //0,
+    # .cardano.node.metrics.slotInEpoch.int.val //0,
+    # .cardano.node.metrics.slotNum.int.val //0,
+    # .cardano.node.metrics.density.real.val //"-",
+    # .cardano.node.metrics.txsProcessedNum.int.val //0,
+    # .cardano.node.metrics.txsInMempool.int.val //0,
+    # .cardano.node.metrics.mempoolBytes.int.val //0,
+    # .cardano.node.metrics.currentKESPeriod.int.val //0,
+    # .cardano.node.metrics.remainingKESPeriods.int.val //0,
+    # .cardano.node.metrics.Forge["node-is-leader"].int.val //0,
+    # .cardano.node.metrics.Forge.adopted.int.val //0,
+    # .cardano.node.metrics.Forge["didnt-adopt"].int.val //0,
+    # .cardano.node.metrics.Forge["forge-about-to-lead"].int.val //0,
+    # .cardano.node.metrics.nodeStartTime.int.val //0
+	headers = {'Accept': 'application/json'}
+	response = requests.get('http://localhost:12788', headers=headers)
+	j = response.json()
+	if j:
+		j = j['cardano']['node']['metrics']
+		blockNum = j.get('blockNum',{}).get('int',{}).get('val',0)
+		epoch = j.get('epoch',{}).get('int',{}).get('val',0)
+		slotInEpoch = j.get('slotInEpoch',{}).get('int',{}).get('val',0)
+		slotNum = j.get('slotNum',{}).get('int',{}).get('val',0)
+		density = j.get('density',{}).get('real',{}).get('val',0)
+		txsProcessedNum = j.get('txsProcessedNum',{}).get('int',{}).get('val',0)
+		txsInMempool = j.get('txsInMempool',{}).get('int',{}).get('val',0)
+		mempoolBytes = j.get('mempoolBytes',{}).get('int',{}).get('val',0)
+		currentKESPeriod = j.get('currentKESPeriod',{}).get('int',{}).get('val',0)
+		remainingKESPeriods = j.get('remainingKESPeriods',{}).get('int',{}).get('val',0)
+		nodeIsLeader = j.get('Forge',{}).get('node-is-leader',{}).get('int',{}).get('val',0)
+		adopted = j.get('Forge',{}).get('adopted',{}).get('int',{}).get('val',0)
+		didntAdopt = j.get('Forge',{}).get('didnt-adopt',{}).get('int',{}).get('val',0)
+		forgeAboutToLead = j.get('Forge',{}).get('forge-about-to-lead',{}).get('int',{}).get('val',0)
+		nodeStartTime = j.get('nodeStartTime',{}).get('int',{}).get('val',0)
+		print(f'blockNum: {blockNum}')
+		print(f'epoch: {epoch}')
+		print(f'slotInEpoch: {slotInEpoch}')
+		print(f'slotNum: {slotNum}')
+		print(f'density: {density}')
+		print(f'txsProcessedNum: {txsProcessedNum}')
+		print(f'txsInMempool: {txsInMempool}')
+		print(f'mempoolBytes: {mempoolBytes}')
+		print(f'currentKESPeriod: {currentKESPeriod}')
+		print(f'remainingKESPeriods: {remainingKESPeriods}')
+		print(f'nodeIsLeader: {nodeIsLeader}')
+		print(f'adopted: {adopted}')
+		print(f'didntAdopt: {didntAdopt}')
+		print(f'forgeAboutToLead: {forgeAboutToLead}')
+		print(f'nodeStartTime: {nodeStartTime}')
+
 
 
 if __name__ == '__main__':
@@ -647,6 +754,9 @@ if __name__ == '__main__':
 
 	elif p.command == 'peers':
 		ok = query_peers()
+
+	elif p.command == 'metrics':
+		ok = query_metrics()
 
 	elif p.command == 'version':
 		ok = query_version()
