@@ -632,7 +632,6 @@ def query_peers():
 			elif remote_ip.startswith('192.'):
 				city = 'Local'
 			else:
-				print(f'added ip to query, ip {remote_ip} not in geo')
 				ipaddr.append(remote_ip)	
 				
 			direction = 'OUT'
