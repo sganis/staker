@@ -1,6 +1,6 @@
 #!/bin/bash
 # install script
-# run as sudo
+# run as sudo from cardano/upgrade/bin
 
 USER=$SUDO_USER
 HOME=$(eval echo ~$USER)
@@ -10,20 +10,26 @@ ROOT=$HOME/cardano
 mkdir -p $ROOT
 mkdir -p $ROOT/keys
 
-if [ "$DIR" != "$ROOT/bin" ]; then
-	echo "deploying..."
-	mkdir -p $ROOT/bin
-	cp -rv $DIR/* $ROOT/bin
-	mkdir -p $ROOT/config
-	cp -rv $DIR/../config/* $ROOT/config
-fi
+# stop service
+systemctl stop cardano-node 2>/dev/null
+systemctl stop cardano-wallet 2>/dev/null
+
+mkdir -p $ROOT/bin
+cp -r $DIR/* $ROOT/bin
+mkdir -p $ROOT/config
+
+# do not overwrite config files
+[ ! -f $ROOT/config/node-role.sh ] && cp $DIR/../config/node-role.sh $ROOT/config
+[ ! -f $ROOT/config/node-network.sh ] && cp $DIR/../config/node-network.sh $ROOT/config
+cp $DIR/../config/testnet-* $ROOT/config
+cp $DIR/../config/mainnet-* $ROOT/config
 
 echo "fixing permissions..."
 chmod 750 $ROOT/bin/*
 chmod 660 $ROOT/config/*
 chmod 600 $ROOT/keys/*
 chown -R $USER $ROOT
-
+dos2unix $ROOT/bin/*.py $ROOT/bin/*.sh $ROOT/config/*.sh $ROOT/config/*.json
 
 # so $HOME is expanded to current user home
 echo "installing systemd services..."
@@ -101,5 +107,7 @@ fi
 # if [ $? -ne 0 ];then
 # 	echo "export PATH=$HOME/cardano/bin:$PATH" >> $HOME/.bashrc
 # fi
+
+systemctl start cardano-node
 
 

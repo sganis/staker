@@ -636,7 +636,7 @@ def query_peers():
 				
 			direction = 'OUT'
 			if local_port == '3001':
-				direction = 'IN '
+				direction = 'IN'
 			peers.append([direction, remote_ip, isp, city, country])
 
 	# get the IP geo location
