@@ -14,7 +14,7 @@ KEYARG=""
 
 ROLE=$CARDANO_NODE_ROLE
 NETWORK=$CARDANO_NODE_NETWORK
-TOPOLOGY=$CONF/$NETWORK-topology-$ROLE.json
+TOPOLOGY=$CONF/node-$NETWORK-topology-$ROLE.json
 CONFIG=$CONF/$NETWORK-config.json
 
 if [[ "$CARDANO_NODE_ROLE" == "producer" ]]; then

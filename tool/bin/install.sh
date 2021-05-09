@@ -19,8 +19,8 @@ cp -r $DIR/* $ROOT/bin
 mkdir -p $ROOT/config
 
 # do not overwrite config files
-[ ! -f $ROOT/config/node-role.sh ] && cp $DIR/../config/node-role.sh $ROOT/config
-[ ! -f $ROOT/config/node-network.sh ] && cp $DIR/../config/node-network.sh $ROOT/config
+[ ! -f $ROOT/config/role.sh ] && cp $DIR/../config/role.sh $ROOT/config
+[ ! -f $ROOT/config/network.sh ] && cp $DIR/../config/network.sh $ROOT/config
 cp $DIR/../config/testnet-* $ROOT/config
 cp $DIR/../config/mainnet-* $ROOT/config
 
