@@ -31,7 +31,7 @@ export default {
             if (r.rc === 0)
                 node.os_release = r.stdout;
             // topology
-            r = await runRemote('cd cardano/config && . role.sh && . network.sh && cat ${CARDANO_NODE_NETWORK}-topology-${CARDANO_NODE_ROLE}.json');
+            r = await runRemote('cd cardano/config && . role.sh && . network.sh && cat node-${CARDANO_NODE_NETWORK}-topology-${CARDANO_NODE_ROLE}.json');
             if (r.rc === 0)
                 node.topology = JSON.parse(r.stdout);
             else
@@ -129,7 +129,7 @@ export default {
             let dst = null;
 
             // upload files
-            r = await runRemote('mkdir -p cardano/bin cardano/config');
+            r = await runRemote('mkdir -p cardano/upgrade/bin cardano/upgrade/config');
             if (r.rc !== 0) {
                 commit('workEnd', r.stderr, {root: true});
                 commit('updateNode', node);
@@ -139,7 +139,7 @@ export default {
             let appPath = getSettings('appPath');
             
             src = path.join(appPath,'tool','bin');
-            dst = 'cardano/bin'; 
+            dst = 'cardano/upgrade/bin'; 
             // src = appPath+'\\tool\\bin\\install.sh';
             // dst = 'cardano/bin/install.sh'; 
             console.log('src:', src);
@@ -152,7 +152,7 @@ export default {
                 return r; 
             }
             src = path.join(appPath,'tool','config');
-            dst = 'cardano/config'; 
+            dst = 'cardano/upgrade/config'; 
             console.log('uploading src:', src);
             console.log('dst:', dst);
             r = await upload(src, dst);
@@ -169,19 +169,22 @@ export default {
                 }
             ];
             
-            r = await runRemote('sudo bash cardano/bin/install.sh',
-                    prompt, true);
+            r = await runRemote('sudo bash cardano/upgrade/bin/install.sh', prompt, true);
             console.log(r);
             if (r.rc !== 0) {
                 commit('workEnd', r.stderr, {root: true});
                 commit('updateNode', node);
                 return r; 
-            }
+            } 
             r.stdout = 'cardano-node installed.'
+            
+            // cleanup
+            await runRemote('rm -rf cardano/upgrade');           
             commit('workEnd', r, {root: true});
             commit('updateNode', node);
             return r;
         },
+
         async serviceAction({commit, dispatch}, s) {
             commit('workStart', `Service: ${s.action} ${s.service}...`, {root: true});
             let r = await runRemote(`sudo /bin/systemctl ${s.action} ${s.service}`);
@@ -210,7 +213,7 @@ export default {
             commit('workStart', 'Saving topology...', {root: true});
             let topology_str = JSON.stringify(topology, null, 2);
             console.log('changing topology: '+node.role);
-            let r = await runRemote(`echo '${topology_str}' > cardano/config/testnet-topology-${node.role}.json`);
+            let r = await runRemote(`echo '${topology_str}' > cardano/config/node-testnet-topology-${node.role}.json`);
             if (r.rc !== 0) {
                 console.log(r);
             } else {

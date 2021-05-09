@@ -139,7 +139,7 @@
               class="table table-condensed borderless m-0">   
               <tbody>       
             <tr v-for="(v,i) in node.peers.filter(x=>x[0]==='IN')"  :key="i">
-              <td class="p-0">{{v[1]}}</td><td>{{v[3]}}, {{v[4]}}</td>              
+              <td class="p-0">{{v[1]}}</td><td class="fill">{{v[3]}} {{v[4]}}</td>              
             </tr>
             </tbody>
             </table>
@@ -155,7 +155,7 @@
               class="table table-condensed borderless m-0">   
               <tbody>       
             <tr v-for="(v,i) in node.peers.filter(x=>x[0]==='OUT')"  :key="i">
-              <td class="p-0">{{v[1]}}</td><td>{{v[3]}}, {{v[4]}}</td>              
+              <td class="p-0">{{v[1]}}</td><td class="fill">{{v[3]}} {{v[4]}}</td>              
             </tr>
             </tbody>
             </table>
