@@ -130,15 +130,32 @@
               @click="changeRole(node)">Change Role</button></td>
         </tr>
 
-        <tr><td class="title">Peers:</td>
+        <tr><td class="title">Peers IN:</td>
           <td class="icon">
-            <StatusIcon :status="Array.isArray(node.peers) && node.peers.length ? 1 : 2"/></td>
+            <StatusIcon 
+            :status="Array.isArray(node.peers) && node.peers.filter(x=>x[0]==='IN').length ? 1 : 2"/></td>
           <td class="fill" colspan="2">  
             <table v-if="Array.isArray(node.peers) && node.peers.length" 
-              class="table table-condensed borderless">   
+              class="table table-condensed borderless m-0">   
               <tbody>       
-            <tr v-for="(v,i) in node.peers || []"  :key="i">
-              <td>{{v[0]}}</td><td>{{v[1]}}</td><td>{{v[2]}}</td><td>{{v[3]}}, {{v[4]}}</td>              
+            <tr v-for="(v,i) in node.peers.filter(x=>x[0]==='IN')"  :key="i">
+              <td class="p-0">{{v[1]}}</td><td>{{v[3]}}, {{v[4]}}</td>              
+            </tr>
+            </tbody>
+            </table>
+          </td>
+        </tr>
+
+        <tr><td class="title">Peers OUT:</td>
+          <td class="icon">
+            <StatusIcon 
+            :status="Array.isArray(node.peers) && node.peers.filter(x=>x[0]==='OUT').length ? 1 : 2"/></td>
+          <td class="fill" colspan="2">  
+            <table v-if="Array.isArray(node.peers) && node.peers.length" 
+              class="table table-condensed borderless m-0">   
+              <tbody>       
+            <tr v-for="(v,i) in node.peers.filter(x=>x[0]==='OUT')"  :key="i">
+              <td class="p-0">{{v[1]}}</td><td>{{v[3]}}, {{v[4]}}</td>              
             </tr>
             </tbody>
             </table>
