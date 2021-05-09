@@ -121,16 +121,6 @@
                 })">Stop Wallet</button></td>
         </tr>
 
-        <tr><td class="title">Peers:</td>
-          <td class="icon">
-            <StatusIcon :status="node.peers ? 1 : 2"/></td>
-          <td class="fill monospace" colspan="2">            
-            <div v-for="(v,i) in node.peers || []"  :key="i">
-              {{v[0]}} {{v[1]}} {{v[2]}} {{v[3]}} {{v[4]}}
-            </div>
-          </td>
-        </tr>
-
         <tr><td class="title">Role:</td>
           <td class="icon">
             <StatusIcon :status="status.nodeRole !== 'N/A' ? 1 : 0"/></td>
@@ -138,6 +128,21 @@
           <td class="action">
             <button class="btn btn-primary btn-sm btn-width"
               @click="changeRole(node)">Change Role</button></td>
+        </tr>
+
+        <tr><td class="title">Peers:</td>
+          <td class="icon">
+            <StatusIcon :status="Array.isArray(node.peers) && node.peers.length ? 1 : 2"/></td>
+          <td class="fill" colspan="2">  
+            <table v-if="Array.isArray(node.peers) && node.peers.length" 
+              class="table table-condensed borderless">   
+              <tbody>       
+            <tr v-for="(v,i) in node.peers || []"  :key="i">
+              <td>{{v[0]}}</td><td>{{v[1]}}</td><td>{{v[2]}}</td><td>{{v[3]}}, {{v[4]}}</td>              
+            </tr>
+            </tbody>
+            </table>
+          </td>
         </tr>
 
         <tr><td class="title">DB Sync:</td>
@@ -227,10 +232,27 @@
     <div class="d-flex justify-content-between subtitle" >
       <div>Topology</div>
       <span>
+        <button 
+          v-if="topology.is_editing"
+          @click="topology_json=topology_default" 
+          :disabled="getLoading"
+          type="button"
+          class="btn btn-sm btn-primary btn-width">Default</button>&nbsp;
+        <input 
+          v-if="topology.is_editing"
+          value="Save" type="submit" form="form-topology"
+          class="btn btn-sm btn-success btn-width"
+          :disabled="getLoading || !topology.is_valid"/>&nbsp;
+        <button 
+          v-if="topology.is_editing"
+          @click="topology.is_editing=false" 
+          :disabled="getLoading || !topology.is_valid"
+          type="button"
+          class="btn btn-sm btn-light btn-width">Cancel</button>
       <button v-if="!topology.is_editing"  
         @click="_updateTopology" :disabled="getLoading"
         class="btn btn-sm btn-primary btn-width">Change</button>          
-        </span>
+      </span>
     </div>
     <table v-if="node.topology && !topology.is_editing" class="table" >
       <thead><tr><th>Address</th><th>Port</th><th>Valency</th></tr></thead>
@@ -244,29 +266,20 @@
     </table>
     <div v-if="topology.is_editing">
       <br/>
-      <form @submit.prevent="_updateTopology">    
-        <div class="form-group d-flex justify-content-end">
-        <input value="Save"
-              type="submit"
-              class="btn btn-sm btn-success btn-width"
-              :disabled="getLoading || !topology.is_valid"/>&nbsp;
-          <button @click="topology.is_editing=false" 
-              :disabled="getLoading || !topology.is_valid"
-              class="btn btn-sm btn-light btn-width">Cancel</button>
-        </div>
+      <form id="form-topology" @submit.prevent="_updateTopology">    
         <div class="form-group top10">
             <textarea
               id="topology"
               spellcheck="false"
               rows="9"
               v-model="topology_json"
-              class="form-control monospace"
+              class="form-control"
               required
               :disabled="getLoading"
             ></textarea>
         </div>
         <div class="text-danger">{{topology.error}}</div>
-    </form>
+      </form>
    </div>
    
     
@@ -388,6 +401,9 @@ export default {
             cpu: Math.round(this.node.status.cpu * 100),
           };
     },
+    topology_default() {
+      return JSON.stringify(this.node.topology_default, null, 2);
+    }
   },
   mounted() {
     this.loadNode(this.node);

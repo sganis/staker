@@ -33,6 +33,7 @@ export default {
             let r = await runRemote('cat cardano/config/pool.json 2>/dev/null');
             if (r.rc === 0)
                 pool = JSON.parse(r.stdout);
+            
             //console.log(pool);
             // pool id
             r = await runRemote('cardano/bin/cardano-cli stake-pool id --cold-verification-key-file cardano/keys/cold.vkey --output-format "hex"');
@@ -109,7 +110,7 @@ export default {
             commit('workEnd',r, {root: true});
             return r;
         },
-        async updateMetadata({commit, dispatch}, {pool, metadata}) {
+        async updateMetadata({commit, dispatch}, {pool, metadata, url}) {
             commit('workStart', 'Saving metadata...', {root: true});
             let metadata_json = JSON.stringify(metadata, null, 2);
             let r = await runRemote(`echo '${metadata_json}' > cardano/config/pool-metadata.json`);
@@ -117,14 +118,35 @@ export default {
                 console.log(r);
             } else {
                 pool.metadata = metadata;
+                pool.metadata_url = url;
                 dispatch('computeMetadataHash', pool);
                 dispatch('checkMetadataUrl', pool);                
-                let pool_json = JSON.stringify(pool, null, 2);
-                r = await runRemote(`echo '${pool_json}' > cardano/config/pool.json`);
-                commit('updatePool', pool);
-                r.stdout = 'Metadata updated.';
+                let r = await dispatch('savePool', pool);
+                if (r.rc === 0) {
+                    r.stdout = 'Metadata updated.';
+                }
             }
             commit('workEnd',r, {root: true});
+            return r;
+        },
+        async updateRelayNodes({commit, dispatch}, {pool, relay_nodes}) {
+            commit('workStart', 'Updating relay nodes...', {root: true});
+            pool.relay_nodes = relay_nodes;
+            let r = await dispatch('savePool', pool);
+            if (r.rc === 0) {
+                r.stdout = 'Relay nodes updated.';
+            }
+            commit('workEnd',r, {root: true});
+            return r;
+        },
+        async savePool({commit}, pool) {
+            let pool_json = JSON.stringify(pool, null, 2);
+            let r = await runRemote(`echo '${pool_json}' > cardano/config/pool.json`);
+            if (r.rc===0) {
+                commit('updatePool', pool);
+            } else {
+                console.log('error saving pool: '+ r.stderr);
+            }
             return r;
         },
 

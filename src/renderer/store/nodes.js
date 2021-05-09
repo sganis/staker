@@ -36,6 +36,11 @@ export default {
                 node.topology = JSON.parse(r.stdout);
             else
                 console.log(r)
+            r = await runRemote('cd cardano/config && . network.sh && cat ${CARDANO_NODE_NETWORK}-topology.json');
+            if (r.rc === 0)
+                node.topology_default = JSON.parse(r.stdout);
+            else
+                console.log(r)
             // tools versions
             r = await runRemote('python3 cardano/bin/cardano.py version');
             node.version = 'Checking...';
@@ -108,7 +113,8 @@ export default {
             // peers
             r = await runRemote('python3 cardano/bin/cardano.py peers');
             if (r.rc === 0) {
-                if (r.stdout)
+                //console.log(r);
+                if (r.stdout) 
                     n.peers = JSON.parse(r.stdout);
             } else {
                 console.log('error getting node peers: '+ r.stderr);                    

@@ -113,6 +113,11 @@ td.icon {
 td.fill {
   width: 100%;
 }
+.borderless td, .borderless th {
+    border: none;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+}
 .icon-success {
   color: #198754;
   width: 16px;
