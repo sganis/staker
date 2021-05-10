@@ -130,6 +130,16 @@
               @click="changeRole(node)">Change Role</button></td>
         </tr>
 
+        <template v-if="status.nodeRole === 'PRODUCER'">
+        <tr><td class="title">Processed TX:</td>
+          <td class="icon">
+            <StatusIcon :status="status.procesed_tx > 0 ? 1 : 2"/></td>
+          <td class="fill" colspan="2">  
+            TX: {{status.processed_tx}} &nbsp; Mempool TX/Bytes: {{status.mempool_tx}}/{{status.mempool_bytes}} 
+          </td>
+        </tr>
+        </template>
+
         <tr><td class="title">Peers IN:</td>
           <td class="icon">
             <StatusIcon 
@@ -385,6 +395,9 @@ export default {
             disk: 0,
             memory: 0,
             cpu: 0,
+            processed_tx: 0,
+            mempool_tx: 0,
+            mempool_bytes: 0,
           }
         : {
             nodeRole: this.node.status.role.toUpperCase(),
@@ -416,6 +429,10 @@ export default {
               (this.node.status.memory[0] / this.node.status.memory[1]) * 100
             ),
             cpu: Math.round(this.node.status.cpu * 100),
+            processed_tx: this.node.metrics ? this.node.metrics['txsProcessedNum'] : 0,
+            mempool_tx: this.node.metrics ? this.node.metrics['txsInMempool'] : 0,
+            mempool_bytes: this.node.metrics ? this.node.metrics['mempoolBytes'] : 0,
+            
           };
     },
     topology_default() {
