@@ -100,25 +100,16 @@ export default {
         async updateNodeStatus({commit}, n) { 
             // get node status from ssh
             //let r = await runRemote(n.host, 'hostname;uptime;free -m;df -H /');
-            let r = await runRemote('python3 cardano/bin/status.py');
+            let r = await runRemote('python3 cardano/bin/cardano.py status');
             if (r.rc === 0) {
                 if (r.stdout)
                     n.status = JSON.parse(r.stdout);
                     n.role = n.status.role
+                    n.metrics = n.status.metrics
+                    n.peers = n.status.peers
             } else {
                 console.log('error getting node status: '+ r.stderr);                    
                 n.status = r.stderr;
-            }
-            commit('updateNode', n); 
-            // peers
-            r = await runRemote('python3 cardano/bin/cardano.py peers');
-            if (r.rc === 0) {
-                //console.log(r);
-                if (r.stdout) 
-                    n.peers = JSON.parse(r.stdout);
-            } else {
-                console.log('error getting node peers: '+ r.stderr);                    
-                //n.status = r.stderr;
             }
             commit('updateNode', n); 
         },
