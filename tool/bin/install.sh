@@ -18,18 +18,23 @@ mkdir -p $ROOT/bin
 cp -r $DIR/* $ROOT/bin
 mkdir -p $ROOT/config
 
+cp $DIR/../config/testnet-* $ROOT/config
+cp $DIR/../config/mainnet-* $ROOT/config
+
 # do not overwrite config files
 [ ! -f $ROOT/config/role.sh ] && cp $DIR/../config/role.sh $ROOT/config
 [ ! -f $ROOT/config/network.sh ] && cp $DIR/../config/network.sh $ROOT/config
-cp $DIR/../config/testnet-* $ROOT/config
-cp $DIR/../config/mainnet-* $ROOT/config
+[ ! -f $ROOT/config/node-testnet-topology-relay.json ] && cp $DIR/../config/testnet-topology.json $ROOT/config/node-testnet-topology-relay.json
+[ ! -f $ROOT/config/node-testnet-topology-producer.json ] && cp $DIR/../config/testnet-topology.json $ROOT/config/node-testnet-topology-producer.json
+[ ! -f $ROOT/config/node-mainnet-topology-relay.json ] && cp $DIR/../config/mainnet-topology.json $ROOT/config/node-mainnet-topology-relay.json
+[ ! -f $ROOT/config/node-mainnet-topology-producer.json ] && cp $DIR/../config/mainnet-topology.json $ROOT/config/node-mainnet-topology-producer.json
 
 echo "fixing permissions..."
 chmod 750 $ROOT/bin/*
 chmod 660 $ROOT/config/*
 chmod 600 $ROOT/keys/*
 chown -R $USER $ROOT
-dos2unix $ROOT/bin/*.py $ROOT/bin/*.sh $ROOT/config/*.sh $ROOT/config/*.json
+# dos2unix $ROOT/bin/*.py $ROOT/bin/*.sh $ROOT/config/*.sh $ROOT/config/*.json
 
 # so $HOME is expanded to current user home
 echo "installing systemd services..."
