@@ -9,6 +9,7 @@ import argparse
 from shutil import copyfile
 from datetime import datetime
 import requests
+import re
 
 home = os.environ['HOME']
 DIR = os.path.dirname(os.path.abspath(sys.argv[0]))
@@ -20,10 +21,10 @@ KEYFILES = ['cold.skey','cold.vkey','cold.counter','vrf.skey','vrf.vkey','kes.sk
 NETWORK='--testnet-magic 1097911063'
 os.environ["CARDANO_NODE_SOCKET_PATH"] = f'{ROOT}/node.socket'
 
-def run(cmd):
+def run(cmd, timeout=300):
 	cmd = cmd.replace('\n','')
 	# print(f'CMD: {cmd}')
-	p = subprocess.run(cmd.replace('\n',' ').split(), encoding='utf8', 
+	p = subprocess.run(cmd.replace('\n',' ').split(), encoding='utf8', timeout=timeout, 
 			stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	stdout = p.stdout.strip()
 	stderr = p.stderr.strip()
@@ -72,6 +73,8 @@ def _get_params():
 	s = subparsers.add_parser("peers", help='get peers')
 	
 	s = subparsers.add_parser("metrics", help='get metrics')
+
+	s = subparsers.add_parser("status", help='get status')
 
 	# Parse
 	a = parser.parse_args()
@@ -588,7 +591,7 @@ def query_version():
 	print(json.dumps(version))
 	return True
 
-def query_peers():
+def _get_peers():
 	peers = []
 
 	# # this gives the dns name
@@ -653,30 +656,20 @@ def query_peers():
 		with open(f'{CONF}/geo.json', 'wt') as w:
 			json.dump(geo, w)
 
-	print(json.dumps(sorted(peers, key=lambda x: (x[0],x[1]))))
-	return True
+	return sorted(peers, key=lambda x: (x[0],x[1]))
 
+def query_peers():
+	peers = _get_peers()
+	if peers:
+		print(json.dumps(peers))
+		return True
+	return False
 
-def query_metrics():
-    # .cardano.node.metrics.blockNum.int.val //0,
-    # .cardano.node.metrics.epoch.int.val //0,
-    # .cardano.node.metrics.slotInEpoch.int.val //0,
-    # .cardano.node.metrics.slotNum.int.val //0,
-    # .cardano.node.metrics.density.real.val //"-",
-    # .cardano.node.metrics.txsProcessedNum.int.val //0,
-    # .cardano.node.metrics.txsInMempool.int.val //0,
-    # .cardano.node.metrics.mempoolBytes.int.val //0,
-    # .cardano.node.metrics.currentKESPeriod.int.val //0,
-    # .cardano.node.metrics.remainingKESPeriods.int.val //0,
-    # .cardano.node.metrics.Forge["node-is-leader"].int.val //0,
-    # .cardano.node.metrics.Forge.adopted.int.val //0,
-    # .cardano.node.metrics.Forge["didnt-adopt"].int.val //0,
-    # .cardano.node.metrics.Forge["forge-about-to-lead"].int.val //0,
-    # .cardano.node.metrics.nodeStartTime.int.val //0
-	headers = {'Accept': 'application/json'}
-	response = requests.get('http://localhost:12788', headers=headers)
-	j = response.json()
-	if j:
+def _get_metrics():
+	try:
+		headers = {'Accept': 'application/json'}
+		response = requests.get('http://localhost:12788', headers=headers)
+		j = response.json()
 		j = j['cardano']['node']['metrics']
 		blockNum = j.get('blockNum',{}).get('int',{}).get('val',0)
 		epoch = j.get('epoch',{}).get('int',{}).get('val',0)
@@ -693,21 +686,181 @@ def query_metrics():
 		didntAdopt = j.get('Forge',{}).get('didnt-adopt',{}).get('int',{}).get('val',0)
 		forgeAboutToLead = j.get('Forge',{}).get('forge-about-to-lead',{}).get('int',{}).get('val',0)
 		nodeStartTime = j.get('nodeStartTime',{}).get('int',{}).get('val',0)
-		print(f'blockNum: {blockNum}')
-		print(f'epoch: {epoch}')
-		print(f'slotInEpoch: {slotInEpoch}')
-		print(f'slotNum: {slotNum}')
-		print(f'density: {density}')
-		print(f'txsProcessedNum: {txsProcessedNum}')
-		print(f'txsInMempool: {txsInMempool}')
-		print(f'mempoolBytes: {mempoolBytes}')
-		print(f'currentKESPeriod: {currentKESPeriod}')
-		print(f'remainingKESPeriods: {remainingKESPeriods}')
-		print(f'nodeIsLeader: {nodeIsLeader}')
-		print(f'adopted: {adopted}')
-		print(f'didntAdopt: {didntAdopt}')
-		print(f'forgeAboutToLead: {forgeAboutToLead}')
-		print(f'nodeStartTime: {nodeStartTime}')
+	
+		metrics = {
+			'blockNum' : blockNum,
+			'epoch' : epoch,
+			'slotInEpoch' : slotInEpoch,
+			'slotNum' : slotNum,
+			'density' : density,
+			'txsProcessedNum' : txsProcessedNum,
+			'txsInMempool' : txsInMempool,
+			'mempoolBytes' : mempoolBytes,
+			'currentKESPeriod' : currentKESPeriod,
+			'remainingKESPeriods' : remainingKESPeriods,
+			'nodeIsLeader' : nodeIsLeader,
+			'adopted' : adopted,
+			'didntAdopt' : didntAdopt,
+			'forgeAboutToLead' : forgeAboutToLead,
+			'nodeStartTime' : nodeStartTime,
+		}
+		return metrics
+	except Exception as ex:
+		err = str(ex)
+		if 'refused' in err:
+			err = 'metrics service not running'
+		print(err, file=sys.stderr)
+		return {}
+
+def query_metrics():
+	metrics = _get_metrics()
+	if metrics:
+		print(json.dumps(metrics))
+		return True
+	return False
+
+def _get_cpu():
+	o,e = run('uptime')
+	f = o.split('average: ')[1].split(',')
+	return float(f[0])
+ 
+def _get_memory():
+	o,e = run('free')
+	for line in o.split('\n'):
+		if 'Mem' in line:
+			f = line.split()
+			used = int(f[2])
+			total = int(f[1])
+			return used,total
+	return 0,0
+ 
+def _get_disk():
+	o,e = run('df /')
+	f = o.split('\n')[-1].split()
+	used = int(f[2])
+	total = int(f[1])
+	return used, total
+
+def get_network_information():
+	cmd = f'timeout 1 {DIR}/cardano-wallet network information'
+	o,e = run(cmd, 2)
+	if o:
+	    return json.loads(o.strip())
+	return {}
+
+def _get_logs(top=3):
+    o,e = run(f'tail -{top} {DIR}/../logs/cardano-node.log')
+    j = '[%s]' % ','.join(reversed(o.split('\n')))
+    # print(j)
+    js = {}
+    if not e: 
+        try:
+            js = json.loads(j)
+        except:
+            pass
+    return js 
+
+
+def get_services_information():
+    node = {}
+    wallet = {}
+    node['status'] = 0
+    node['cmd'] = ''
+    wallet['status'] = 0
+    wallet['cmd'] = ''
+
+    if os.path.exists(DIR + '/cardano-node'):
+        node['status'] = 2 # stopped
+
+    if os.path.exists(DIR + '/cardano-wallet'):
+        wallet['status'] = 2
+
+    if node['status'] > 0:    
+    
+        o,e = run(r"ps aux")
+        for line in o.split('\n'):
+            if 'cardano-node' in line:
+                f = line.split()
+                if len(f) < 2: continue
+                node['user'] = f[0]
+                node['pid'] = f[1]
+                node['status'] = 1
+                m = re.match(r'.+(cardano-node.+)', line)
+                if m:
+                    node['cmd'] = m.group(1)
+            if 'cardano-wallet' in line:
+                f = line.split()
+                if len(f) < 2: continue
+                wallet['user'] = f[0]
+                wallet['pid'] = f[1]
+                wallet['status'] = 1
+                m = re.match(r'.+(cardano-wallet.+)', line)
+                if m:
+                    wallet['cmd'] = m.group(1)
+    return {'node_service': node, 'wallet_service': wallet}
+
+def query_status():
+	services = get_services_information()
+	# print(services)
+	node_service = services['node_service']
+	wallet_service = services['wallet_service']
+
+	role = ('producer' if 'operational-certificate' in node_service['cmd'] 
+	              else 'relay' if node_service['cmd']
+	              else 'n/a')
+	time_sync = 0
+	node_sync = 0
+	node_status = node_service['status']
+	wallet_status = wallet_service['status']
+	network_time = ''
+	node_time = ''
+	time_diff = 0
+	metrics = 0
+	peers = 0
+
+	if wallet_status == 1: # running
+	    netinfo = get_network_information()
+	    if netinfo:
+	        node_time = netinfo['node_tip']['time']
+	        node_time_d    = datetime.strptime(node_time, '%Y-%m-%dT%H:%M:%SZ')
+	        
+	        if 'network_tip' in netinfo:
+	            network_time = netinfo['network_tip']['time']
+	            network_time_d = datetime.strptime(network_time, '%Y-%m-%dT%H:%M:%SZ')
+	            time_sync = 1
+	            time_diff = (network_time_d - node_time_d).total_seconds()
+	            if time_diff > 60:
+	                time_sync = 2
+	        if netinfo['sync_progress']['status'] == 'ready' :
+	            node_sync = 100
+	        else:
+	            node_sync = netinfo['sync_progress']['progress']['quantity']
+
+	if node_status == 1:
+		metrics = _get_metrics()
+		peers = _get_peers()
+
+	status = {
+	    'cpu': _get_cpu(),
+	    'memory': _get_memory(),
+	    'disk': _get_disk(),
+	    'role': role,      
+	    'node_status': node_status,      
+	    'node_sync': node_sync,    
+	    'node_service': node_service,
+	    'wallet_service': wallet_service,  
+	    'wallet_status': wallet_status,
+	    'time_sync': time_sync,
+	    'network_time': network_time,
+	    'node_time': node_time,
+	    'time_diff': time_diff,
+	    'logs': _get_logs(),
+	    'metrics': metrics,
+	    'peers': peers,
+	}
+	 
+	print(json.dumps(status))
+	return True
 
 
 
@@ -756,6 +909,9 @@ if __name__ == '__main__':
 
 	elif p.command == 'metrics':
 		ok = query_metrics()
+
+	elif p.command == 'status':
+		ok = query_status()
 
 	elif p.command == 'version':
 		ok = query_version()
