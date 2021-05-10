@@ -43,6 +43,8 @@
               :class="{'btn-light': node.has_tools, 'btn-success': !node.has_tools}"
               :disabled="need_sudo || getLoading"
               @click="_installNode">Install</button>
+              <br/>
+              <pre>{{node.tools_version}}</pre>
           </td>
         </tr>
         <template v-if="need_sudo">
@@ -143,12 +145,12 @@
         <tr><td class="title">Peers IN:</td>
           <td class="icon">
             <StatusIcon 
-            :status="Array.isArray(node.peers) && node.peers.filter(x=>x[0]==='IN').length ? 1 : 2"/></td>
+            :status="status.peers_in.length ? 1 : 2"/></td>
           <td class="fill" colspan="2">  
-            <table v-if="Array.isArray(node.peers) && node.peers.length" 
+            <table v-if="status.peers_in.length" 
               class="table table-condensed borderless m-0">   
               <tbody>       
-            <tr v-for="(v,i) in node.peers.filter(x=>x[0]==='IN')"  :key="i">
+            <tr v-for="(v,i) in status.peers_in"  :key="i">
               <td class="p-0">{{v[1]}}</td><td class="fill">{{v[3]}} {{v[4]}}</td>              
             </tr>
             </tbody>
@@ -159,12 +161,12 @@
         <tr><td class="title">Peers OUT:</td>
           <td class="icon">
             <StatusIcon 
-            :status="Array.isArray(node.peers) && node.peers.filter(x=>x[0]==='OUT').length ? 1 : 2"/></td>
+            :status="status.peers_out.length ? 1 : 2"/></td>
           <td class="fill" colspan="2">  
-            <table v-if="Array.isArray(node.peers) && node.peers.length" 
+            <table v-if="status.peers_out.length" 
               class="table table-condensed borderless m-0">   
               <tbody>       
-            <tr v-for="(v,i) in node.peers.filter(x=>x[0]==='OUT')"  :key="i">
+            <tr v-for="(v,i) in status.peers_out"  :key="i">
               <td class="p-0">{{v[1]}}</td><td class="fill">{{v[3]}} {{v[4]}}</td>              
             </tr>
             </tbody>
@@ -398,6 +400,8 @@ export default {
             processed_tx: 0,
             mempool_tx: 0,
             mempool_bytes: 0,
+            peers_in : [],
+            peers_out: [],
           }
         : {
             nodeRole: this.node.status.role.toUpperCase(),
@@ -432,7 +436,9 @@ export default {
             processed_tx: this.node.metrics ? this.node.metrics['txsProcessedNum'] : 0,
             mempool_tx: this.node.metrics ? this.node.metrics['txsInMempool'] : 0,
             mempool_bytes: this.node.metrics ? this.node.metrics['mempoolBytes'] : 0,
-            
+            peers_in : Array.isArray(this.node.peers) && this.node.peers.filter(x=>x[0]==='IN'),
+            peers_out : Array.isArray(this.node.peers) && this.node.peers.filter(x=>x[0]==='OUT'),
+          
           };
     },
     topology_default() {
@@ -441,6 +447,7 @@ export default {
   },
   mounted() {
     this.loadNode(this.node);
+    this.checkVersion(this.node)
 
   },
   methods: {
@@ -457,6 +464,7 @@ export default {
       "serviceAction",
       "changeRole",
       "updateTopology",
+      "checkVersion",
     ]),
 
     disconnect(node) {

@@ -215,7 +215,20 @@ export default {
             commit('workEnd',r, {root: true});
             return r;
         },
-                
+        async checkVersion({commit}, n) {
+            console.log('checking version...');
+            let local = getSettings('version');
+            console.log('local version: ' + local);
+            let remote = '0';
+            let r = await runRemote('cat cardano/bin/version.txt 2>/dev/null');
+            if (r.rc === 0) 
+                remote = r.stdout;            
+            n.tools_version = {}
+            n.tools_version['local'] = local;
+            n.tools_version['remote'] = remote;
+            n.tools_version['need_update'] = remote > local;
+            commit('updateNode', n);
+        },   
     },
 
     mutations: {

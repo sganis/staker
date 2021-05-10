@@ -9,7 +9,7 @@ import {
 } from './ssh'
 import {IPC} from '../common/constants'
 import {settings} from './settings';
-
+const fs = require('fs');
 const path = require('path');
 const os = require('os');
 
@@ -20,6 +20,13 @@ console.log('app.getPath(exe)    :', app.getPath('exe'));
 const appPath = process.env.NODE_ENV !== 'production' 
   ? path.join(app.getAppPath(),'..') 
   : path.join(app.getAppPath(),'../..');
+
+let version_file =  path.join(appPath,'tool','bin','version.txt');
+let version = ''
+if (fs.existsSync(version_file))
+    version = fs.readFileSync(version_file, 'utf8').trim();
+else
+    version = '0'
 
 
 // settings
@@ -44,7 +51,7 @@ settings.set('homedir', homedir);
 settings.set('pkeypath', pkeypath);
 settings.set('isDevelopment', isDevelopment);
 settings.set('appPath', appPath);
-
+settings.set('version', version);
 
 // Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([
