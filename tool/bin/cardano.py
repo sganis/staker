@@ -632,7 +632,7 @@ def _get_peers():
 				city = geo[remote_ip]['city']
 				country = geo[remote_ip]['country']
 				isp = geo[remote_ip]['isp']
-			elif remote_ip.startswith('192.'):
+			elif remote_ip.startswith('192.') or remote_ip.startswith('172.'):
 				city = 'Local'
 			else:
 				ipaddr.append(remote_ip)	
