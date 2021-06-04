@@ -529,7 +529,7 @@ def is_pool_registered():
 
 	poolid = _get_pool_id()
 	if poolid:
-		o,e = run(f'{DIR}/cardano-cli query ledger-state {NETWORK} --mary-era') # | grep publicKey | grep {nodeid}')
+		o,e = run(f'{DIR}/cardano-cli query ledger-state {NETWORK}') # | grep publicKey | grep {nodeid}')
 		for line in o.split('\n'):
 			if 'publicKey' in line and poolid in line:
 				return True

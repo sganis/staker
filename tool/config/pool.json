@@ -1,0 +1,103 @@
+{
+  "name": "Defualt Pool",
+  "selected": true,
+  "id": "8514a1c997ffafd5a5614dbbb603f0b2494f3c4d4d3e6bddc0c154aa",
+  "keys": [
+    {
+      "name": "cold.skey",
+      "order": 0,
+      "mtime": "2021-05-06 17:08:21",
+      "content": "{\n    \"type\": \"StakePoolSigningKey_ed25519\",\n    \"description\": \"Stake Pool Operator Signing Key\",\n    \"cborHex\": \"5820510f7d8f38fb8b7cda5cb50b8e420b6b331790d994595f56f57e55fbf73b6630\"\n}\n",
+      "days": 0
+    },
+    {
+      "name": "cold.vkey",
+      "order": 1,
+      "mtime": "2021-05-06 17:08:21",
+      "content": "{\n    \"type\": \"StakePoolVerificationKey_ed25519\",\n    \"description\": \"Stake Pool Operator Verification Key\",\n    \"cborHex\": \"582014caad44b598a652d1202c6b974d189e1b406a0c3bde18ae15ab8e4dfef10a4c\"\n}\n",
+      "days": 0
+    },
+    {
+      "name": "cold.counter",
+      "order": 2,
+      "mtime": "2021-05-06 17:08:21",
+      "content": "{\n    \"type\": \"NodeOperationalCertificateIssueCounter\",\n    \"description\": \"Next certificate issue number: 3\",\n    \"cborHex\": \"8203582014caad44b598a652d1202c6b974d189e1b406a0c3bde18ae15ab8e4dfef10a4c\"\n}\n",
+      "days": 0
+    },
+    {
+      "name": "vrf.skey",
+      "order": 3,
+      "mtime": "2021-05-06 17:08:21",
+      "content": "{\n    \"type\": \"VrfSigningKey_PraosVRF\",\n    \"description\": \"VRF Signing Key\",\n    \"cborHex\": \"5840550c2f3481092410c0b71f1662387828fd7436a6378092ca9e1b6d9ad0c431cb287a2d04133542353185dcc22a86e1c6d9d51857075176a8d2c111545ceca840\"\n}\n",
+      "days": 0
+    },
+    {
+      "name": "vrf.vkey",
+      "order": 4,
+      "mtime": "2021-05-06 17:08:21",
+      "content": "{\n    \"type\": \"VrfVerificationKey_PraosVRF\",\n    \"description\": \"VRF Verification Key\",\n    \"cborHex\": \"5820287a2d04133542353185dcc22a86e1c6d9d51857075176a8d2c111545ceca840\"\n}\n",
+      "days": 0
+    },
+    {
+      "name": "kes.skey",
+      "order": 5,
+      "mtime": "2021-05-07 07:57:23",
+      "content": "{\n    \"type\": \"KesSigningKey_ed25519_kes_2^6\",\n    \"description\": \"KES Signing Key\",\n    \"cborHex\": \"5902603efbc193e0fd816aa1adf609de67b6966e9ba41a1e7bd33b12ff7625ecfa8ac15c515d37658946f6fe52b44fad4e7e5122cb35f95732853781c5208ee284977b362a54b8ba14778670032a7006d593c3a2678dfa189ea5050a813fecbd6ff2d9a9acb9c8ca6f9ec75826c0cf0b1f5949046f9597cee3c38179daa5048a21990c9ff9451972a3e18c23213b4d371fb782f308a5337a45f496392efeda9766d9c5d185d34cc0c4d90ade5735380aff8e33f98d7bef39c10cb2c4dd73367d4bed2b851df6e3734386b7f86dc4d73fd02ff94963937bb1fa4cda0fde4395a233a823d69d2f8ed7a71f79312ae9a70eba0335505d918a7daa31618978ef5eaaaae7544a2333ca68604e51eb10d835c2aea994718509a5a810ef3856f206b9434ab12d4edafef5d1425fc0a7e89b2bf1d5f04c570992b140ebb5406cbb83090529b955875b2dffa7c095f15fa5a8500b7593777c9d7089f2211147bff46539bdce8df43e9ef5e2ff33719ee47e57459e87ad96044beef84595baa875af4a3dcd9596679b98830839d7745cb8bbc698a273c603e83856f48a652cb836f5ecfac819a5bf49a61f0ef318b7cd9f8fdb67c4171452044ad097568f2dceada70035bc97f49e2088897d5778a1280362a0f68404dad76a397f1b2c876a2c0f0e2079c038c89402614bf61da04e5cca890321000f6de583e9528a257b0c3bc5a1a17d10280d59ba50ea8b25ef098a92d94479a7e38089ecce18d57b52ac0c24f5577dbe4d36ac237f2173f7b6b48095811e2ff00a5faec44754a002b7d6e29c318de5caaab2c60d7e2b1ff25cbf2be679205712d65c9e0b6c99b6f3b737a8a351f20972c5a08a\"\n}\n",
+      "days": 0
+    },
+    {
+      "name": "kes.vkey",
+      "order": 6,
+      "mtime": "2021-05-07 07:57:23",
+      "content": "{\n    \"type\": \"KesVerificationKey_ed25519_kes_2^6\",\n    \"description\": \"KES Verification Key\",\n    \"cborHex\": \"5820737f6553544faa6b42405866c26071d732870227a87ba5cfd7a48d5fabc89783\"\n}\n",
+      "days": 0
+    },
+    {
+      "name": "node.cert",
+      "order": 7,
+      "mtime": "2021-05-06 17:08:21",
+      "content": "{\n    \"type\": \"NodeOperationalCertificate\",\n    \"description\": \"\",\n    \"cborHex\": \"8284582092090a20ce9670f2112a5552f339407ebb69fb1a4768362d18aee0ea6e789f920218c65840c75df4e8c49a220cc6eb97d597e9b8d3b254b5be713ca79e83e46e5c0e4a866bf271fed4d54bfa81702029fc68b7261d14e96c59960ad016d4c4a4ff4fde010b582014caad44b598a652d1202c6b974d189e1b406a0c3bde18ae15ab8e4dfef10a4c\"\n}\n",
+      "days": 0
+    }
+  ],
+  "metadata": {
+    "name": "ChainTrust ADA Pool",
+    "description": "Testing ADA Stake Pool",
+    "ticker": "CTADA",
+    "homepage": "https://chaintrust.com"
+  },
+  "metadata_hash": "50c24e93d920c554551addef7111b5779c23f9b7560b6bab3ee29caa7e20f736",
+  "metadata_url": "https://git.io/JmApG",
+  "params": {
+    "poolParams": {
+      "publicKey": "8514a1c997ffafd5a5614dbbb603f0b2494f3c4d4d3e6bddc0c154aa",
+      "cost": 500000000,
+      "metadata": {
+        "hash": "8d7b4d51ac3e12ee29f60c0c6388ca417c75b237fcfa44b4f55b63fe81f93492",
+        "url": "https://git.io/JmApG"
+      },
+      "owners": [
+        "867f07eded78749dd0cdfac06fe0fa4da4bc189faddfb01efe612501"
+      ],
+      "vrf": "54dab010ef744f5ea1f5ed3a70c8a7458dc000f4b799c01c690a0d2518f7e9a8",
+      "pledge": 2000000000,
+      "margin": 0.05,
+      "rewardAccount": {
+        "network": "Testnet",
+        "credential": {
+          "key hash": "867f07eded78749dd0cdfac06fe0fa4da4bc189faddfb01efe612501"
+        }
+      },
+      "relays": [
+        {
+          "single host name": {
+            "port": 3001,
+            "dnsName": "adapool.chaintrust.com"
+          }
+        }
+      ]
+    },
+    "futurePoolParams": null,
+    "retiring": null
+  }
+}
