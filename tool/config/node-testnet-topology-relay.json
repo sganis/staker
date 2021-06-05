@@ -1,7 +1,7 @@
 {
   "Producers": [
     {
-      "addr": "192.168.100.202",
+      "addr": "producer.chaintrust.com",
       "port": 3001,
       "valency": 1
     },

@@ -56,8 +56,8 @@
   ],
   "defaultScribes": [
     [
-      "StdoutSK",
-      "stdout"
+      "FileSK",
+      "logs/cardano-node.log"
     ]
   ],
   "hasEKG": 12788,
@@ -91,10 +91,9 @@
   ],
   "setupScribes": [
     {
-      "scFormat": "ScText",
-      "scKind": "StdoutSK",
-      "scName": "stdout",
-      "scRotation": null
+      "scFormat": "ScJson",
+      "scKind": "FileSK",
+      "scName": "logs/cardano-node.log",
     }
   ]
 }
