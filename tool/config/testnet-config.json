@@ -93,7 +93,7 @@
     {
       "scFormat": "ScJson",
       "scKind": "FileSK",
-      "scName": "logs/cardano-node.log",
+      "scName": "logs/cardano-node.log"
     }
   ]
 }
