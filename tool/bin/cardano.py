@@ -644,17 +644,21 @@ def _get_peers():
 
 	# get the IP geo location
 	if ipaddr:
-		data = '["' + '","'.join(ipaddr) + '"]'
-		response = requests.post('http://ip-api.com/batch?fields=city,countryCode,isp,query,status', data=data)
-		for j in response.json():
-			if j['status'] == 'success':
-				ip = j['query']
-				geo[ip] = {}
-				geo[ip]['city'] = j['city']
-				geo[ip]['country'] = j['countryCode']
-				geo[ip]['isp'] = j['isp']
-		with open(f'{CONF}/geo.json', 'wt') as w:
-			json.dump(geo, w)
+		print('getting ip location...')
+		try:
+			data = '["' + '","'.join(ipaddr) + '"]'
+			response = requests.post('http://ip-api.com/batch?fields=city,countryCode,isp,query,status', data=data)
+			for j in response.json():
+				if j['status'] == 'success':
+					ip = j['query']
+					geo[ip] = {}
+					geo[ip]['city'] = j['city']
+					geo[ip]['country'] = j['countryCode']
+					geo[ip]['isp'] = j['isp']
+			with open(f'{CONF}/geo.json', 'wt') as w:
+				json.dump(geo, w)
+		except:
+			pass
 
 	return sorted(peers, key=lambda x: (x[0],x[1]))
 
