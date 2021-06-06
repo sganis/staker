@@ -33,18 +33,24 @@
         </tr>
         
         <tr><td class="title">Tools:</td>
-          <td class="icon"><StatusIcon :status="node.has_tools ? 1 : 2"/></td>
+          <td class="icon"><StatusIcon :status="node.has_tools ? 1 : node.tools_version && 
+          node.tools_version.need_update ? 2 : 0"/></td>
           <td class="fill">
+            <div v-if="typeof(node.version) === 'object'" >
             <div v-for="(v,k) in node.version"  :key="k">
                   {{k}}: {{v}}
-            </div></td>
+            </div>
+            </div>
+            </td>
           <td>
-            <button class="btn btn-sm btn-width"
-              :class="{'btn-light': node.has_tools, 'btn-success': !node.has_tools}"
+            <!-- <pre>{{node.tools_version}}</pre> -->
+            <button v-if="node.tools_version && node.tools_version.need_update"
+              class="btn btn-sm btn-width"
+              :class="{'btn-primary': node.has_tools, 'btn-success': !node.has_tools}"
               :disabled="need_sudo || getLoading"
               @click="_installNode">Install</button>
               <br/>
-              <pre>{{node.tools_version}}</pre>
+              <div v-if="node.tools_version && node.tools_version.need_update">Update available</div>
           </td>
         </tr>
         <template v-if="need_sudo">
@@ -135,7 +141,7 @@
         <template v-if="status.nodeRole === 'PRODUCER'">
         <tr><td class="title">Processed TX:</td>
           <td class="icon">
-            <StatusIcon :status="status.procesed_tx > 0 ? 1 : 2"/></td>
+            <StatusIcon :status="status.processed_tx > 0 ? 1 : 2"/></td>
           <td class="fill" colspan="2">  
             TX: {{status.processed_tx}} &nbsp; Mempool TX/Bytes: {{status.mempool_tx}}/{{status.mempool_bytes}} 
           </td>

@@ -113,7 +113,7 @@ export default {
             }
             commit('updateNode', n); 
         },
-        async installNode({commit}, {node, sudo}) {
+        async installNode({commit, dispatch}, {node, sudo}) {
             commit('workStart', 'Installing cardano-node...', {root: true});   
             let r = null;
             let src = null;
@@ -171,8 +171,8 @@ export default {
             
             // cleanup
             await runRemote('rm -rf cardano/upgrade');           
+            await dispatch('checkVersion',node);
             commit('workEnd', r, {root: true});
-            commit('updateNode', node);
             return r;
         },
 
@@ -218,15 +218,17 @@ export default {
         async checkVersion({commit}, n) {
             console.log('checking version...');
             let local = getSettings('version');
-            console.log('local version: ' + local);
+            console.log('local version: ' + local, parseFloat(local));
             let remote = '0';
             let r = await runRemote('cat cardano/bin/version.txt 2>/dev/null');
-            if (r.rc === 0) 
+            if (r.rc === 0) {
                 remote = r.stdout;            
+                console.log('remote version: ' + remote, parseFloat(remote));
+            }
             n.tools_version = {}
             n.tools_version['local'] = local;
             n.tools_version['remote'] = remote;
-            n.tools_version['need_update'] = remote > local;
+            n.tools_version['need_update'] = +local > +remote;
             commit('updateNode', n);
         },   
     },
