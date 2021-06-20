@@ -644,7 +644,6 @@ def _get_peers():
 
 	# get the IP geo location
 	if ipaddr:
-		print('getting ip location...')
 		try:
 			data = '["' + '","'.join(ipaddr) + '"]'
 			response = requests.post('http://ip-api.com/batch?fields=city,countryCode,isp,query,status', data=data)
