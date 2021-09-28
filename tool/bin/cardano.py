@@ -137,32 +137,32 @@ def _get_pool_deposit():
 	return int(js['stakePoolDeposit'])
 
 def address(name):
-	if os.path.exists(f'{KEYDIR}/{name}_paymt.addr'):
+	if os.path.exists(f'{KEYS}/{name}_paymt.addr'):
 		print('already exists, not generating.', file=sys.stderr)
 		return False
 	# print(f'generating payment address...')
 	# make payment keys
 	cmd = f'cardano-cli address key-gen '
-	cmd += f'--verification-key-file {KEYDIR}/{name}_paymt.vkey '
-	cmd += f'--signing-key-file {KEYDIR}/{name}_paymt.skey'
+	cmd += f'--verification-key-file {KEYS}/{name}_paymt.vkey '
+	cmd += f'--signing-key-file {KEYS}/{name}_paymt.skey'
 	run(cmd)
 	# stake key pair
 	cmd = f'cardano-cli stake-address key-gen '
-	cmd +=f'--verification-key-file {KEYDIR}/{name}_stake.vkey '
-	cmd += f'--signing-key-file {KEYDIR}/{name}_stake.skey'
+	cmd +=f'--verification-key-file {KEYS}/{name}_stake.vkey '
+	cmd += f'--signing-key-file {KEYS}/{name}_stake.skey'
 	run(cmd)
 	# payment address
 	cmd = f'cardano-cli address build '
-	cmd += f'--payment-verification-key-file {KEYDIR}/{name}_paymt.vkey '
-	cmd += f'--stake-verification-key-file {KEYDIR}/{name}_stake.vkey '
-	cmd += f'--out-file {KEYDIR}/{name}_paymt.addr {NETWORK}'
+	cmd += f'--payment-verification-key-file {KEYS}/{name}_paymt.vkey '
+	cmd += f'--stake-verification-key-file {KEYS}/{name}_stake.vkey '
+	cmd += f'--out-file {KEYS}/{name}_paymt.addr {NETWORK}'
 	run(cmd)
 	# stake address
 	cmd = 'cardano-cli stake-address build '
 	cmd += f'--stake-verification-key-file {name}_stake.vkey '
 	cmd += f'--out-file {name}_stake.addr {NETWORK}'
 	run(cmd)
-	print(open(f'{KEYDIR}/{name}_paymt.addr').read())
+	print(open(f'{KEYS}/{name}_paymt.addr').read())
 	# print('done.')
 	return True
 
