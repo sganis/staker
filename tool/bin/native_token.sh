@@ -13,6 +13,9 @@ NETWORK="--testnet-magic 1097911063"
 POLICY_DIR=$ROOT/policy
 POLICY_SCRIPT=$ROOT/policy/policy.script
 
+TOKEN_NAME=Peso
+TOKEN_QUANTITY=1000
+
 mkdir -p $POLICY_DIR
 
 # get protocol parameters
@@ -41,8 +44,8 @@ cardano-cli transaction build-raw \
 	--mary-era \
 	--fee 0 \
 	--tx-in $TX_IN \
-	--tx-out $PAY_ADDR+$BALANCE+"1000 $POLICY_ID.Peso" \
-	--mint="1000 $POLICY_ID.Peso" \
+	--tx-out $PAY_ADDR+$BALANCE+"$TOKEN_QUANTITY $POLICY_ID.$TOKEN_NAME" \
+	--mint="$TOKEN_QUANTITY $POLICY_ID.$TOKEN_NAME" \
 	--minting-script-file $POLICY_SCRIPT \
 	--out-file $POLICY_DIR/matx.raw
 
@@ -61,8 +64,8 @@ cardano-cli transaction build-raw \
 	--mary-era \
 	--fee $FEE \
 	--tx-in $TX_IN \
-	--tx-out $PAY_ADDR+$CHANGE+"1000 $POLICY_ID.Peso" \
-	--mint="1000 $POLICY_ID.Peso" \
+	--tx-out $PAY_ADDR+$CHANGE+"$TOKEN_QUANTITY $POLICY_ID.$TOKEN_NAME" \
+	--mint="$TOKEN_QUANTITY $POLICY_ID.$TOKEN_NAME" \
 	--minting-script-file $POLICY_SCRIPT \
 	--out-file $POLICY_DIR/matx.raw
 
