@@ -347,24 +347,7 @@
       </tbody>
     </table>
   
-    <br />
-    <h2>Actions</h2>
-
-    <div class="row">
-      <span>
-        <button
-          v-if="node && node.connected"
-          :node="node"
-          @click="remove(node)"
-          :disabled="getLoading"
-          class="btn btn-danger btn-width"
-        >
-          Remove
-        </button>
-        &nbsp;
-      </span>
-    </div>
-
+    
 
   </div>
 </template>
@@ -477,10 +460,7 @@ export default {
       this.deselectAllNodes();
       this.disconnectNode(node);
     },
-    remove(node) {
-      this.deselectAllNodes();
-      this.removeNode(node);
-    },
+    
     async _installNode() {
       if (!this.sudo_pass) this.need_sudo = true;
       else {
